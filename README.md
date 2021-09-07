@@ -1,4 +1,4 @@
-# SIF Innsynstjeneste
+# K9-sak Innsynstjeneste
 
 ![CI / CD](https://github.com/navikt/k9-sak-innsyn-api/workflows/CI%20/%20CD/badge.svg)
 ![Alerts](https://github.com/navikt/k9-sak-innsyn-api/workflows/Alerts/badge.svg)
