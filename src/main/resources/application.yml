@@ -1,0 +1,92 @@
+no.nav:
+  gateways:
+    k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
+  metrics:
+    interval: 60_000
+
+topic:
+  # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
+  listener:
+    # topic.listener.k9-sak
+    k9-sak:
+      id: k9-sak-listener
+      navn: dusseldorf.privat-k9-sak-innsyn-pleiepenger-sykt-barn
+      bryter: true
+      dry-run: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+
+spring:
+  application:
+    name: # Settes i nais/<cluster>.json
+
+  rest:
+    retry:
+      multiplier: 2
+      initialDelay: 1000
+      maxDelay: 4000
+      maxAttempts: 3
+
+  flyway:
+    baselineOnMigrate: true
+    enabled: true
+    clean-on-validation-error: true
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+  datasource:
+    hikari:
+      connection-test-query: SELECT 1
+      maximum-pool-size: 2
+      connection-timeout: 1000
+    url: jdbc:postgresql://${NAIS_DATABASE_SIF_INNSYN_API_SIF_INNSYN_DB_HOST}:${NAIS_DATABASE_SIF_INNSYN_API_SIF_INNSYN_DB_PORT}/${NAIS_DATABASE_SIF_INNSYN_API_SIF_INNSYN_DB_DATABASE}
+    username: ${NAIS_DATABASE_SIF_INNSYN_API_SIF_INNSYN_DB_USERNAME}
+    password: ${NAIS_DATABASE_SIF_INNSYN_API_SIF_INNSYN_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+kafka:
+  onprem:
+    servers: # overstyres fra nais/<cluster>.json
+    consumer:
+      enable-auto-commit: false
+      group-id: ${spring.application.name}
+      auto-offset-reset:  # overstyres fra nais/<cluster>.json
+      isolation-level: read_committed
+      retry-interval: 60_000 # Egendefinert property
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      schemaRegistryUrl: # overstyres fra nais/<cluster>.json
+
+    producer:
+      client-id: ${HOSTNAME}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      transaction-id-prefix: .tx-
+      retries: 3
+
+  aiven:
+    servers: ${KAFKA_BROKERS}
+    consumer:
+      enable-auto-commit: false
+      group-id: ${spring.application.name}
+      auto-offset-reset: # overstyres fra nais/<cluster>.json
+      isolation-level: read_committed
+      retry-interval: 60_000 # Egendefinert property
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      schemaRegistryUrl: ${KAFKA_SCHEMA_REGISTRY}
+
+    producer:
+      client-id: ${HOSTNAME}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      transaction-id-prefix: .tx-
+      retries: 3

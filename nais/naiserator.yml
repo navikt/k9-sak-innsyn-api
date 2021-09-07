@@ -1,0 +1,70 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: {{app}}
+  namespace: {{namespace}}
+  labels:
+    team: {{team}}
+spec:
+  image: {{ image }}
+  port: 8080
+  azure:
+    application:
+      enabled: true
+      tenant: {{azureTenant}}
+  tokenx:
+    enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: sif-innsyn-api
+    outbound:
+      external:
+        {{#each externalHosts as |host|}}
+        - host: {{host}}
+        {{/each}}
+      rules: []
+  liveness:
+    path: /actuator/health
+    initialDelay: 60
+    timeout: 1
+    periodSeconds: 5
+    failureThreshold: 10
+  readiness:
+    path: /actuator/health
+    initialDelay: 60
+    timeout: 1
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 3072Mi
+    requests:
+      cpu: 250m
+      memory: 1536Mi
+  ingresses:
+  {{#each ingresses as |url|}}
+     - {{url}}
+  {{/each}}
+  replicas:
+    min: {{minReplicas}}
+    max: {{maxReplicas}}
+    cpuThresholdPercentage: 90
+  prometheus:
+    enabled: true
+    path: /actuator/prometheus
+  env:
+  {{#each env}}
+   - name: {{@key}}
+     value: "{{this}}"
+  {{/each}}
+  gcp:
+    sqlInstances:
+      - type: {{ database.type }}
+        tier: {{ database.tier }}
+        diskSize: {{ database.diskSize }}
+        diskAutoresize: {{ database.diskAutoresize }}
+        highAvailability: {{ database.highAvailability }}
+        databases:
+          - name: {{ database.name }}
+  kafka:
+    pool: {{kafkaPool}}

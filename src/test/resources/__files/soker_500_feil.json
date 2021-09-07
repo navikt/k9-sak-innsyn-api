@@ -1,0 +1,15 @@
+{
+  "type": "/problem-details/invalid-request-parameters",
+  "title": "invalid-request-parameters",
+  "status": 500,
+  "detail": "Requesten inneholder ugyldige paramtere.",
+  "instance": "about:blank",
+  "invalid_parameters": [
+    {
+      "type": "entity",
+      "name": "oppslag",
+      "reason": "Feil på oppslag",
+      "invalid_value": null
+    }
+  ]
+}

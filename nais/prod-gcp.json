@@ -1,0 +1,40 @@
+{
+  "app": "k9-sak-innsyn-api",
+  "cluster": "prod-gcp",
+  "namespace": "dusseldorf",
+  "team": "dusseldorf",
+  "minReplicas": "1",
+  "maxReplicas": "2",
+  "ingresses": [
+    "https://k9-sak-innsyn-api.prod-fss-pub.nais.io"
+  ],
+  "externalHosts": [
+    "login.microsoftonline.com",
+    "k9-selvbetjening-oppslag.prod-fss-pub.nais.io",
+    "kafka-schema-registry.nais.adeo.no",
+    "saf.prod-fss-pub.nais.io"
+  ],
+  "database": {
+    "name": "sif-innsyn-db",
+    "type": "POSTGRES_11",
+    "tier": "db-custom-2-7680",
+    "diskSize": "100",
+    "diskAutoresize": "true",
+    "highAvailability": "true"
+  },
+  "azureTenant": "nav.no",
+  "kafkaPool": "nav-prod",
+  "env": {
+    "SERVER_PORT": "8080",
+    "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
+    "SPRING_PROFILES_ACTIVE": "prod-gcp",
+    "KAFKA_ONPREM_SERVERS": "a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443",
+    "KAFKA_ONPREM_CONSUMER_AUTO_OFFSET_RESET": "none",
+    "KAFKA_ONPREM_CONSUMER_SCHEMA_REGISTRY_URL": "https://kafka-schema-registry.nais.adeo.no",
+    "NO_NAV_SECURITY_CORS_ALLOWED_ORIGINS": "https://www.nav.no",
+    "NO_NAV_GATEWAYS_SIF_TILGANGSKONTROLL_BASE_URL": "https://sif-tilgangskontroll.prod-fss-pub.nais.io",
+    "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io"
+  },
+  "slack-channel": "sif-alerts",
+  "slack-notify-type": "<!here> | k9-sak-innsyn-api | "
+}

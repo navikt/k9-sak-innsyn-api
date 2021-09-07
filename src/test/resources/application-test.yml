@@ -1,0 +1,61 @@
+no.nav:
+  gateways:
+    k9-selvbetjening-oppslag: http://localhost:${wiremock.server.port}/k9-selvbetjening-oppslag-mock
+  security:
+    jwt:
+      issuer:
+        tokenx:
+          discoveryurl: http://localhost:${mock-oauth2-server.port}/tokenx/.well-known/openid-configuration
+          accepted_audience: k9-sak-innsyn-api
+  metrics:
+    interval: 36000
+
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:9.6:///
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  flyway:
+    enabled: true
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+
+logging:
+  level:
+    root: INFO
+    state:
+      change:
+        logger: ERROR
+    kafka: ERROR
+    org:
+      apache:
+        zookeeper: ERROR
+        kafka:
+         common:
+           metrics: ERROR
+
+kafka:
+  onprem:
+    servers: localhost:9092 # placeholder
+    consumer:
+      retry-interval: 5_000 # Egendefinert property
+      group-id: k9-sak-innsyn-api-onprem
+      auto-offset-reset: earliest
+      schema-registry-url: mock://localhost
+    producer:
+      client-id: k9-sak-innsyn-api-onprem
+
+  aiven:
+    servers: localhost:9092 # placeholder
+    consumer:
+      retry-interval: 5_000 # Egendefinert property
+      group-id: k9-sak-innsyn-api-aiven
+      auto-offset-reset: earliest
+      schema-registry-url: mock://localhost
+    producer:
+      client-id: k9-sak-innsyn-api-aiven
+
+wiremock:
+  reset-mappings-after-each-test: true
+  server:
+    port: 0 # random port

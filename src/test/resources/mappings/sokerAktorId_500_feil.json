@@ -1,0 +1,27 @@
+{
+  "request": {
+    "urlPattern": "/xxxk9-selvbetjening-oppslag-mock/meg.*",
+    "method": "GET",
+    "headers": {
+      "x-nav-apiKey": {
+        "matches": ".*"
+      },
+      "Authorization": {
+        "matches": ".*"
+      }
+    },
+    "queryParameters": {
+      "a": {
+        "equalTo": "aktør_id"
+      }
+    }
+  },
+  "response": {
+    "status": 500,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "soker_500_feil.json"
+  }
+}
+

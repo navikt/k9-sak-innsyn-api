@@ -1,0 +1,54 @@
+topic:
+  # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
+  listener:
+    k9-sak:
+      bryter: true
+      dry-run: false
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+spring:
+  mvc:
+    log-request-details: false
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+
+kafka:
+  onprem:
+    properties:
+      security:
+        protocol: SASL_SSL
+      sasl:
+        mechanism: PLAIN
+        jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${sts.username}" password="${sts.password}";
+      ssl:
+        trust-store-location: file:${javax.net.ssl.trustStore}
+        trust-store-password: ${javax.net.ssl.trustStorePassword}
+        trust-store-type: JKS
+  aiven:
+    properties:
+      security:
+        protocol: SSL
+      ssl:
+        trust-store-location: file:${KAFKA_TRUSTSTORE_PATH}
+        trust-store-password: ${KAFKA_CREDSTORE_PASSWORD}
+        trust-store-type: JKS
+        key-store-location: file:${KAFKA_KEYSTORE_PATH}
+        key-store-password: ${KAFKA_CREDSTORE_PASSWORD}
+        key-store-type: PKCS12
+
+no.nav:
+  security.jwt:
+    issuer:
+      tokenx:
+        discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
+        accepted_audience: ${TOKEN_X_CLIENT_ID}
+
+  metrics:
+    interval: 3_600_000 # 1 time
