@@ -60,6 +60,7 @@ spec:
   gcp:
     sqlInstances:
       - type: {{ database.type }}
+        name: {{ database.name }}
         tier: {{ database.tier }}
         diskSize: {{ database.diskSize }}
         diskAutoresize: {{ database.diskAutoresize }}
