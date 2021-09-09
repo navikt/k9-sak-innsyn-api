@@ -24,27 +24,27 @@ class OnpremKafkaConfig(
     }
 
     @Bean
-    fun onpremConsumerFactory(): ConsumerFactory<String, Søknad> =
+    fun onpremConsumerFactory(): ConsumerFactory<String, String> =
         CommonKafkaConfig.consumerFactory(kafkaClusterProperties.onprem)
 
     @Bean
-    fun onpremProducerFactory(): ProducerFactory<String, Søknad> =
+    fun onpremProducerFactory(): ProducerFactory<String, String> =
         CommonKafkaConfig.producerFactory(kafkaClusterProperties.onprem)
 
     @Bean
-    fun onpremKafkaTemplate(onpremProducerFactory: ProducerFactory<String, Søknad>) =
+    fun onpremKafkaTemplate(onpremProducerFactory: ProducerFactory<String, String>) =
         CommonKafkaConfig.kafkaTemplate(onpremProducerFactory, kafkaClusterProperties.onprem)
 
     @Bean
-    fun onpremKafkaTransactionManager(onpremProducerFactory: ProducerFactory<String, Søknad>) =
+    fun onpremKafkaTransactionManager(onpremProducerFactory: ProducerFactory<String, String>) =
         CommonKafkaConfig.kafkaTransactionManager(onpremProducerFactory, kafkaClusterProperties.onprem)
 
     @Bean
     fun onpremKafkaJsonListenerContainerFactory(
-        onpremConsumerFactory: ConsumerFactory<String, Søknad>,
-        onpremKafkaTemplate: KafkaTemplate<String, Søknad>,
-        onpremKafkaTransactionManager: KafkaTransactionManager<String, Søknad>,
-    ): ConcurrentKafkaListenerContainerFactory<String, Søknad> = configureConcurrentKafkaListenerContainerFactory(
+        onpremConsumerFactory: ConsumerFactory<String, String>,
+        onpremKafkaTemplate: KafkaTemplate<String, String>,
+        onpremKafkaTransactionManager: KafkaTransactionManager<String, String>,
+    ): ConcurrentKafkaListenerContainerFactory<String, String> = configureConcurrentKafkaListenerContainerFactory(
         clientId = kafkaClusterProperties.aiven.consumer.groupId,
         consumerFactory = onpremConsumerFactory,
         transactionManager = onpremKafkaTransactionManager,

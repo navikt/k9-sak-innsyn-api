@@ -1,17 +1,20 @@
 package no.nav.sifinnsynapi.soknad
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.sifinnsynapi.common.AktørId
+import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
+import no.nav.sifinnsynapi.common.PersonIdentifikator
 import no.nav.sifinnsynapi.http.SøknadNotFoundException
-import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.util.TokenClaims.CLAIM_PID
+import no.nav.sifinnsynapi.util.TokenClaims.CLAIM_SUB
+import no.nav.sifinnsynapi.util.personIdent
 import org.springframework.stereotype.Service
 import java.util.*
+
 
 @Service
 class SøknadService(
     private val repo: SøknadRepository,
-    private val oppslagsService: OppslagsService
+    private val tokenValidationContextHolder: SpringTokenValidationContextHolder
 ) {
 
     companion object {
@@ -20,21 +23,17 @@ class SøknadService(
 
     fun hentSøknader(): List<SøknadDTO> {
 
-        val aktørId = AktørId.valueOf(oppslagsService.hentAktørId()!!.aktør_id)
-
-        return repo.findAllByAktørId(aktørId).map {
-            it.tilSøknadDTO()
-        }
+        return repo.findAllByPersonIdent(personIdent = tokenValidationContextHolder.personIdent())
+            .map { it.tilSøknadDTO() }
     }
 
     fun hentSøknad(søknadId: UUID): SøknadDTO {
-        return repo.findById(søknadId).orElseThrow {
-            SøknadNotFoundException(søknadId.toString())
-        }.tilSøknadDTO()
+        val søknadDAO = repo.findBySøknadId(søknadId) ?: throw SøknadNotFoundException(søknadId.toString())
+        return søknadDAO.tilSøknadDTO()
     }
 
     fun SøknadDAO.tilSøknadDTO() = SøknadDTO(
-        søknadId = id,
+        søknadId = søknadId,
         opprettet = opprettet,
         endret = endret,
         behandlingsdato = behandlingsdato,

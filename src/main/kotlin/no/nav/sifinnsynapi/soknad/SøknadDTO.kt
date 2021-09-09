@@ -17,6 +17,6 @@ data class SøknadDTO @JsonCreator constructor(
         @JsonProperty("behandlingsdato") @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss") val behandlingsdato: LocalDate? = null
 ) {
     override fun toString(): String {
-        return "SøknadDTO()"
+        return "SøknadDTO(søknadId=$søknadId)"
     }
 }

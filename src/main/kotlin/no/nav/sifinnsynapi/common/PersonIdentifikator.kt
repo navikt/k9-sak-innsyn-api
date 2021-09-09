@@ -6,8 +6,8 @@ import com.google.common.base.Strings
 import javax.persistence.Embeddable
 
 @Embeddable
-data class Fødselsnummer(
-        @get:JsonValue var fødselsnummer: String? = null) {
+data class PersonIdentifikator(
+        @get:JsonValue var personIdent: String? = null) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
@@ -19,29 +19,29 @@ data class Fødselsnummer(
         if (javaClass != other.javaClass) {
             return false
         }
-        val obj = other as Fødselsnummer
-        if (fødselsnummer == null) {
-            if (obj.fødselsnummer != null) {
+        val obj = other as PersonIdentifikator
+        if (personIdent == null) {
+            if (obj.personIdent != null) {
                 return false
             }
-        } else if (fødselsnummer != obj.fødselsnummer) {
+        } else if (personIdent != obj.personIdent) {
             return false
         }
         return true
     }
 
     override fun hashCode(): Int {
-        return Objects.hashCode(fødselsnummer)
+        return Objects.hashCode(personIdent)
     }
 
     override fun toString(): String {
-        return javaClass.simpleName + " [fnr=" + mask(fødselsnummer) + "]"
+        return javaClass.simpleName + " [personIdent=" + mask(personIdent) + "]"
     }
 
     companion object {
-        fun valueOf(fnr: String?): Fødselsnummer {
-            val id = Fødselsnummer()
-            id.fødselsnummer = fnr
+        fun valueOf(fnr: String?): PersonIdentifikator {
+            val id = PersonIdentifikator()
+            id.personIdent = fnr
             return id
         }
 

@@ -1,8 +1,11 @@
 package no.nav.sifinnsynapi.soknad
 
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.personopplysninger.Søker
+import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.common.AktørId
+import no.nav.sifinnsynapi.common.PersonIdentifikator
 import org.junit.Assert.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -51,12 +54,13 @@ class SøknadRepositoryTest {
         assertTrue(eksistererSøknad)
     }
 
-    private fun lagSøknadDAO(søknadId: UUID = UUID.randomUUID(), aktørId: String = "123456"): SøknadDAO = SøknadDAO(
+    private fun lagSøknadDAO(søknadId: UUID = UUID.randomUUID(), personIdentifikator: String = "12345678910"): SøknadDAO = SøknadDAO(
         id = UUID.randomUUID(),
         søknadId = søknadId,
-        aktørId = AktørId(aktørId),
+        personIdent = PersonIdentifikator(personIdentifikator),
         søknad = Søknad()
-            .medSøknadId(søknadId.toString()),
+            .medSøknadId(søknadId.toString())
+            .medSøker(Søker(NorskIdentitetsnummer.of(personIdentifikator))),
         opprettet = ZonedDateTime.now()
     )
 }

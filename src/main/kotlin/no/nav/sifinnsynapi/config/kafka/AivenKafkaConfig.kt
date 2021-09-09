@@ -29,25 +29,25 @@ class AivenKafkaConfig(
     }
 
     @Bean
-    fun aivenConsumerFactory(): ConsumerFactory<String, Søknad> = consumerFactory(kafkaClusterProperties.aiven)
+    fun aivenConsumerFactory(): ConsumerFactory<String, String> = consumerFactory(kafkaClusterProperties.aiven)
 
     @Bean
-    fun aivenProducerFactory(): ProducerFactory<String, Søknad> = producerFactory(kafkaClusterProperties.aiven)
+    fun aivenProducerFactory(): ProducerFactory<String, String> = producerFactory(kafkaClusterProperties.aiven)
 
     @Bean
-    fun aivenKafkaTemplate(aivenProducerFactory: ProducerFactory<String, Søknad>) =
+    fun aivenKafkaTemplate(aivenProducerFactory: ProducerFactory<String, String>) =
         kafkaTemplate(aivenProducerFactory, kafkaClusterProperties.aiven)
 
     @Bean
-    fun aivenKafkaTransactionManager(aivenProducerFactory: ProducerFactory<String, Søknad>) =
+    fun aivenKafkaTransactionManager(aivenProducerFactory: ProducerFactory<String, String>) =
         kafkaTransactionManager(aivenProducerFactory, kafkaClusterProperties.aiven)
 
     @Bean
     fun aivenKafkaJsonListenerContainerFactory(
-        aivenConsumerFactory: ConsumerFactory<String, Søknad>,
-        aivenKafkaTemplate: KafkaTemplate<String, Søknad>,
-        aivenKafkaTransactionManager: KafkaTransactionManager<String, Søknad>
-    ): ConcurrentKafkaListenerContainerFactory<String, Søknad> = configureConcurrentKafkaListenerContainerFactory(
+        aivenConsumerFactory: ConsumerFactory<String, String>,
+        aivenKafkaTemplate: KafkaTemplate<String, String>,
+        aivenKafkaTransactionManager: KafkaTransactionManager<String, String>
+    ): ConcurrentKafkaListenerContainerFactory<String, String> = configureConcurrentKafkaListenerContainerFactory(
         clientId = kafkaClusterProperties.aiven.consumer.groupId,
         consumerFactory = aivenConsumerFactory,
         kafkaTemplate = aivenKafkaTemplate,

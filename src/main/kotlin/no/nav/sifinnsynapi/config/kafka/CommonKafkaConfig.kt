@@ -54,7 +54,7 @@ class CommonKafkaConfig {
             }
         }
 
-        fun consumerFactory(kafkaConfigProps: KafkaConfigProperties): ConsumerFactory<String, Søknad> {
+        fun consumerFactory(kafkaConfigProps: KafkaConfigProperties): ConsumerFactory<String, String> {
             val consumerProps = kafkaConfigProps.consumer
             return DefaultKafkaConsumerFactory(
                 mutableMapOf<String, Any>(
@@ -68,9 +68,9 @@ class CommonKafkaConfig {
             )
         }
 
-        fun producerFactory(kafkaConfigProps: KafkaConfigProperties): ProducerFactory<String, Søknad> {
+        fun producerFactory(kafkaConfigProps: KafkaConfigProperties): ProducerFactory<String, String> {
             val producerProps = kafkaConfigProps.producer
-            val factory = DefaultKafkaProducerFactory<String, Søknad>(
+            val factory = DefaultKafkaProducerFactory<String, String>(
                 mutableMapOf<String, Any>(
                     ProducerConfig.CLIENT_ID_CONFIG to producerProps.clientId,
                     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to producerProps.keySerializer,
@@ -83,13 +83,13 @@ class CommonKafkaConfig {
             return factory
         }
 
-        fun kafkaTemplate(producerFactory: ProducerFactory<String, Søknad>, kafkaConfigProps: KafkaConfigProperties) =
+        fun kafkaTemplate(producerFactory: ProducerFactory<String, String>, kafkaConfigProps: KafkaConfigProperties) =
             KafkaTemplate(producerFactory).apply {
                 setTransactionIdPrefix(kafkaConfigProps.producer.transactionIdPrefix)
             }
 
         fun kafkaTransactionManager(
-            producerFactory: ProducerFactory<String, Søknad>,
+            producerFactory: ProducerFactory<String, String>,
             kafkaConfigProps: KafkaConfigProperties
         ) =
             KafkaTransactionManager(producerFactory).apply {
@@ -98,15 +98,15 @@ class CommonKafkaConfig {
 
         fun configureConcurrentKafkaListenerContainerFactory(
             clientId: String,
-            consumerFactory: ConsumerFactory<String, Søknad>,
+            consumerFactory: ConsumerFactory<String, String>,
             retryInterval: Long,
             transactionManager: PlatformTransactionManager,
-            kafkaTemplate: KafkaTemplate<String, Søknad>,
+            kafkaTemplate: KafkaTemplate<String, String>,
             objectMapper: ObjectMapper,
             søknadRepository: SøknadRepository,
             logger: Logger
-        ): ConcurrentKafkaListenerContainerFactory<String, Søknad> {
-            val factory = ConcurrentKafkaListenerContainerFactory<String, Søknad>()
+        ): ConcurrentKafkaListenerContainerFactory<String, String> {
+            val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
 
             factory.consumerFactory = consumerFactory
 
@@ -125,7 +125,7 @@ class CommonKafkaConfig {
 
                 if (antallForsøk > 1) logger.warn("Konsumering av ${it.topic()}-${it.partition()} med offset ${it.offset()} feilet første gang. Prøver for $antallForsøk gang.")
 
-                val søknad = it.value()
+                val søknad = Søknad.SerDes.deserialize(it.value())
                 val søknadId = søknad.søknadId
 
                 MDCUtil.toMDC(Constants.SØKNAD_ID, søknadId)
@@ -165,7 +165,7 @@ class CommonKafkaConfig {
         }
 
         private fun defaultAfterRollbackProsessor(logger: Logger, retryInterval: Long) =
-            DefaultAfterRollbackProcessor<String, Søknad>(
+            DefaultAfterRollbackProcessor<String, String>(
                 defaultRecoverer(logger), FixedBackOff(retryInterval, Long.MAX_VALUE)
             ).apply {
                 setClassifications(mapOf(), true)

@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.soknad
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.common.AktørId
+import no.nav.sifinnsynapi.common.PersonIdentifikator
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import org.hibernate.annotations.TypeDefs
@@ -21,7 +22,7 @@ import javax.persistence.*
 data class SøknadDAO(
     @Column(name = "id") @Id @Type(type = "pg-uuid") val id: UUID = UUID.randomUUID(),
     @Column(name = "søknad_id") @Type(type = "pg-uuid") val søknadId: UUID,
-    @Column(name = "aktør_id") @Embedded val aktørId: AktørId,
+    @Column(name = "person_ident") @Embedded val personIdent: PersonIdentifikator,
     @Column(name = "søknad", columnDefinition = "jsonb") @Type(type = "jsonb") val søknad: Søknad,
     @Column(name = "opprettet") @CreatedDate val opprettet: ZonedDateTime? = null,
     @Column(name = "endret") @UpdateTimestamp val endret: LocalDateTime? = null,

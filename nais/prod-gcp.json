@@ -6,13 +6,11 @@
   "minReplicas": "1",
   "maxReplicas": "2",
   "ingresses": [
-    "https://k9-sak-innsyn-api.prod-fss-pub.nais.io"
+    "https://k9-sak-innsyn-api.nav.no"
   ],
   "externalHosts": [
     "login.microsoftonline.com",
-    "k9-selvbetjening-oppslag.prod-fss-pub.nais.io",
-    "kafka-schema-registry.nais.adeo.no",
-    "saf.prod-fss-pub.nais.io"
+    "k9-selvbetjening-oppslag.prod-fss-pub.nais.io"
   ],
   "database": {
     "name": "sif-innsyn-db",
@@ -32,7 +30,7 @@
     "KAFKA_ONPREM_CONSUMER_AUTO_OFFSET_RESET": "none",
     "KAFKA_ONPREM_CONSUMER_SCHEMA_REGISTRY_URL": "https://kafka-schema-registry.nais.adeo.no",
     "NO_NAV_SECURITY_CORS_ALLOWED_ORIGINS": "https://www.nav.no",
-    "NO_NAV_GATEWAYS_SIF_TILGANGSKONTROLL_BASE_URL": "https://sif-tilgangskontroll.prod-fss-pub.nais.io",
+    "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "https://k9-selvbetjening-oppslag.prod-fss-pub.nais.io",
     "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io"
   },
   "slack-channel": "sif-alerts",
