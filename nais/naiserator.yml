@@ -61,7 +61,6 @@ spec:
     sqlInstances:
       - type: {{ database.type }}
         tier: {{ database.tier }}
-        cascadingDelete: true
         diskSize: {{ database.diskSize }}
         diskAutoresize: {{ database.diskAutoresize }}
         highAvailability: {{ database.highAvailability }}
