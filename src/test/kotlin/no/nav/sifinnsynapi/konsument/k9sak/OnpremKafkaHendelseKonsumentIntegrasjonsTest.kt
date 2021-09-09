@@ -39,7 +39,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.concurrent.TimeUnit
 
-@EmbeddedKafka( // Setter opp og tilgjengligjør embeded kafka broker
+@EmbeddedKafka( // Setter opp og tilgjengligjør embeded kafka broker.
     count = 3,
     bootstrapServersProperty = "kafka.aiven.servers", // Setter bootstrap-servers for consumer og producer.
     topics = [K9_SAK_TOPIC]
