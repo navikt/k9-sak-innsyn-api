@@ -5,7 +5,6 @@ object Constants {
     const val NAV_CONSUMER_ID = "Nav-Consumer-Id"
     const val CORRELATION_ID = "correlation_id"
     const val SØKNAD_ID = "soknad_id"
-    const val JOURNALPOST_ID = "journalpost_id"
     const val CALL_ID = "callId"
     const val X_CORRELATION_ID = "X-Correlation-ID"
 }
