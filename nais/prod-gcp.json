@@ -13,7 +13,7 @@
     "k9-selvbetjening-oppslag.prod-fss-pub.nais.io"
   ],
   "database": {
-    "name": "k9-sak-innsyn-db",
+    "name": "k9-sak-innsyn-api-db",
     "type": "POSTGRES_11",
     "tier": "db-custom-2-7680",
     "diskSize": "100",
