@@ -20,6 +20,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.Tilsynsordning
 import java.time.Duration
+import java.time.LocalDate
 
 
 fun komplettYtelse(periode: Periode): PleiepengerSyktBarn {
@@ -27,38 +28,22 @@ fun komplettYtelse(periode: Periode): PleiepengerSyktBarn {
 }
 
 fun komplettYtelse(periodeList: List<Periode>): PleiepengerSyktBarn {
-    val barn = Barn(NorskIdentitetsnummer.of("22211111111"), null)
+    val barn = Barn(NorskIdentitetsnummer.of("22222222222"), null)
     val omsorg = Omsorg().medRelasjonTilBarnet(Omsorg.BarnRelasjon.MOR)
-    val søknadInfo = DataBruktTilUtledning(
-        true, true,
-        false, false, true
-    )
-    val infoFraPunsj = InfoFraPunsj()
-        .medSøknadenInneholderInfomasjonSomIkkeKanPunsjes(false)
-    val uttak = lagUttak(periodeList)
-    val nattevåk = lagNattevåk(periodeList)
-    val beredskap = lagBeredskap(periodeList)
-    val tilsynsordning = lagTilsynsordning(periodeList)
-    val lovbestemtFerie = lagLovbestemtFerie(periodeList)
-    val bosteder = lagBosteder(periodeList)
-    val utenlandsopphold = lagUtenlandsopphold(periodeList)
+    val søknadInfo = DataBruktTilUtledning(true, true, false, false, true)
+    val infoFraPunsj = InfoFraPunsj().medSøknadenInneholderInfomasjonSomIkkeKanPunsjes(false)
+    val tilsynsordning = lagTilsynsordning()
     val arbeidstaker = lagArbeidstaker(periodeList)
     val arbeidstid = Arbeidstid().medArbeidstaker(listOf(arbeidstaker))
-    
+
     return PleiepengerSyktBarn()
         .medSøknadsperiode(periodeList)
         .medSøknadInfo(søknadInfo)
         .medInfoFraPunsj(infoFraPunsj)
         .medBarn(barn)
-        .medBeredskap(beredskap)
-        .medNattevåk(nattevåk)
         .medTilsynsordning(tilsynsordning)
         .medArbeidstid(arbeidstid)
-        .medUttak(uttak)
-        .medUtenlandsopphold(utenlandsopphold)
         .medOmsorg(omsorg)
-        .medLovbestemtFerie(lovbestemtFerie)
-        .medBosteder(bosteder)
 }
 
 fun lagUtenlandsopphold(periodeList: List<Periode>): Utenlandsopphold {
@@ -85,10 +70,34 @@ fun lagLovbestemtFerie(periodeList: List<Periode>): LovbestemtFerie {
     )
 }
 
-fun lagTilsynsordning(periodeList: List<Periode>): Tilsynsordning {
-    val tilsynPeriodeInfo = TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(7).plusMinutes(30))
+fun lagTilsynsordning(): Tilsynsordning {
     return Tilsynsordning().medPerioder(
-        lagPerioder(periodeList, tilsynPeriodeInfo)
+        mapOf(
+            Periode(
+                LocalDate.parse("2021-08-12"),
+                LocalDate.parse("2021-08-13")
+            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                Duration.ofHours(2)
+            ),
+            Periode(
+                LocalDate.parse("2021-09-01"),
+                LocalDate.parse("2021-09-15")
+            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                Duration.ofHours(7).plusMinutes(30)
+            ),
+            Periode(
+                LocalDate.parse("2021-10-01"),
+                LocalDate.parse("2021-10-15")
+            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                Duration.ofHours(4)
+            ),
+            Periode(
+                LocalDate.parse("2021-11-01"),
+                LocalDate.parse("2021-11-15")
+            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                Duration.ofHours(7).plusMinutes(30)
+            )
+        )
     )
 }
 
@@ -108,7 +117,7 @@ fun lagBeredskap(periodeList: List<Periode>): Beredskap {
 
 fun lagArbeidstaker(periodeList: List<Periode>): Arbeidstaker {
     val arbeidstidPeriodeInfo =
-        ArbeidstidPeriodeInfo(Duration.ofHours(7).plusMinutes(30), Duration.ofHours(7).plusMinutes(30))
+        ArbeidstidPeriodeInfo(Duration.ofHours(7).plusMinutes(30), Duration.ofHours(3))
     return Arbeidstaker(
         null, Organisasjonsnummer.of("999999999"),
         ArbeidstidInfo(

@@ -24,11 +24,9 @@ class SøknadController(
     @GetMapping(SØKNAD, produces = [MediaType.APPLICATION_JSON_VALUE])
     @Protected
     @ResponseStatus(OK)
-    fun hentSøknader(): List<SøknadDTO> {
-        logger.info("Forsøker å hente søknader...")
-        val søknader = søknadService.hentSøknader()
-        logger.info("Fant {} søknader", søknader.size)
-        return søknader
+    fun hentSøknader(): SøknadDTO? {
+        logger.info("Forsøker å hente søknadsopplynsinger...")
+        return søknadService.hentSøknadsopplysninger()
     }
 
     @GetMapping("$SØKNAD/{søknadId}", produces = [MediaType.APPLICATION_JSON_VALUE])
