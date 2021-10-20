@@ -61,7 +61,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            søknadService.hentSøknader()
+            søknadService.hentSøknadsopplysninger()
         } throws Exception("Ooops, noe gikk galt...")
 
         mockMvc.perform(
@@ -79,7 +79,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details i header`() {
         every {
-            søknadService.hentSøknader()
+            søknadService.hentSøknadsopplysninger()
         } throws Exception("Ooops, noe gikk galt...")
 
         mockMvc.perform(
@@ -103,14 +103,13 @@ class SøknadControllerTest {
     @Test
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
         every {
-            søknadService.hentSøknader()
-        } returns listOf(
-            SøknadDTO(
-                søknadId = UUID.randomUUID(),
-                opprettet = ZonedDateTime.parse("2020-08-04T10:30:00Z").withZoneSameInstant(ZoneId.of("UTC")),
-                søknad = Søknad()
-            )
+            søknadService.hentSøknadsopplysninger()
+        } returns SøknadDTO(
+            søknadId = UUID.randomUUID(),
+            opprettet = ZonedDateTime.parse("2020-08-04T10:30:00Z").withZoneSameInstant(ZoneId.of("UTC")),
+            søknad = Søknad()
         )
+
 
         mockMvc.perform(
             MockMvcRequestBuilders
@@ -120,13 +119,13 @@ class SøknadControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("[0].søknadId").exists())
-            .andExpect(jsonPath("[0].søknadId").isString)
-            .andExpect(jsonPath("[0].opprettet").isString)
-            .andExpect(jsonPath("[0].opprettet").value("2020-08-04T10:30:00.000Z"))
-            .andExpect(jsonPath("[0].endret").doesNotExist())
-            .andExpect(jsonPath("[0].behandlingsdato").doesNotExist())
-            .andExpect(jsonPath("[0].søknad").isMap)
+            .andExpect(jsonPath("$.søknadId").exists())
+            .andExpect(jsonPath("$.søknadId").isString)
+            .andExpect(jsonPath("$.opprettet").isString)
+            .andExpect(jsonPath("$.opprettet").value("2020-08-04T10:30:00.000Z"))
+            .andExpect(jsonPath("$.endret").doesNotExist())
+            .andExpect(jsonPath("$.behandlingsdato").doesNotExist())
+            .andExpect(jsonPath("$.søknad").isMap)
     }
 
     @Test

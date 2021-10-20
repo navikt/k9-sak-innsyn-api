@@ -41,10 +41,29 @@ class SøknadService(
         private val mapper = ObjectMapper()
     }
 
-    fun hentSøknader(): List<SøknadDTO> {
+    fun hentSøknadsopplysninger(): SøknadDTO {
 
-        return repo.findAllByPersonIdent(personIdent = tokenValidationContextHolder.personIdent())
-            .map { it.tilSøknadDTO() }
+        val søknadId = UUID.randomUUID()
+        val søknad = Søknad()
+            .medSøknadId(søknadId.toString())
+            .medSøker(Søker(NorskIdentitetsnummer.of(tokenValidationContextHolder.personIdent().personIdent)))
+            .medJournalpost(Journalpost().medJournalpostId("123456789"))
+            .medSpråk(Språk.NORSK_BOKMÅL)
+            .medMottattDato(ZonedDateTime.now())
+            .medVersjon(Versjon.of("1.0"))
+            .medYtelse(
+                komplettYtelse(Periode(LocalDate.parse("2021-08-12"), LocalDate.parse("2022-01-12")))
+            )
+        check(PleiepengerSyktBarnSøknadValidator().valider(søknad).isNotEmpty()) { "Mocking av søknadsopplysninger feilet validering" }
+        return SøknadDTO(
+            søknadId = søknadId,
+            søknad = søknad,
+            opprettet = null,
+            endret = null,
+            behandlingsdato = null
+        )
+        /*return repo.findAllByPersonIdent(personIdent = tokenValidationContextHolder.personIdent())
+            .map { it.tilSøknadDTO() }*/
     }
 
     fun hentSøknad(søknadId: UUID): SøknadDTO {
