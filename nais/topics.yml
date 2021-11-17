@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: privat-k9-sak-innsyn-pleiepenger-sykt-barn
+  name: privat-k9-sak-innsyn
   namespace: dusseldorf
   labels:
     team: dusseldorf

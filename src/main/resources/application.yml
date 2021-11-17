@@ -10,7 +10,7 @@ topic:
     # topic.listener.k9-sak
     k9-sak:
       id: k9-sak-listener
-      navn: dusseldorf.privat-k9-sak-innsyn-pleiepenger-sykt-barn
+      navn: dusseldorf.privat-k9-sak-innsyn
       bryter: true
       dry-run: false
 
