@@ -1,10 +1,11 @@
 package no.nav.sifinnsynapi.konsument.k9sak
 
-import no.nav.k9.søknad.Søknad
-import no.nav.sifinnsynapi.common.PersonIdentifikator
+import no.nav.k9.innsyn.InnsynHendelse
+import no.nav.k9.innsyn.PsbSøknadsinnhold
+import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.soknad.SøknadDAO
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -12,8 +13,8 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
-import java.util.*
 
 @Service
 class K9SakHendelseKonsument(
@@ -35,17 +36,27 @@ class K9SakHendelseKonsument(
         autoStartup = "#{'\${topic.listener.k9-sak.bryter}'}"
     )
     fun konsumer(
-        @Payload søknad: Søknad
+        @Payload innsynHendelseJson: String
     ) {
-        logger.info("Mottatt hendelse fra k9-sak: {}", Søknad.SerDes.serialize(søknad))
+        logger.info("Mapper om innsynhendelse...")
+        val innsynHendelse = JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+        val innsynPsbSøknadHendelse: InnsynHendelse<PsbSøknadsinnhold> = when (innsynHendelse) {
+            is PsbSøknadsinnhold -> innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
+            else -> throw IllegalStateException("Ukjent data type på InnsynHendelse.")
+        }
+        logger.info("Innsynhendelse mappet.")
 
-        val søknadDAO = SøknadDAO(
-            søknadId = UUID.fromString(søknad.søknadId.id),
-            personIdent = PersonIdentifikator(søknad.søker.personIdent.verdi),
-            søknad = søknad,
-            opprettet = ZonedDateTime.now()
-        )
-
-        repository.save(søknadDAO)
+        logger.info("Lagrer innsynhendelse...")
+        repository.save(innsynPsbSøknadHendelse.somPsbSøknadDAO())
+        logger.info("Innsynhendelse lagret.")
     }
 }
+
+private fun InnsynHendelse<PsbSøknadsinnhold>.somPsbSøknadDAO() = PsbSøknadDAO(
+    journalpostId = data.journalpostId,
+    søkerAktørId = data.søkerAktørId,
+    pleietrengendeAktørId = data.pleietrengendeAktørId,
+    søknad = JsonUtils.toString(data.søknad),
+    opprettetDato = ZonedDateTime.now(UTC),
+    oppdatertDato = oppdateringstidspunkt
+)

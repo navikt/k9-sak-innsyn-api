@@ -7,10 +7,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
+import java.util.stream.Stream
 
 @RestController
 @ProtectedWithClaims(issuer = "tokenx")
@@ -27,14 +26,6 @@ class SøknadController(
     fun hentSøknader(): SøknadDTO? {
         logger.info("Forsøker å hente søknadsopplynsinger...")
         return søknadService.hentSøknadsopplysninger()
-    }
-
-    @GetMapping("$SØKNAD/{søknadId}", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Protected
-    @ResponseStatus(OK)
-    fun hentSøknad(@PathVariable søknadId: UUID): SøknadDTO {
-        logger.info("Forsøker å hente søknad med id : {}...", søknadId)
-        return søknadService.hentSøknad(søknadId)
     }
 
     @GetMapping("$SØKNAD/testdata", produces = [MediaType.APPLICATION_JSON_VALUE])

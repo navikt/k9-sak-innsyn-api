@@ -22,7 +22,7 @@ val springfoxVersion by extra("3.0.0")
 val confluentVersion by extra("5.5.0")
 val logstashLogbackEncoderVersion by extra("6.6")
 val tokenSupportVersion by extra("1.3.8")
-val k9FormatVersion by extra("5.4.14")
+val k9FormatVersion by extra("5.5.12")
 val springCloudVersion by extra("2020.0.3")
 val retryVersion by extra("1.3.0")
 val zalandoVersion by extra("0.26.2")
@@ -60,6 +60,7 @@ dependencies {
 
     // NAV
     implementation("no.nav.k9:soknad:$k9FormatVersion")
+    implementation("no.nav.k9:innsyn:$k9FormatVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")

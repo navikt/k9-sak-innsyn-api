@@ -1,7 +1,5 @@
 package no.nav.sifinnsynapi.config.kafka
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.config.kafka.CommonKafkaConfig.Companion.configureConcurrentKafkaListenerContainerFactory
 import no.nav.sifinnsynapi.soknad.SøknadRepository
 import org.slf4j.LoggerFactory
@@ -14,7 +12,6 @@ import org.springframework.kafka.transaction.KafkaTransactionManager
 
 @Configuration
 class OnpremKafkaConfig(
-    private val objectMapper: ObjectMapper,
     private val søknadRepository: SøknadRepository,
     private val kafkaClusterProperties: KafkaClusterProperties,
 ) {
@@ -50,7 +47,6 @@ class OnpremKafkaConfig(
         transactionManager = onpremKafkaTransactionManager,
         kafkaTemplate = onpremKafkaTemplate,
         retryInterval = kafkaClusterProperties.aiven.consumer.retryInterval,
-        objectMapper = objectMapper,
         søknadRepository = søknadRepository,
         logger = logger
     )

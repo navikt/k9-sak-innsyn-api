@@ -28,46 +28,22 @@ fun komplettYtelse(periode: Periode): PleiepengerSyktBarn {
 }
 
 fun komplettYtelse(periodeList: List<Periode>): PleiepengerSyktBarn {
-    val barn = Barn(NorskIdentitetsnummer.of("22222222222"), null)
+    val barn = Barn().medNorskIdentitetsnummer(NorskIdentitetsnummer.of("22222222222"))
     val omsorg = Omsorg().medRelasjonTilBarnet(Omsorg.BarnRelasjon.MOR)
     val søknadInfo = DataBruktTilUtledning(true, true, false, false, true)
-    val infoFraPunsj = InfoFraPunsj().medSøknadenInneholderInfomasjonSomIkkeKanPunsjes(false)
     val tilsynsordning = lagTilsynsordning()
     val arbeidstaker = lagArbeidstaker(periodeList)
+    val uttak = lagUttak(periodeList)
     val arbeidstid = Arbeidstid().medArbeidstaker(listOf(arbeidstaker))
 
     return PleiepengerSyktBarn()
         .medSøknadsperiode(periodeList)
         .medSøknadInfo(søknadInfo)
-        .medInfoFraPunsj(infoFraPunsj)
         .medBarn(barn)
         .medTilsynsordning(tilsynsordning)
         .medArbeidstid(arbeidstid)
+        .medUttak(uttak)
         .medOmsorg(omsorg)
-}
-
-fun lagUtenlandsopphold(periodeList: List<Periode>): Utenlandsopphold {
-    val utenlandsoppholdPeriodeInfo = UtenlandsoppholdPeriodeInfo()
-        .medLand(Landkode.FINLAND)
-        .medÅrsak(Utenlandsopphold.UtenlandsoppholdÅrsak.BARNET_INNLAGT_I_HELSEINSTITUSJON_FOR_NORSK_OFFENTLIG_REGNING)
-    return Utenlandsopphold().medPerioder(
-        lagPerioder(periodeList, utenlandsoppholdPeriodeInfo)
-    )
-}
-
-fun lagBosteder(periodeList: List<Periode>): Bosteder {
-    val bostedPeriodeInfo = BostedPeriodeInfo()
-        .medLand(Landkode.NORGE)
-    return Bosteder().medPerioder(
-        lagPerioder(periodeList, bostedPeriodeInfo)
-    )
-}
-
-fun lagLovbestemtFerie(periodeList: List<Periode>): LovbestemtFerie {
-    val lovbestemtFeriePeriodeInfo = LovbestemtFeriePeriodeInfo()
-    return LovbestemtFerie().medPerioder(
-        lagPerioder(periodeList, lovbestemtFeriePeriodeInfo)
-    )
 }
 
 fun lagTilsynsordning(): Tilsynsordning {
@@ -101,33 +77,21 @@ fun lagTilsynsordning(): Tilsynsordning {
     )
 }
 
-fun lagNattevåk(periodeList: List<Periode>): Nattevåk {
-    val nattevåkPeriodeInfo = NattevåkPeriodeInfo().medTilleggsinformasjon("")
-    return Nattevåk().medPerioder(
-        lagPerioder(periodeList, nattevåkPeriodeInfo)
-    )
-}
-
-fun lagBeredskap(periodeList: List<Periode>): Beredskap {
-    val beredskapPeriodeInfo = BeredskapPeriodeInfo().medTilleggsinformasjon("")
-    return Beredskap().medPerioder(
-        lagPerioder(periodeList, beredskapPeriodeInfo)
-    )
-}
-
 fun lagArbeidstaker(periodeList: List<Periode>): Arbeidstaker {
     val arbeidstidPeriodeInfo =
-        ArbeidstidPeriodeInfo(Duration.ofHours(7).plusMinutes(30), Duration.ofHours(3))
-    return Arbeidstaker(
-        null, Organisasjonsnummer.of("999999999"),
-        ArbeidstidInfo(
-            lagPerioder(periodeList, arbeidstidPeriodeInfo)
+        ArbeidstidPeriodeInfo()
+            .medJobberNormaltTimerPerDag(Duration.ofHours(7).plusMinutes(30))
+            .medFaktiskArbeidTimerPerDag(Duration.ofHours(3))
+    return Arbeidstaker()
+        .medOrganisasjonsnummer(Organisasjonsnummer.of("999999999"))
+        .medArbeidstidInfo(
+            ArbeidstidInfo()
+                .medPerioder(lagPerioder(periodeList, arbeidstidPeriodeInfo))
         )
-    )
 }
 
 fun lagUttak(periodeList: List<Periode>): Uttak {
-    val uttakPeriodeInfo = UttakPeriodeInfo(Duration.ofHours(7).plusMinutes(30))
+    val uttakPeriodeInfo = Uttak.UttakPeriodeInfo(Duration.ofHours(7).plusMinutes(30))
     return Uttak().medPerioder(lagPerioder(periodeList, uttakPeriodeInfo))
 }
 

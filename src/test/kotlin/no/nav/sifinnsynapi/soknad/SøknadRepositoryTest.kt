@@ -1,11 +1,11 @@
 package no.nav.sifinnsynapi.soknad
 
+import assertk.assertions.isEqualTo
+import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.common.AktørId
-import no.nav.sifinnsynapi.common.PersonIdentifikator
 import org.junit.Assert.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.stream.IntStream
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -45,22 +46,41 @@ class SøknadRepositoryTest {
     }
 
     @Test
-    fun `Sjekke om søknad eksisterer ved bruk av søknadId`() {
-        val søknadDAO = lagSøknadDAO()
-        repository.save(søknadDAO)
-
-        val eksistererSøknad = repository.existsBySøknadId(søknadDAO.søknadId)
-
-        assertTrue(eksistererSøknad)
+    fun `happy case`() {
+        assertNotNull(repository.save(lagSøknadDAO()))
     }
 
-    private fun lagSøknadDAO(søknadId: UUID = UUID.randomUUID(), personIdentifikator: String = "12345678910"): SøknadDAO = SøknadDAO(
-        id = UUID.randomUUID(),
-        søknadId = søknadId,
-        personIdent = PersonIdentifikator(personIdentifikator),
-        søknad = Søknad()
-            .medSøknadId(søknadId.toString())
-            .medSøker(Søker(NorskIdentitetsnummer.of(personIdentifikator))),
-        opprettet = ZonedDateTime.now()
+    @Test
+    fun `hent alle søknader som stream`() {
+        assertNotNull(repository.save(lagSøknadDAO()))
+        assertk.assertThat(repository.hentAlleSøknader().count()).isEqualTo(1)
+    }
+
+    @Test
+    fun `hent 1000 søknader som en strøm`() {
+        IntStream.range(0, 1000).forEach {
+            repository.save(lagSøknadDAO(journalpostId = it.toString()))
+        }
+        repository.hentAlleSøknader().use {
+            assertk.assertThat(it.count()).isEqualTo(1000)
+        }
+    }
+
+    private fun lagSøknadDAO(
+        søknadId: UUID = UUID.randomUUID(),
+        journalpostId: String = "00000000001",
+        søkerPersonIdentifikator: String = "14026223262",
+        søkerAktørId: String = "12345678910",
+        pleietrengendeAktørId: String = "10987654321"
+    ): PsbSøknadDAO = PsbSøknadDAO(
+        journalpostId = journalpostId,
+        søkerAktørId = søkerAktørId,
+        pleietrengendeAktørId = pleietrengendeAktørId,
+        søknad = JsonUtils.toString(
+            Søknad()
+                .medSøknadId(søknadId.toString())
+                .medSøker(Søker(NorskIdentitetsnummer.of(søkerPersonIdentifikator)))
+        ),
+        opprettetDato = ZonedDateTime.now()
     )
 }
