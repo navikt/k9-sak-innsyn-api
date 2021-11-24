@@ -53,7 +53,7 @@ class SøknadRepositoryTest {
     @Test
     fun `hent alle søknader som stream`() {
         assertNotNull(repository.save(lagSøknadDAO()))
-        assertk.assertThat(repository.hentAlleSøknader().count()).isEqualTo(1)
+        assertk.assertThat(repository.hentSøknaderSortertPåOppdatertTidspunkt("12345678910", "10987654321").count()).isEqualTo(1)
     }
 
     @Test
@@ -61,7 +61,7 @@ class SøknadRepositoryTest {
         IntStream.range(0, 1000).forEach {
             repository.save(lagSøknadDAO(journalpostId = it.toString()))
         }
-        repository.hentAlleSøknader().use {
+        repository.hentSøknaderSortertPåOppdatertTidspunkt("12345678910", "10987654321").use {
             assertk.assertThat(it.count()).isEqualTo(1000)
         }
     }

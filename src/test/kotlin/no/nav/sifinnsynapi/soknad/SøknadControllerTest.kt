@@ -103,11 +103,7 @@ class SøknadControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
         every {
             søknadService.hentSøknadsopplysninger()
-        } returns SøknadDTO(
-            søknadId = UUID.randomUUID(),
-            opprettetDato = ZonedDateTime.parse("2020-08-04T10:30:00Z").withZoneSameInstant(ZoneId.of("UTC")),
-            søknad = Søknad()
-        )
+        } returns Søknad()
 
 
         mockMvc.perform(
@@ -118,12 +114,6 @@ class SøknadControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.søknadId").exists())
-            .andExpect(jsonPath("$.søknadId").isString)
-            .andExpect(jsonPath("$.opprettet").isString)
-            .andExpect(jsonPath("$.opprettet").value("2020-08-04T10:30:00.000Z"))
-            .andExpect(jsonPath("$.endret").doesNotExist())
-            .andExpect(jsonPath("$.behandlingsdato").doesNotExist())
             .andExpect(jsonPath("$.søknad").isMap)
     }
 

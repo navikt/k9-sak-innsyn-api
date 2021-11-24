@@ -22,7 +22,11 @@ interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
         ]
     )
     @Query(
-        value = "SELECT s FROM psb_søknad AS s"
+        nativeQuery = true,
+        value = "SELECT * FROM psb_søknad WHERE søker_aktør_id = ?1 AND pleietrengende_aktør_id = ?2 ORDER BY oppdatert_dato DESC"
     )
-    fun hentAlleSøknader(): Stream<PsbSøknadDAO>
+    fun hentSøknaderSortertPåOppdatertTidspunkt(
+        søkerAktørId: String,
+        pleietrengendeAktørId: String
+    ): Stream<PsbSøknadDAO>
 }

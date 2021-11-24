@@ -1,5 +1,6 @@
 package no.nav.sifinnsynapi.soknad
 
+import no.nav.k9.søknad.Søknad
 import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.sifinnsynapi.Routes.SØKNAD
@@ -9,7 +10,6 @@ import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.util.stream.Stream
 
 @RestController
 @ProtectedWithClaims(issuer = "tokenx")
@@ -23,15 +23,8 @@ class SøknadController(
     @GetMapping(SØKNAD, produces = [MediaType.APPLICATION_JSON_VALUE])
     @Protected
     @ResponseStatus(OK)
-    fun hentSøknader(): SøknadDTO? {
+    fun hentSøknader(): Søknad {
         logger.info("Forsøker å hente søknadsopplynsinger...")
         return søknadService.hentSøknadsopplysninger()
-    }
-
-    @GetMapping("$SØKNAD/testdata", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Protected
-    @ResponseStatus(OK)
-    fun hentTestSøknader(): List<SøknadDTO> {
-        return søknadService.hentTestData()
     }
 }
