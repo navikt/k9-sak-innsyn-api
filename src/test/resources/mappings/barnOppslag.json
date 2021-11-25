@@ -1,0 +1,27 @@
+{
+  "request": {
+    "urlPattern": "/k9-selvbetjening-oppslag-mock/meg.*",
+    "method": "GET",
+    "headers": {
+      "Authorization": {
+        "matches": ".*"
+      }
+    },
+    "queryParameters": {
+      "a": {
+        "equalTo": "barn[].aktør_id"
+      },
+      "a": {
+        "equalTo": "barn[].identitetsnummer"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "barn.json"
+  }
+}
+

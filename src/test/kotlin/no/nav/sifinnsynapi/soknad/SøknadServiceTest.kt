@@ -13,7 +13,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidInfo
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.oppslag.OppslagRespons
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.utils.defaultArbeidstaker
 import no.nav.sifinnsynapi.utils.defaultSøknad
@@ -61,7 +61,7 @@ internal class SøknadServiceTest {
 
     @BeforeEach
     internal fun setUp() {
-        every { oppslagsService.hentAktørId() } returns OppslagRespons(aktør_id = hovedSøkerAktørId)
+        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
     }
 
     @Test
