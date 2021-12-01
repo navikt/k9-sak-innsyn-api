@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: privat-k9-sak-innsyn
+  name: privat-k9-sak-innsyn-v1
   namespace: dusseldorf
   labels:
     team: dusseldorf
