@@ -10,11 +10,14 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidInfo
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sifinnsynapi.omsorg.OmsorgDAO
+import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -48,14 +51,39 @@ internal class SøknadServiceTest {
     @Autowired
     private lateinit var søknadService: SøknadService
 
+    @Autowired
+    lateinit var omsorgRepository: OmsorgRepository
+
     private companion object {
         private val hovedSøkerAktørId = "11111111111"
         private val barn1AktørId = "22222222222"
         private val barn2AktørId = "33333333333"
     }
 
-    @BeforeEach
+    @BeforeAll
     internal fun setUp() {
+        omsorgRepository.saveAll(listOf(
+            OmsorgDAO(
+                id = "1",
+                søkerAktørId = hovedSøkerAktørId,
+                pleietrengendeAktørId = barn1AktørId,
+                harOmsorgen = true,
+                opprettetDato = ZonedDateTime.now(UTC),
+                oppdatertDato = ZonedDateTime.now(UTC)
+            ),
+            OmsorgDAO(
+                id = "2",
+                søkerAktørId = hovedSøkerAktørId,
+                pleietrengendeAktørId = barn2AktørId,
+                harOmsorgen = true,
+                opprettetDato = ZonedDateTime.now(UTC),
+                oppdatertDato = ZonedDateTime.now(UTC)
+            )
+        ))
+    }
+
+    @BeforeEach
+    internal fun beforeEach() {
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
             BarnOppslagDTO(aktør_id = barn1AktørId),
@@ -65,7 +93,7 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -94,12 +122,12 @@ internal class SøknadServiceTest {
                             )
                         )
                     )
-                ),
+                )
             )
         )
 
         val sammenSlåttTilsynsordning =
-            søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>().tilsynsordning
+            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().tilsynsordning
 
         assertResultet(
             faktiskePerioder = sammenSlåttTilsynsordning.perioder,
@@ -115,7 +143,7 @@ internal class SøknadServiceTest {
     @Test
     fun `kan slå sammen arbeidstid for en arbeidstaker`() {
         val org = "987654321"
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -148,7 +176,7 @@ internal class SøknadServiceTest {
             )
         )
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertThat(sammenslåttArbeidstid.arbeidstakerList.size).isEqualTo(1)
         assertResultet(
             faktiskArbeidstaker = sammenslåttArbeidstid.arbeidstakerList.first(),
@@ -171,7 +199,7 @@ internal class SøknadServiceTest {
         val org2 = "922222222";
         val org3 = "933333333";
         val org4 = "944444444";
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -228,7 +256,7 @@ internal class SøknadServiceTest {
             )
         )
 
-        val sammenslåttYtelse = søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>()
+        val sammenslåttYtelse = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
         val resultatArbeidstakere = sortertArbeidstakere(sammenslåttYtelse)
         assertThat(resultatArbeidstakere.size).isEqualTo(4)
 
@@ -281,7 +309,7 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for frilanser`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -314,7 +342,7 @@ internal class SøknadServiceTest {
             )
         )
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.frilanserArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -331,7 +359,7 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for selvstendig næringsdrivende`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -364,7 +392,7 @@ internal class SøknadServiceTest {
             )
         )
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.selvstendigNæringsdrivendeArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(

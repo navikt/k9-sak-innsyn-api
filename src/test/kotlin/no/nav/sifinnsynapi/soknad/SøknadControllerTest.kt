@@ -28,8 +28,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.*
 import javax.servlet.http.Cookie
 
@@ -60,7 +58,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            søknadService.hentSøknadsopplysninger()
+            søknadService.hentSøknadsopplysningerPerBarn()
         } throws Exception("Ooops, noe gikk galt...")
 
         mockMvc.perform(
@@ -78,7 +76,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details i header`() {
         every {
-            søknadService.hentSøknadsopplysninger()
+            søknadService.hentSøknadsopplysningerPerBarn()
         } throws Exception("Ooops, noe gikk galt...")
 
         mockMvc.perform(
@@ -103,9 +101,14 @@ class SøknadControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
         val søknadId = UUID.randomUUID().toString()
         every {
-            søknadService.hentSøknadsopplysninger()
-        } returns Søknad()
-            .medSøknadId(søknadId)
+            søknadService.hentSøknadsopplysningerPerBarn()
+        } returns listOf(
+            SøknadDTO(
+                pleietrengendeAktørId = "22222222222",
+                søknad = Søknad()
+                    .medSøknadId(søknadId)
+            )
+        )
 
 
         mockMvc.perform(
@@ -116,7 +119,9 @@ class SøknadControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.søknadId").value(søknadId))
+            .andExpect(jsonPath("$[0].pleietrengendeAktørId").value("22222222222"))
+            .andExpect(jsonPath("$[0].søknad").isMap)
+            .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
     }
 
     @Test

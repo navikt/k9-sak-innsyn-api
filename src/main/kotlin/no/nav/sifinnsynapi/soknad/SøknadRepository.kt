@@ -14,18 +14,19 @@ import javax.persistence.QueryHint
 @Transactional(TRANSACTION_MANAGER)
 interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
 
-    @QueryHints(
+    /*@QueryHints(
         value = [
             QueryHint(name = HINT_FETCH_SIZE, value = "10"),
             QueryHint(name = HINT_CACHEABLE, value = "false"),
             QueryHint(name = READ_ONLY, value = "true")
         ]
-    )
+    )*/
     @Query(
         nativeQuery = true,
-        value = "SELECT * FROM psb_søknad WHERE pleietrengende_aktør_id IN ?1 ORDER BY oppdatert_dato ASC"
+        value = "SELECT * FROM psb_søknad WHERE søker_aktør_id = ?1 AND pleietrengende_aktør_id = ?2 ORDER BY oppdatert_dato ASC"
     )
     fun hentSøknaderSortertPåOppdatertTidspunkt(
-        pleietrengendeAktørIder: List<String>
+        søkerAktørId: String,
+        pleietrengendeAktørIder: String
     ): Stream<PsbSøknadDAO>
 }

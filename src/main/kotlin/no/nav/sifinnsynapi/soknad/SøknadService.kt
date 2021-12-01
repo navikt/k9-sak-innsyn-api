@@ -7,7 +7,6 @@ import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 
 @Service
@@ -18,20 +17,43 @@ class SøknadService(
 ) {
 
     @Transactional(readOnly = true)
-    fun hentSøknadsopplysninger(): Søknad {
+    fun hentSøknadsopplysningerPerBarn(): List<SøknadDTO> {
         val søkersAktørId =
             (oppslagsService.hentAktørId()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktør_id
 
-        val pleietrengendeAktørIder = oppslagsService.hentBarn().map { it.aktør_id }
 
-        val sammenslåtteSøknader: Optional<Søknad> =
-            repo.hentSøknaderSortertPåOppdatertTidspunkt(pleietrengendeAktørIder)
-                .map { it.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
-                .reduce(Søknadsammenslåer::slåSammen)
+        val pleietrengendeAktørIder = oppslagsService.hentBarn()
+            .map { it.aktør_id }
+            .filter { pleietrengendeAktørId: String ->
+                omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = pleietrengendeAktørId)
+            }
+        /*.mapNotNull { pleietrengendeAktørId: String ->
+                slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.let { SøknadDTO(pleietrengendeAktørId, it) }
+            }*/
 
-        return sammenslåtteSøknader.orElseThrow { IllegalStateException("Ingen søknader funnet") }
+        val s1 = slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørIder[0])!!
+        val s2 = slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørIder[1])!!
+        return listOf(s1, s2)
+
     }
+
+    @Transactional(readOnly = true)
+    fun slåSammenSøknaderFor(
+        søkersAktørId: String,
+        pleietrengendeAktørId: String
+    ): SøknadDTO? {
+        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId)
+            .map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
+            .reduce(Søknadsammenslåer::slåSammen)
+            .orElse(null)
+            ?.somSøknadDTO(pleietrengendeAktørId)
+    }
+
+    fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(
+        pleietrengendeAktørId = pleietrengendeAktørId,
+        søknad = this
+    )
 
     private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
         val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)

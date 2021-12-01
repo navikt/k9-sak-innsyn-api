@@ -10,13 +10,10 @@ import java.time.ZonedDateTime
 import java.util.*
 
 data class SøknadDTO @JsonCreator constructor(
-    @JsonProperty("søknadId") val søknadId: UUID,
-    @JsonProperty("søknad") val søknad: Søknad,
-    @JsonProperty("opprettet") @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC") val opprettetDato: ZonedDateTime? = null,
-    @JsonProperty("endret") @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX") val oppdatertDato: ZonedDateTime? = null,
-    @JsonProperty("behandlingsdato") @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss") val behandlingsdato: LocalDate? = null
+    @JsonProperty("pleietrengendeAktørId") val pleietrengendeAktørId: String,
+    @JsonProperty("søknad") val søknad: Søknad
 ) {
     override fun toString(): String {
-        return "SøknadDTO(søknadId=$søknadId)"
+        return "SøknadDTO()"
     }
 }

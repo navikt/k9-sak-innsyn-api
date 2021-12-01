@@ -138,7 +138,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
-                kotlin.runCatching { søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>() }
+                kotlin.runCatching { søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>() }
                     .getOrNull()
             assertNotNull(faktiskPSB)
 
@@ -192,7 +192,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
-                kotlin.runCatching { søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>() }
+                kotlin.runCatching { søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>() }
                     .getOrNull()
             assertThat(faktiskPSB).isNotNull()
             assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size).isEqualTo(1)
