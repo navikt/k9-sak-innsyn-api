@@ -32,15 +32,12 @@ class SøknadService(
         søkersAktørId: String,
         pleietrengendeAktørId: String
     ): SøknadDTO? {
-        val stream = repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId)
-        val søknadDTO = stream.use { s ->
+        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId).use { s ->
             s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
                 .reduce(Søknadsammenslåer::slåSammen)
                 .orElse(null)
                 ?.somSøknadDTO(pleietrengendeAktørId)
         }
-
-        return søknadDTO
     }
 
     fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(
