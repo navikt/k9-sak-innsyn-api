@@ -62,24 +62,26 @@ internal class SøknadServiceTest {
 
     @BeforeAll
     internal fun setUp() {
-        omsorgRepository.saveAll(listOf(
-            OmsorgDAO(
-                id = "1",
-                søkerAktørId = hovedSøkerAktørId,
-                pleietrengendeAktørId = barn1AktørId,
-                harOmsorgen = true,
-                opprettetDato = ZonedDateTime.now(UTC),
-                oppdatertDato = ZonedDateTime.now(UTC)
-            ),
-            OmsorgDAO(
-                id = "2",
-                søkerAktørId = hovedSøkerAktørId,
-                pleietrengendeAktørId = barn2AktørId,
-                harOmsorgen = true,
-                opprettetDato = ZonedDateTime.now(UTC),
-                oppdatertDato = ZonedDateTime.now(UTC)
+        omsorgRepository.saveAll(
+            listOf(
+                OmsorgDAO(
+                    id = "1",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                ),
+                OmsorgDAO(
+                    id = "2",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn2AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                )
             )
-        ))
+        )
     }
 
     @BeforeEach
@@ -93,41 +95,44 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
-            psbSøknadDAO(
-                journalpostId = "1",
-                søknad = defaultSøknad(
-                    tilsynsordning = defaultTilsynsordning(
-                        mapOf(
-                            Periode(
-                                LocalDate.parse("2021-08-01"),
-                                LocalDate.parse("2021-10-11")
-                            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
-                                Duration.ofHours(4)
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } answers {
+            Stream.of(
+                psbSøknadDAO(
+                    journalpostId = "1",
+                    søknad = defaultSøknad(
+                        tilsynsordning = defaultTilsynsordning(
+                            mapOf(
+                                Periode(
+                                    LocalDate.parse("2021-08-01"),
+                                    LocalDate.parse("2021-10-11")
+                                ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                                    Duration.ofHours(4)
+                                )
                             )
                         )
                     )
-                )
-            ),
-            psbSøknadDAO(
-                journalpostId = "2",
-                søknad = defaultSøknad(
-                    tilsynsordning = defaultTilsynsordning(
-                        mapOf(
-                            Periode(
-                                LocalDate.parse("2021-09-25"),
-                                LocalDate.parse("2021-12-01")
-                            ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
-                                Duration.ofHours(2).plusMinutes(30)
+                ),
+                psbSøknadDAO(
+                    journalpostId = "2",
+                    søknad = defaultSøknad(
+                        tilsynsordning = defaultTilsynsordning(
+                            mapOf(
+                                Periode(
+                                    LocalDate.parse("2021-09-25"),
+                                    LocalDate.parse("2021-12-01")
+                                ) to TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(
+                                    Duration.ofHours(2).plusMinutes(30)
+                                )
                             )
                         )
                     )
                 )
             )
-        )
+        }
 
         val sammenSlåttTilsynsordning =
-            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().tilsynsordning
+            søknadService.hentSøknadsopplysningerPerBarn()
+                .first().søknad.getYtelse<PleiepengerSyktBarn>().tilsynsordning
 
         assertResultet(
             faktiskePerioder = sammenSlåttTilsynsordning.perioder,
@@ -143,40 +148,43 @@ internal class SøknadServiceTest {
     @Test
     fun `kan slå sammen arbeidstid for en arbeidstaker`() {
         val org = "987654321"
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
-            psbSøknadDAO(
-                journalpostId = "1",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medArbeidstaker(
-                        listOf(
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org,
-                                periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 4
-                            )
-                        )
-                    )
-                )
-            ),
-            psbSøknadDAO(
-                journalpostId = "2",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medArbeidstaker(
-                        listOf(
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org,
-                                periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 2
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } answers {
+            Stream.of(
+                psbSøknadDAO(
+                    journalpostId = "1",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medArbeidstaker(
+                            listOf(
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org,
+                                    periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 4
+                                )
                             )
                         )
                     )
                 ),
+                psbSøknadDAO(
+                    journalpostId = "2",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medArbeidstaker(
+                            listOf(
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org,
+                                    periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 2
+                                )
+                            )
+                        )
+                    ),
+                )
             )
-        )
+        }
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid =
+            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertThat(sammenslåttArbeidstid.arbeidstakerList.size).isEqualTo(1)
         assertResultet(
             faktiskArbeidstaker = sammenslåttArbeidstid.arbeidstakerList.first(),
@@ -199,64 +207,67 @@ internal class SøknadServiceTest {
         val org2 = "922222222";
         val org3 = "933333333";
         val org4 = "944444444";
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
-            psbSøknadDAO(
-                journalpostId = "1",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medArbeidstaker(
-                        listOf(
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org1,
-                                periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 4
-                            ),
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org2,
-                                periode = Periode(LocalDate.parse("2021-08-05"), LocalDate.parse("2021-09-12")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 4
-                            ),
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org3,
-                                periode = Periode(LocalDate.parse("2021-06-01"), LocalDate.parse("2021-06-10")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 3
-                            )
-                        )
-                    )
-                )
-            ),
-            psbSøknadDAO(
-                journalpostId = "2",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medArbeidstaker(
-                        listOf(
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org1,
-                                periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 2
-                            ),
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org2,
-                                periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 2
-                            ),
-                            defaultArbeidstaker(
-                                organisasjonsnummer = org4,
-                                periode = Periode(LocalDate.parse("2021-11-13"), LocalDate.parse("2021-11-15")),
-                                normaltTimerPerDag = 8,
-                                faktiskArbeidTimerPerDag = 2
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } answers {
+            Stream.of(
+                psbSøknadDAO(
+                    journalpostId = "1",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medArbeidstaker(
+                            listOf(
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org1,
+                                    periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 4
+                                ),
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org2,
+                                    periode = Periode(LocalDate.parse("2021-08-05"), LocalDate.parse("2021-09-12")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 4
+                                ),
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org3,
+                                    periode = Periode(LocalDate.parse("2021-06-01"), LocalDate.parse("2021-06-10")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 3
+                                )
                             )
                         )
                     )
                 ),
+                psbSøknadDAO(
+                    journalpostId = "2",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medArbeidstaker(
+                            listOf(
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org1,
+                                    periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 2
+                                ),
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org2,
+                                    periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 2
+                                ),
+                                defaultArbeidstaker(
+                                    organisasjonsnummer = org4,
+                                    periode = Periode(LocalDate.parse("2021-11-13"), LocalDate.parse("2021-11-15")),
+                                    normaltTimerPerDag = 8,
+                                    faktiskArbeidTimerPerDag = 2
+                                )
+                            )
+                        )
+                    ),
+                )
             )
-        )
+        }
 
-        val sammenslåttYtelse = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+        val sammenslåttYtelse =
+            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
         val resultatArbeidstakere = sortertArbeidstakere(sammenslåttYtelse)
         assertThat(resultatArbeidstakere.size).isEqualTo(4)
 
@@ -309,40 +320,43 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for frilanser`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
-            psbSøknadDAO(
-                journalpostId = "1",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medFrilanserArbeidstid(
-                        ArbeidstidInfo().medPerioder(
-                            mapOf(
-                                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
-                                        ArbeidstidPeriodeInfo()
-                                            .medJobberNormaltTimerPerDag(Duration.ofHours(8))
-                                            .medFaktiskArbeidTimerPerDag(Duration.ofHours(4))
-                            )
-                        )
-                    )
-                )
-            ),
-            psbSøknadDAO(
-                journalpostId = "2",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medFrilanserArbeidstid(
-                        ArbeidstidInfo().medPerioder(
-                            mapOf(
-                                Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
-                                        ArbeidstidPeriodeInfo()
-                                            .medJobberNormaltTimerPerDag(Duration.ofHours(8))
-                                            .medFaktiskArbeidTimerPerDag(Duration.ofHours(2))
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } answers {
+            Stream.of(
+                psbSøknadDAO(
+                    journalpostId = "1",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medFrilanserArbeidstid(
+                            ArbeidstidInfo().medPerioder(
+                                mapOf(
+                                    Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
+                                            ArbeidstidPeriodeInfo()
+                                                .medJobberNormaltTimerPerDag(Duration.ofHours(8))
+                                                .medFaktiskArbeidTimerPerDag(Duration.ofHours(4))
+                                )
                             )
                         )
                     )
                 ),
+                psbSøknadDAO(
+                    journalpostId = "2",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medFrilanserArbeidstid(
+                            ArbeidstidInfo().medPerioder(
+                                mapOf(
+                                    Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
+                                            ArbeidstidPeriodeInfo()
+                                                .medJobberNormaltTimerPerDag(Duration.ofHours(8))
+                                                .medFaktiskArbeidTimerPerDag(Duration.ofHours(2))
+                                )
+                            )
+                        )
+                    ),
+                )
             )
-        )
+        }
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid =
+            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.frilanserArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -359,40 +373,43 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for selvstendig næringsdrivende`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
-            psbSøknadDAO(
-                journalpostId = "1",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
-                        ArbeidstidInfo().medPerioder(
-                            mapOf(
-                                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
-                                        ArbeidstidPeriodeInfo()
-                                            .medJobberNormaltTimerPerDag(Duration.ofHours(8))
-                                            .medFaktiskArbeidTimerPerDag(Duration.ofHours(4))
-                            )
-                        )
-                    )
-                )
-            ),
-            psbSøknadDAO(
-                journalpostId = "2",
-                søknad = defaultSøknad(
-                    arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
-                        ArbeidstidInfo().medPerioder(
-                            mapOf(
-                                Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
-                                        ArbeidstidPeriodeInfo()
-                                            .medJobberNormaltTimerPerDag(Duration.ofHours(8))
-                                            .medFaktiskArbeidTimerPerDag(Duration.ofHours(2))
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } answers {
+            Stream.of(
+                psbSøknadDAO(
+                    journalpostId = "1",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
+                            ArbeidstidInfo().medPerioder(
+                                mapOf(
+                                    Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
+                                            ArbeidstidPeriodeInfo()
+                                                .medJobberNormaltTimerPerDag(Duration.ofHours(8))
+                                                .medFaktiskArbeidTimerPerDag(Duration.ofHours(4))
+                                )
                             )
                         )
                     )
                 ),
+                psbSøknadDAO(
+                    journalpostId = "2",
+                    søknad = defaultSøknad(
+                        arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
+                            ArbeidstidInfo().medPerioder(
+                                mapOf(
+                                    Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
+                                            ArbeidstidPeriodeInfo()
+                                                .medJobberNormaltTimerPerDag(Duration.ofHours(8))
+                                                .medFaktiskArbeidTimerPerDag(Duration.ofHours(2))
+                                )
+                            )
+                        )
+                    ),
+                )
             )
-        )
+        }
 
-        val sammenslåttArbeidstid = søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+        val sammenslåttArbeidstid =
+            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.selvstendigNæringsdrivendeArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(

@@ -40,14 +40,14 @@ fun defaultPsbSøknadInnholdHendelse(
     oppdateringsTidspunkt: ZonedDateTime = ZonedDateTime.now(UTC),
     journalpostId: String = "1",
     søkerAktørId: String = "1",
-    pleiepetrengendeSøkerAktørId: String = "2",
+    pleiepetrengendeAktørId: String = "2",
     søknadsPeriode: Periode = Periode(LocalDate.now().plusDays(5), LocalDate.now().plusDays(5)),
     arbeidstid: Arbeidstid? = null,
     tilsynsordning: Tilsynsordning? = null
 ) = InnsynHendelse<PsbSøknadsinnhold>(
     oppdateringsTidspunkt,
     PsbSøknadsinnhold(
-        journalpostId, søkerAktørId, pleiepetrengendeSøkerAktørId,
+        journalpostId, søkerAktørId, pleiepetrengendeAktørId,
         defaultSøknad(
             søknadId = søknadId,
             søknadsPeriode = søknadsPeriode,

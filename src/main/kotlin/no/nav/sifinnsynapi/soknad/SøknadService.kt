@@ -22,32 +22,25 @@ class SøknadService(
             (oppslagsService.hentAktørId()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktør_id
 
-
-        val pleietrengendeAktørIder = oppslagsService.hentBarn()
+        return oppslagsService.hentBarn()
             .map { it.aktør_id }
-            .filter { pleietrengendeAktørId: String ->
-                omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = pleietrengendeAktørId)
-            }
-        /*.mapNotNull { pleietrengendeAktørId: String ->
-                slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.let { SøknadDTO(pleietrengendeAktørId, it) }
-            }*/
-
-        val s1 = slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørIder[0])!!
-        val s2 = slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørIder[1])!!
-        return listOf(s1, s2)
-
+            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it) }
+            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it) }
     }
 
-    @Transactional(readOnly = true)
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
         pleietrengendeAktørId: String
     ): SøknadDTO? {
-        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId)
-            .map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
-            .reduce(Søknadsammenslåer::slåSammen)
-            .orElse(null)
-            ?.somSøknadDTO(pleietrengendeAktørId)
+        val stream = repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId)
+        val søknadDTO = stream.use { s ->
+            s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
+                .reduce(Søknadsammenslåer::slåSammen)
+                .orElse(null)
+                ?.somSøknadDTO(pleietrengendeAktørId)
+        }
+
+        return søknadDTO
     }
 
     fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(

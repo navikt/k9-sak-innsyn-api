@@ -14,6 +14,8 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.SifInnsynApiApplication
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.config.Topics.K9_SAK_TOPIC
+import no.nav.sifinnsynapi.omsorg.OmsorgDAO
+import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
@@ -76,6 +78,9 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     @Autowired
     lateinit var restTemplate: TestRestTemplate // Restklient som brukes til å gjøre restkall mot endepunkter i appen.
 
+    @Autowired
+    lateinit var omsorgRepository: OmsorgRepository
+
     @MockkBean
     lateinit var oppslagsService: OppslagsService
 
@@ -84,20 +89,48 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     companion object {
         private val logger: Logger =
             LoggerFactory.getLogger(OnpremKafkaHendelseKonsumentIntegrasjonsTest::class.java)
+
+        private val hovedSøkerAktørId = "11111111111"
+        private val barn1AktørId = "22222222222"
+        private val barn2AktørId = "33333333333"
     }
 
     @BeforeAll
     fun setUp() {
         repository.deleteAll()
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
+
+        omsorgRepository.saveAll(
+            listOf(
+                OmsorgDAO(
+                    id = "1",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                ),
+                OmsorgDAO(
+                    id = "2",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn2AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                )
+            )
+        )
     }
 
     @BeforeEach
     internal fun beforeEach() {
         logger.info("Tømmer databasen...")
         repository.deleteAll()
-        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = "1")
-        every { oppslagsService.hentBarn() } returns listOf(BarnOppslagDTO(aktør_id = "2"))
+        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
+        every { oppslagsService.hentBarn() } returns listOf(
+            BarnOppslagDTO(aktør_id = barn1AktørId),
+            BarnOppslagDTO(aktør_id = barn2AktørId)
+        )
     }
 
     @AfterEach
@@ -120,6 +153,8 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         // legg på 1 hendelse om mottatt hendelse fra k9-sak...
         val psbSøknadInnholdHendelse = defaultPsbSøknadInnholdHendelse(
             journalpostId = "1",
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
             arbeidstid = Arbeidstid().medArbeidstaker(
                 listOf(
                     defaultArbeidstaker(
@@ -138,7 +173,9 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
-                kotlin.runCatching { søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>() }
+                kotlin.runCatching {
+                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                }
                     .getOrNull()
             assertNotNull(faktiskPSB)
 
@@ -159,6 +196,8 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
         val psbSøknadInnholdHendelse1 = defaultPsbSøknadInnholdHendelse(
             journalpostId = "1",
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
             oppdateringsTidspunkt = ZonedDateTime.now(UTC),
             arbeidstid = Arbeidstid().medArbeidstaker(
                 listOf(
@@ -174,6 +213,8 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
         val psbSøknadInnholdHendelse2 = defaultPsbSøknadInnholdHendelse(
             journalpostId = "2",
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
             oppdateringsTidspunkt = ZonedDateTime.now(UTC).plusDays(1),
             arbeidstid = Arbeidstid().medArbeidstaker(
                 listOf(
@@ -192,7 +233,9 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
-                kotlin.runCatching { søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>() }
+                kotlin.runCatching {
+                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                }
                     .getOrNull()
             assertThat(faktiskPSB).isNotNull()
             assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size).isEqualTo(1)
