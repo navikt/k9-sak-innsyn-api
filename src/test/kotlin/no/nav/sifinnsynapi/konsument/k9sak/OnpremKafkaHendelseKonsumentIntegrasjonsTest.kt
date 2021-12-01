@@ -3,27 +3,28 @@ package no.nav.sifinnsynapi.konsument.k9sak
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
-import assertk.assertions.isNotZero
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.k9.søknad.JsonUtils
-import no.nav.security.mock.oauth2.MockOAuth2Server
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
+import no.nav.k9.søknad.felles.type.Periode
+import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
+import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
+import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.SifInnsynApiApplication
-import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.config.Topics.K9_SAK_TOPIC
-import no.nav.sifinnsynapi.soknad.SøknadDTO
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.soknad.SøknadService
 import no.nav.sifinnsynapi.utils.*
 import org.apache.kafka.clients.producer.Producer
 import org.awaitility.kotlin.await
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,17 +32,15 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.annotation.Import
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
-import org.springframework.http.ResponseEntity
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.transaction.annotation.Transactional
-import java.util.concurrent.TimeUnit
+import java.time.Duration
+import java.time.LocalDate
+import java.time.ZoneOffset.UTC
+import java.time.ZonedDateTime
 
 @EmbeddedKafka( // Setter opp og tilgjengligjør embeded kafka broker.
     count = 3,
@@ -72,36 +71,38 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     lateinit var repository: SøknadRepository // Repository som brukes til databasekall.
 
     @Autowired
+    lateinit var søknadService: SøknadService
+
+    @Autowired
     lateinit var restTemplate: TestRestTemplate // Restklient som brukes til å gjøre restkall mot endepunkter i appen.
 
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired
-    lateinit var mockOAuth2Server: MockOAuth2Server
+    @MockkBean
+    lateinit var oppslagsService: OppslagsService
 
     lateinit var k9SakProducer: Producer<String, String> // Kafka producer som brukes til å legge på kafka meldinger.
 
     companion object {
-        private val log: Logger =
+        private val logger: Logger =
             LoggerFactory.getLogger(OnpremKafkaHendelseKonsumentIntegrasjonsTest::class.java)
-        private val aktørId = AktørId.valueOf("123456")
     }
 
     @BeforeAll
     fun setUp() {
         repository.deleteAll()
-        assertNotNull(mockOAuth2Server)
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
     }
 
     @BeforeEach
     internal fun beforeEach() {
-        log.info("Tømmer databasen...")
+        logger.info("Tømmer databasen...")
         repository.deleteAll()
+        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = "1")
+        every { oppslagsService.hentBarn() } returns listOf(BarnOppslagDTO(aktør_id = "2"))
     }
 
     @AfterEach
     fun afterEach() {
-        log.info("Tømmer databasen...")
+        logger.info("Tømmer databasen...")
         repository.deleteAll()
     }
 
@@ -112,115 +113,104 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     }
 
     @Test
-    fun `Forvent riktig konsumering og persistering av innsynshendelse`() {
+    @DisplayName("Gitt søknad med en arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing")
+    fun `konsumering og persistering av søknad med en arbeidstaker`() {
+        val org = "987654321"
 
         // legg på 1 hendelse om mottatt hendelse fra k9-sak...
-        k9SakProducer.leggPåTopic(defaultPsbSøknadInnholdHendelse(journalpostId = "1"), K9_SAK_TOPIC, JsonUtils.getObjectMapper())
+        val psbSøknadInnholdHendelse = defaultPsbSøknadInnholdHendelse(
+            journalpostId = "1",
+            arbeidstid = Arbeidstid().medArbeidstaker(
+                listOf(
+                    defaultArbeidstaker(
+                        organisasjonsnummer = org,
+                        periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
+                        normaltTimerPerDag = 8,
+                        faktiskArbeidTimerPerDag = 4
+                    )
+                )
+            )
+        )
+        k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
+
+        val forventetPSB = psbSøknadInnholdHendelse.data.søknad.getYtelse<PleiepengerSyktBarn>()
 
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
-        await.atMost(10, TimeUnit.SECONDS).untilAsserted {
-            assertThat(repository.findById("1")).isNotNull()
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val faktiskPSB =
+                kotlin.runCatching { søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>() }
+                    .getOrNull()
+            assertNotNull(faktiskPSB)
+
+            assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size)
+                .isEqualTo(forventetPSB.arbeidstid.arbeidstakerList.size)
+
+            assertResultet(
+                faktiskPSB.arbeidstid.arbeidstakerList.first().arbeidstidInfo.perioder,
+                forventetPSB.arbeidstid.arbeidstakerList.first().arbeidstidInfo.perioder
+            )
         }
     }
 
     @Test
-    @Disabled("Disabler foreløpig")
-    fun `Konsumere k9-sak hendelse, persister og tilgjengligjør gjennom API`() {
-        repository.deleteAll()
+    @DisplayName("Gitt flere søknader på samme arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing")
+    fun `konsumering og persistering av flere søknader på samme arbeidstaker`() {
+        val org = "987654321"
 
-        // legg på 1 hendelse om mottatt  hendelse fra k9-sak...
-        val hendelse = defaultPsbSøknadInnholdHendelse()
-        val søknadId = hendelse.data.søknad.søknadId.id
-        val søkerPersonIdent = hendelse.data.søknad.søker.personIdent
+        val psbSøknadInnholdHendelse1 = defaultPsbSøknadInnholdHendelse(
+            journalpostId = "1",
+            oppdateringsTidspunkt = ZonedDateTime.now(UTC),
+            arbeidstid = Arbeidstid().medArbeidstaker(
+                listOf(
+                    defaultArbeidstaker(
+                        organisasjonsnummer = org,
+                        periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
+                        normaltTimerPerDag = 8,
+                        faktiskArbeidTimerPerDag = 4
+                    )
+                )
+            )
+        )
 
-        k9SakProducer.leggPåTopic(hendelse, K9_SAK_TOPIC, mapper)
-
-        // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
-        await.atMost(10, TimeUnit.SECONDS).untilAsserted {
-            val responseEntity = restTemplate.exchange(
-                SØKNAD,
-                HttpMethod.GET,
-                hentToken(),
-                object : ParameterizedTypeReference<List<SøknadDTO>>() {})
-            val forventetRespons =
-                //language=json
-                """
-                   [
-                     {
-                       "søknadId": "$søknadId",
-                       "søknad": {
-                          "søknadId": "$søknadId",
-                          "versjon": null,
-                          "mottattDato": null,
-                          "søker": {
-                            "norskIdentitetsnummer": "$søkerPersonIdent"
-                          },
-                          "språk": "nb",
-                          "ytelse": null,
-                              "journalposter": [ ]
-                      }
-                     }
-                   ]
-                    """.trimIndent()
-
-            responseEntity.listAssert(forventetRespons, 200)
-        }
-    }
-
-    @Test
-    @Disabled
-    fun `Konsumere k9-sak hendelse, persister, og hent søknad med id`() {
-
-        // legg på 1 hendelse om mottatt hendelse fra k9-sak...
-        val hendelse = defaultPsbSøknadInnholdHendelse()
-        val søknadId = hendelse.data.søknad.søknadId.id
-        val søkerPersonIdent = hendelse.data.søknad.søker.personIdent
-        k9SakProducer.leggPåTopic(hendelse, K9_SAK_TOPIC, mapper)
+        val psbSøknadInnholdHendelse2 = defaultPsbSøknadInnholdHendelse(
+            journalpostId = "2",
+            oppdateringsTidspunkt = ZonedDateTime.now(UTC).plusDays(1),
+            arbeidstid = Arbeidstid().medArbeidstaker(
+                listOf(
+                    defaultArbeidstaker(
+                        organisasjonsnummer = org,
+                        periode = Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")),
+                        normaltTimerPerDag = 8,
+                        faktiskArbeidTimerPerDag = 2
+                    )
+                )
+            )
+        )
+        k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse1, K9_SAK_TOPIC)
+        k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse2, K9_SAK_TOPIC)
 
         // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
-        await.atMost(10, TimeUnit.SECONDS).untilAsserted {
-            val responseEntity =
-                restTemplate.exchange("${SØKNAD}/${søknadId}", HttpMethod.GET, hentToken(), SøknadDTO::class.java)
-            val forventetRespons =
-                //language=json
-                """
-                      {
-                          "søknadId" : "$søknadId",
-                          "søknad": {
-                              "søknadId" : "$søknadId",
-                              "versjon" : null,
-                              "mottattDato" : null,
-                              "søker" : {
-                                "norskIdentitetsnummer" : "$søkerPersonIdent"
-                              },
-                              "språk" : "nb",
-                              "ytelse" : null,
-                              "journalposter" : [ ]
-                          }
-                      }
-                    """.trimIndent()
-            responseEntity.assert(forventetRespons, 200)
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val faktiskPSB =
+                kotlin.runCatching { søknadService.hentSøknadsopplysninger().getYtelse<PleiepengerSyktBarn>() }
+                    .getOrNull()
+            assertThat(faktiskPSB).isNotNull()
+            assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size).isEqualTo(1)
+
+            logger.info("Antall søknader: {}", repository.findAll().size)
+            assertResultet(
+                faktiskArbeidstaker = faktiskPSB.arbeidstid.arbeidstakerList[0],
+                forventetOrganisasjonsnummer = org,
+                forventedePerioder = mapOf(
+                    Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-09-24")) to ArbeidstidPeriodeInfo()
+                        .medFaktiskArbeidTimerPerDag(Duration.ofHours(4))
+                        .medJobberNormaltTimerPerDag(Duration.ofHours(8)),
+
+                    Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to ArbeidstidPeriodeInfo()
+                        .medFaktiskArbeidTimerPerDag(Duration.ofHours(2))
+                        .medJobberNormaltTimerPerDag(Duration.ofHours(8))
+                )
+            )
         }
     }
-
-    private fun ResponseEntity<List<SøknadDTO>>.listAssert(
-        forventetResponse: String,
-        forventetStatus: Int,
-        compareMode: JSONCompareMode = JSONCompareMode.LENIENT
-    ) {
-        assertThat(statusCodeValue).isEqualTo(forventetStatus)
-        JSONAssert.assertEquals(forventetResponse, body!!.somJson(mapper), compareMode)
-    }
-
-    private fun ResponseEntity<SøknadDTO>.assert(
-        forventetResponse: String,
-        forventetStatus: Int,
-        compareMode: JSONCompareMode = JSONCompareMode.LENIENT
-    ) {
-        assertThat(statusCodeValue).isEqualTo(forventetStatus)
-        JSONAssert.assertEquals(forventetResponse, body!!.somJson(mapper), compareMode)
-    }
-
-    private fun hentToken(personIdentifikator: String = "12345678910"): HttpEntity<String> =
-        mockOAuth2Server.hentToken(subject = personIdentifikator).tokenTilHttpEntity()
 }

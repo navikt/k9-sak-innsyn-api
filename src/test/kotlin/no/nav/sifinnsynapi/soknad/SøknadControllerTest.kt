@@ -101,9 +101,11 @@ class SøknadControllerTest {
 
     @Test
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
+        val søknadId = UUID.randomUUID().toString()
         every {
             søknadService.hentSøknadsopplysninger()
         } returns Søknad()
+            .medSøknadId(søknadId)
 
 
         mockMvc.perform(
@@ -114,7 +116,7 @@ class SøknadControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.søknad").isMap)
+            .andExpect(jsonPath("$.søknadId").value(søknadId))
     }
 
     @Test

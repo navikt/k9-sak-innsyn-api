@@ -71,8 +71,6 @@ internal class OppslagsServiceTest {
     @Test
     fun hentBarn() {
         val barn = oppslagsService.hentBarn()
-        assertThat(barn)
-            .isNotNull()
-            .size().isEqualTo(2)
+        assertThat(barn).size().isEqualTo(2)
     }
 }

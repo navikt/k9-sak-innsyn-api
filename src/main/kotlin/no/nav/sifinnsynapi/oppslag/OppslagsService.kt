@@ -38,7 +38,7 @@ class OppslagsService(
 
         val barnUrl = UriComponentsBuilder
             .fromUriString("/meg")
-            .queryParam("a", "barn[].aktør_id", "barn[].identitetsnummer")
+            .queryParam("a", "barn[].aktør_id")
             .build()
     }
 
@@ -49,11 +49,11 @@ class OppslagsService(
         return exchange.body
     }
 
-    fun hentBarn(): List<BarnOppslagDTO>? {
+    fun hentBarn(): List<BarnOppslagDTO> {
         val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
         logger.info("Fikk response {} fra oppslag", exchange.statusCode)
 
-        return exchange.body?.barn
+        return exchange.body?.barn ?: listOf()
     }
 
     @Recover
@@ -75,19 +75,19 @@ class OppslagsService(
     }
 
     @Recover
-    private fun recoverBarn(error: HttpServerErrorException): List<BarnOppslagDTO>? {
+    private fun recoverBarn(error: HttpServerErrorException): List<BarnOppslagDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
         throw IllegalStateException("Feil ved henting av søkers barn")
     }
 
     @Recover
-    private fun recoverBarn(error: HttpClientErrorException): List<BarnOppslagDTO>? {
+    private fun recoverBarn(error: HttpClientErrorException): List<BarnOppslagDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
         throw IllegalStateException("Feil ved henting av søkers barn")
     }
 
     @Recover
-    private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO>? {
+    private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO> {
         logger.error("{}", error.message)
         throw IllegalStateException("Timout ved henting av søkers barn")
     }
@@ -102,8 +102,7 @@ data class SøkerOppslagRespons(@JsonProperty("aktør_id") val aktør_id: String
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
 
 data class BarnOppslagDTO(
-    @JsonProperty("aktør_id") val aktør_id: String,
-    val identitetsnummer: String? = null
+    @JsonProperty("aktør_id") val aktør_id: String
 ) {
     override fun toString(): String {
         return "BarnOppslagDTO(aktør_id='******', identitetsnummer=******)"

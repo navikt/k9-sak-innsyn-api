@@ -40,15 +40,21 @@ class K9SakHendelseKonsument(
     ) {
         logger.info("Mapper om innsynhendelse...")
         val innsynHendelse = JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
-        val innsynPsbSøknadHendelse: InnsynHendelse<PsbSøknadsinnhold> = when (innsynHendelse) {
-            is PsbSøknadsinnhold -> innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
-            else -> throw IllegalStateException("Ukjent data type på InnsynHendelse.")
-        }
-        logger.info("Innsynhendelse mappet.")
 
-        logger.info("Lagrer innsynhendelse...")
-        repository.save(innsynPsbSøknadHendelse.somPsbSøknadDAO())
-        logger.info("Innsynhendelse lagret.")
+        when (innsynHendelse.data) {
+            is PsbSøknadsinnhold -> {
+                innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
+
+                logger.info("Innsynhendelse mappet.")
+
+                logger.info("Lagrer innsynhendelse med journalpostId: {}...", innsynHendelse.data.journalpostId)
+                repository.save(innsynHendelse.somPsbSøknadDAO())
+                logger.info("Innsynhendelse lagret.")
+            }
+            else -> {
+                throw IllegalStateException("Ukjent data type på InnsynHendelse.")
+            }
+        }
     }
 }
 

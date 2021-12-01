@@ -10,9 +10,6 @@
     "queryParameters": {
       "a": {
         "equalTo": "barn[].aktør_id"
-      },
-      "a": {
-        "equalTo": "barn[].identitetsnummer"
       }
     }
   },

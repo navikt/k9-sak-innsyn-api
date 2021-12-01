@@ -23,10 +23,10 @@ class SøknadService(
             (oppslagsService.hentAktørId()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktør_id
 
-        val pleietrengendeAktørId = "" // TODO: 24/11/2021 hente pleietrengende fra ?
+        val pleietrengendeAktørIder = oppslagsService.hentBarn().map { it.aktør_id }
 
         val sammenslåtteSøknader: Optional<Søknad> =
-            repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId)
+            repo.hentSøknaderSortertPåOppdatertTidspunkt(pleietrengendeAktørIder)
                 .map { it.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
                 .reduce(Søknadsammenslåer::slåSammen)
 

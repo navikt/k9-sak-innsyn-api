@@ -10,7 +10,7 @@ topic:
     # topic.listener.k9-sak
     k9-sak:
       id: k9-sak-listener
-      navn: dusseldorf.privat-k9-sak-innsyn
+      navn: dusseldorf.privat-k9-sak-innsyn-v1
       bryter: true
       dry-run: false
 

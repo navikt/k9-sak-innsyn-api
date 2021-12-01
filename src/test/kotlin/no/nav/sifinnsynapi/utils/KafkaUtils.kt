@@ -22,10 +22,10 @@ fun EmbeddedKafkaBroker.opprettK9SakKafkaProducer(): Producer<String, String> {
         .createProducer()
 }
 
-fun Producer<String, String>.leggPåTopic(hendelse: InnsynHendelse<PsbSøknadsinnhold>, topic: String, mapper: ObjectMapper): RecordMetadata {
+fun Producer<String, String>.leggPåTopic(hendelse: InnsynHendelse<PsbSøknadsinnhold>, topic: String): RecordMetadata {
     val logger = LoggerFactory.getLogger("K9SakProducer")
     logger.info("Legger på innsynshendelse med søknadId: {}", hendelse.data.søknad.søknadId.id)
-    val recordMetadata = send(ProducerRecord(topic, hendelse.somJson(mapper))).get()
+    val recordMetadata = send(ProducerRecord(topic, hendelse.somJson())).get()
     logger.info("Innsynshendelse lagt på topic: {}.{} med offset {}", recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset())
     return recordMetadata
 }

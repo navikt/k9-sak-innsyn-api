@@ -1,26 +1,20 @@
 package no.nav.sifinnsynapi.soknad
 
-import assertk.assertions.isEqualTo
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.søknad.Søknad
-import no.nav.k9.søknad.felles.type.Organisasjonsnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
-import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstaker
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidInfo
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.utils.defaultArbeidstaker
-import no.nav.sifinnsynapi.utils.defaultSøknad
-import no.nav.sifinnsynapi.utils.defaultTilsynsordning
-import no.nav.sifinnsynapi.utils.somJson
+import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -34,7 +28,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
-import java.util.stream.Collectors
 import java.util.stream.Stream
 
 
@@ -57,16 +50,22 @@ internal class SøknadServiceTest {
 
     private companion object {
         private val hovedSøkerAktørId = "11111111111"
+        private val barn1AktørId = "22222222222"
+        private val barn2AktørId = "33333333333"
     }
 
     @BeforeEach
     internal fun setUp() {
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
+        every { oppslagsService.hentBarn() } returns listOf(
+            BarnOppslagDTO(aktør_id = barn1AktørId),
+            BarnOppslagDTO(aktør_id = barn2AktørId)
+        )
     }
 
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -114,9 +113,9 @@ internal class SøknadServiceTest {
     }
 
     @Test
-    fun `kan slå sammen arbeidstid for ett arbeidstaker`() {
-        val org = "987654321";
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
+    fun `kan slå sammen arbeidstid for en arbeidstaker`() {
+        val org = "987654321"
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -168,11 +167,11 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for flere arbeidstakere`() {
-       val org1 = "911111111";
-       val org2 = "922222222";
-       val org3 = "933333333";
-       val org4 = "944444444";
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
+        val org1 = "911111111";
+        val org2 = "922222222";
+        val org3 = "933333333";
+        val org4 = "944444444";
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -282,7 +281,7 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for frilanser`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -332,7 +331,7 @@ internal class SøknadServiceTest {
 
     @Test
     fun `kan slå sammen arbeidstid for selvstendig næringsdrivende`() {
-        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any(), any()) } returns Stream.of(
+        every { søknadRepository.hentSøknaderSortertPåOppdatertTidspunkt(any()) } returns Stream.of(
             psbSøknadDAO(
                 journalpostId = "1",
                 søknad = defaultSøknad(
@@ -378,38 +377,6 @@ internal class SøknadServiceTest {
                     .medJobberNormaltTimerPerDag(Duration.ofHours(8))
             )
         )
-    }
-
-
-    private fun <T> assertResultet(faktiskePerioder: Map<Periode, T>, forventedePerioder: Map<Periode, T>) {
-        assertThat(faktiskePerioder.size).isEqualTo(forventedePerioder.size)
-        forventedePerioder.forEach { forventetPeriode: Map.Entry<Periode, T> ->
-            val data = faktiskePerioder[forventetPeriode.key]
-            assertNotNull(data)
-            assertk.assertThat(data).isEqualTo(forventetPeriode.value)
-            assertThat(data).isEqualTo(forventetPeriode.value)
-        }
-    }
-
-    private fun assertResultet(
-        faktiskArbeidstaker: Arbeidstaker,
-        forventetOrganisasjonsnummer: String,
-        forventedePerioder: Map<Periode, ArbeidstidPeriodeInfo>
-    ) {
-        assertThat(faktiskArbeidstaker.organisasjonsnummer).isEqualTo(
-            Organisasjonsnummer.of(forventetOrganisasjonsnummer)
-        )
-        assertResultet(faktiskArbeidstaker.arbeidstidInfo.perioder, forventedePerioder)
-    }
-
-    private fun sortertArbeidstakere(resultatYtelse: PleiepengerSyktBarn): List<Arbeidstaker> {
-        return resultatYtelse.arbeidstid
-            .arbeidstakerList
-            .stream()
-            .sorted { a: Arbeidstaker, b: Arbeidstaker ->
-                a.organisasjonsnummer.verdi.compareTo(b.organisasjonsnummer.verdi)
-            }
-            .collect(Collectors.toList())
     }
 
     private fun psbSøknadDAO(
