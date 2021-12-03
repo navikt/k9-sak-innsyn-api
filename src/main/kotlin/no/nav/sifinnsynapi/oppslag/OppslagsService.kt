@@ -44,14 +44,14 @@ class OppslagsService(
 
     fun hentAktørId(): SøkerOppslagRespons? {
         val exchange = oppslagsKlient.getForEntity(søkerUrl.toUriString(), SøkerOppslagRespons::class.java)
-        logger.info("Fikk response {} fra oppslag", exchange.statusCode)
+        logger.info("Fikk response {} fra oppslag: {}", exchange.statusCode)
 
         return exchange.body
     }
 
     fun hentBarn(): List<BarnOppslagDTO> {
         val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
-        logger.info("Fikk response {} fra oppslag", exchange.statusCode)
+        logger.info("Fikk response {} fra oppslag: {}", exchange.statusCode)
 
         return exchange.body?.barn ?: listOf()
     }
