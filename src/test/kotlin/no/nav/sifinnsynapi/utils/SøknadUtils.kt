@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
+import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Versjon
@@ -64,6 +65,11 @@ fun defaultOmsorgHendelse(
     pleiepetrengendeAktørId: String = "2",
     harOmsorgen: Boolean
 ) = InnsynHendelse<Omsorg>(oppdateringsTidspunkt, Omsorg(søkerAktørId, pleiepetrengendeAktørId, harOmsorgen))
+
+fun defaultSøknadTrukket(
+    oppdateringsTidspunkt: ZonedDateTime = ZonedDateTime.now(UTC),
+    journalpostId: String
+) = InnsynHendelse<SøknadTrukket>(oppdateringsTidspunkt, SøknadTrukket(journalpostId))
 
 fun defaultSøknad(
     søknadId: UUID = UUID.randomUUID(),

@@ -9,7 +9,7 @@ import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
-import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
@@ -22,7 +22,7 @@ import java.util.*
 
 @Service
 class K9SakHendelseKonsument(
-    private val repository: SøknadRepository,
+    private val søknadService: SøknadService,
     private val omsorgService: OmsorgService,
     @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean
 ) {
@@ -46,39 +46,50 @@ class K9SakHendelseKonsument(
         val innsynHendelse = JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
 
         when (innsynHendelse.data) {
-            is PsbSøknadsinnhold ->  håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
+            is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
             is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
-            is SøknadTrukket -> TODO("Ikke implemenert enda.")
+            is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
             else -> {
                 throw IllegalStateException("Ikke støttet data type på InnsynHendelse.")
             }
         }
     }
 
+    private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
+        logger.trace("Innsynhendelse mappet til SøknadTrukket.")
+
+        val journalpostId = innsynHendelse.data.journalpostId
+        logger.info("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
+        if (søknadService.trekkSøknad(journalpostId)) logger.info("Søknad er trukket tilbake", journalpostId)
+         else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
+    }
+
     private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
-        logger.info("Innsynhendelse mappet til PsbSøknadsinnhold.")
+        logger.trace("Innsynhendelse mappet til PsbSøknadsinnhold.")
 
         logger.info("Lagrer PsbSøknadsinnhold med journalpostId: {}...", innsynHendelse.data.journalpostId)
-        repository.save(innsynHendelse.somPsbSøknadDAO())
+        søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
         logger.info("PsbSøknadsinnhold lagret.")
     }
 
     private fun håndterOmsorg(innsynHendelse: InnsynHendelse<Omsorg>) {
-        logger.info("Innsynhendelse mappet til Omsorg.")
+        logger.trace("Innsynhendelse mappet til Omsorg.")
 
         val omsorg = innsynHendelse.data
         when (omsorgService.omsorgEksisterer(omsorg.søkerAktørId, omsorg.pleietrengendeAktørId)) {
             true -> {
                 logger.info("Oppdaterer Omsorg...")
-                logger.info("Omsorg oppdatert: {}.", omsorgService.oppdaterOmsorg(
+                omsorgService.oppdaterOmsorg(
                     søkerAktørId = omsorg.søkerAktørId,
                     pleietrengendeAktørId = omsorg.pleietrengendeAktørId,
                     harOmsorgen = omsorg.isHarOmsorgen
-                ))
+                )
+                logger.info("Omsorg oppdatert.")
             }
             else -> {
                 logger.info("Lagrer Omsorg...")
-                logger.info("Omsorg lagret: {}.", omsorgService.lagre(innsynHendelse.somOmsorgDAO()))
+                omsorgService.lagre(innsynHendelse.somOmsorgDAO())
+                logger.info("Omsorg lagret.")
             }
         }
     }

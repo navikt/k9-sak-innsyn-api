@@ -40,7 +40,14 @@ class SøknadService(
         }
     }
 
-    fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(
+    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
+
+    fun trekkSøknad(journalpostId: String): Boolean {
+        repo.deleteById(journalpostId)
+        return !repo.existsById(journalpostId)
+    }
+
+    private fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(
         pleietrengendeAktørId = pleietrengendeAktørId,
         søknad = this
     )

@@ -289,4 +289,42 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
             assertFalse(faktiskOmsorg)
         }
     }
+
+    @Test
+    fun `Gitt hendelse om trukket søknad, forvent at den slettes`() {
+        val journalpostId = "1"
+
+        val psbSøknadInnholdHendelse = defaultPsbSøknadInnholdHendelse(
+            journalpostId = journalpostId,
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
+            arbeidstid = Arbeidstid().medArbeidstaker(
+                listOf(
+                    defaultArbeidstaker(
+                        organisasjonsnummer = "987654321",
+                        periode = Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")),
+                        normaltTimerPerDag = 8,
+                        faktiskArbeidTimerPerDag = 4
+                    )
+                )
+            )
+        )
+        k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val faktiskPSB =
+                kotlin.runCatching {
+                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                }
+                    .getOrNull()
+            assertNotNull(faktiskPSB)
+        }
+
+        k9SakProducer.leggPåTopic(defaultSøknadTrukket(journalpostId = journalpostId), K9_SAK_TOPIC)
+        await/*.atLeast(Duration.ofSeconds(1))*/.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val søknad = repository.findById(journalpostId)
+            assertTrue(søknad.isEmpty)
+        }
+
+    }
 }
