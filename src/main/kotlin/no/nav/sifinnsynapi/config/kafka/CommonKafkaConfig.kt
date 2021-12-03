@@ -111,8 +111,7 @@ class CommonKafkaConfig {
 
             factory.setReplyTemplate(kafkaTemplate)
 
-            // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#filtering-messages
-            factory.setRecordFilterStrategy {
+            factory.setRecordInterceptor {
                 MDCUtil.toMDC(Constants.NAV_CONSUMER_ID, clientId)
                 logger.loggAntallForsøk(it)
 
@@ -134,7 +133,7 @@ class CommonKafkaConfig {
                     }
                 }
 
-                false
+                it
             }
 
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#chained-transaction-manager
