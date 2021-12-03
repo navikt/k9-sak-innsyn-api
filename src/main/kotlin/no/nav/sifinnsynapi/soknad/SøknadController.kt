@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@ProtectedWithClaims(issuer = "tokenx")
+@ProtectedWithClaims(issuer = "selvbetjening", claimMap = ["acr=Level4"])
 class SøknadController(
     private val søknadService: SøknadService
 ) {
