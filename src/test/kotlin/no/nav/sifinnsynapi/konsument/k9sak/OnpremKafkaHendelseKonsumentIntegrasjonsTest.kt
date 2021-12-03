@@ -3,7 +3,6 @@ package no.nav.sifinnsynapi.konsument.k9sak
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.søknad.felles.type.Periode
@@ -16,6 +15,7 @@ import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.config.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
+import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
@@ -24,7 +24,7 @@ import no.nav.sifinnsynapi.soknad.SøknadService
 import no.nav.sifinnsynapi.utils.*
 import org.apache.kafka.clients.producer.Producer
 import org.awaitility.kotlin.await
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
@@ -62,9 +62,6 @@ import java.time.ZonedDateTime
 ) // Integrasjonstest - Kjører opp hele Spring Context med alle konfigurerte beans.
 class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
-    @Autowired
-    lateinit var mapper: ObjectMapper
-
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker // Broker som brukes til å konfigurere opp en kafka producer.
@@ -80,6 +77,9 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
     @Autowired
     lateinit var omsorgRepository: OmsorgRepository
+
+    @Autowired
+    lateinit var omsorgService: OmsorgService
 
     @MockkBean
     lateinit var oppslagsService: OppslagsService
@@ -99,27 +99,6 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     fun setUp() {
         repository.deleteAll()
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
-
-        omsorgRepository.saveAll(
-            listOf(
-                OmsorgDAO(
-                    id = "1",
-                    søkerAktørId = hovedSøkerAktørId,
-                    pleietrengendeAktørId = barn1AktørId,
-                    harOmsorgen = true,
-                    opprettetDato = ZonedDateTime.now(UTC),
-                    oppdatertDato = ZonedDateTime.now(UTC)
-                ),
-                OmsorgDAO(
-                    id = "2",
-                    søkerAktørId = hovedSøkerAktørId,
-                    pleietrengendeAktørId = barn2AktørId,
-                    harOmsorgen = true,
-                    opprettetDato = ZonedDateTime.now(UTC),
-                    oppdatertDato = ZonedDateTime.now(UTC)
-                )
-            )
-        )
     }
 
     @BeforeEach
@@ -131,12 +110,26 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
             BarnOppslagDTO(aktør_id = barn1AktørId),
             BarnOppslagDTO(aktør_id = barn2AktørId)
         )
+
+        omsorgRepository.saveAll(
+            listOf(
+                OmsorgDAO(
+                    id = "1",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                )
+            )
+        )
     }
 
     @AfterEach
     fun afterEach() {
         logger.info("Tømmer databasen...")
         repository.deleteAll()
+        omsorgRepository.deleteAll()
     }
 
     @AfterAll
@@ -146,11 +139,9 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     }
 
     @Test
-    @DisplayName("Gitt søknad med en arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing")
-    fun `konsumering og persistering av søknad med en arbeidstaker`() {
+    fun `Gitt søknad med en arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing`() {
         val org = "987654321"
 
-        // legg på 1 hendelse om mottatt hendelse fra k9-sak...
         val psbSøknadInnholdHendelse = defaultPsbSøknadInnholdHendelse(
             journalpostId = "1",
             søkerAktørId = hovedSøkerAktørId,
@@ -170,7 +161,6 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
         val forventetPSB = psbSøknadInnholdHendelse.data.søknad.getYtelse<PleiepengerSyktBarn>()
 
-        // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
@@ -190,8 +180,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     }
 
     @Test
-    @DisplayName("Gitt flere søknader på samme arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing")
-    fun `konsumering og persistering av flere søknader på samme arbeidstaker`() {
+    fun `Gitt flere søknader på samme arbeidstaker konsumeres og persisteres, forvent riktige perioder ved sammenslåing`() {
         val org = "987654321"
 
         val psbSøknadInnholdHendelse1 = defaultPsbSøknadInnholdHendelse(
@@ -230,7 +219,6 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse1, K9_SAK_TOPIC)
         k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse2, K9_SAK_TOPIC)
 
-        // forvent at mottatt hendelse konsumeres og persisteres, samt at gitt restkall gitt forventet resultat.
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
@@ -254,6 +242,53 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
                         .medJobberNormaltTimerPerDag(Duration.ofHours(8))
                 )
             )
+        }
+    }
+
+    @Test
+    fun `gitt konsumering og persistering av omsorg, forvent at søker har omsorg`() {
+
+        // legg på 1 hendelse om omsorg fra k9-sak...
+        val omsorgHendelse = defaultOmsorgHendelse(
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
+            harOmsorgen = true
+        )
+        k9SakProducer.leggPåTopic(omsorgHendelse, K9_SAK_TOPIC)
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val faktiskOmsorg =
+                kotlin.runCatching { omsorgService.hentOmsorg(hovedSøkerAktørId, barn1AktørId) }.getOrNull()
+
+            assertNotNull(faktiskOmsorg)
+            assertTrue(faktiskOmsorg!!.harOmsorgen)
+        }
+    }
+
+    @Test
+    fun `gitt konsumering og persistering der søker mister omsorg, forvent at søker ikke har omsorg`() {
+        omsorgRepository.deleteAll()
+
+        val omsorgHendelseMedOmsorg = defaultOmsorgHendelse(
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
+            harOmsorgen = true
+        )
+        k9SakProducer.leggPåTopic(omsorgHendelseMedOmsorg, K9_SAK_TOPIC)
+
+        //await.during(Duration.ofSeconds(1))
+
+        val omsorgHendelseUtenOmsorg = defaultOmsorgHendelse(
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId,
+            harOmsorgen = false
+        )
+        k9SakProducer.leggPåTopic(omsorgHendelseUtenOmsorg, K9_SAK_TOPIC)
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val faktiskOmsorg = omsorgService.harOmsorgen(hovedSøkerAktørId, barn1AktørId)
+            assertNotNull(faktiskOmsorg)
+            assertFalse(faktiskOmsorg)
         }
     }
 }

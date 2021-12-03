@@ -5,6 +5,7 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.k9.innsyn.InnsynHendelse
+import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -31,7 +32,7 @@ import java.util.stream.Collectors
 
 fun List<SøknadDTO>.somJson(mapper: ObjectMapper) = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
 fun SøknadDTO.somJson(mapper: ObjectMapper) = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-fun InnsynHendelse<PsbSøknadsinnhold>.somJson() = JsonUtils.toString(this)
+fun InnsynHendelse<*>.somJson() = JsonUtils.toString(this)
 
 fun Søknad.somJson(): String = JsonUtils.toString(this)
 
@@ -56,6 +57,13 @@ fun defaultPsbSøknadInnholdHendelse(
         )
     )
 )
+
+fun defaultOmsorgHendelse(
+    oppdateringsTidspunkt: ZonedDateTime = ZonedDateTime.now(UTC),
+    søkerAktørId: String = "1",
+    pleiepetrengendeAktørId: String = "2",
+    harOmsorgen: Boolean
+) = InnsynHendelse<Omsorg>(oppdateringsTidspunkt, Omsorg(søkerAktørId, pleiepetrengendeAktørId, harOmsorgen))
 
 fun defaultSøknad(
     søknadId: UUID = UUID.randomUUID(),

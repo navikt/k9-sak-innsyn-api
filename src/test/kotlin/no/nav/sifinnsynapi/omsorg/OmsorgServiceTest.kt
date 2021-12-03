@@ -1,15 +1,17 @@
 package no.nav.sifinnsynapi.omsorg
 
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.time.Duration
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 
@@ -52,12 +54,13 @@ internal class OmsorgServiceTest {
             )
         )
 
-        assertTrue {
-            omsorgService.harOmsorgen(
-                søkerAktørId = søkerAktørId,
-                pleietrengendeAktørId = pleietrengendeAktørId
-            )
-        }
+        val harOmsorgen = omsorgService.harOmsorgen(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+
+        assertNotNull(harOmsorgen)
+        assertTrue { harOmsorgen }
     }
 
     @Test
@@ -75,11 +78,11 @@ internal class OmsorgServiceTest {
             )
         )
 
-        assertFalse {
-            omsorgService.harOmsorgen(
-                søkerAktørId = søkerAktørId,
-                pleietrengendeAktørId = pleietrengendeAktørId
-            )
-        }
+        val harOmsorgen = omsorgService.harOmsorgen(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+        assertNotNull(harOmsorgen)
+        assertFalse { harOmsorgen }
     }
 }

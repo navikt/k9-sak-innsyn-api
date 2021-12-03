@@ -1,10 +1,9 @@
 package no.nav.sifinnsynapi.config.kafka
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.k9.innsyn.InnsynHendelse
-import no.nav.k9.innsyn.InnsynHendelseData
+import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
+import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.util.Constants
@@ -21,13 +20,11 @@ import org.springframework.kafka.core.*
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultAfterRollbackProcessor
 import org.springframework.kafka.support.KafkaHeaders
-import org.springframework.kafka.support.converter.JsonMessageConverter
 import org.springframework.kafka.transaction.KafkaTransactionManager
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.util.backoff.FixedBackOff
 import java.nio.ByteBuffer
 import java.time.Duration
-import java.util.*
 import java.util.function.BiConsumer
 
 class CommonKafkaConfig {
@@ -126,8 +123,14 @@ class CommonKafkaConfig {
                         MDCUtil.toMDC(Constants.SØKNAD_ID, (hendelse.data as PsbSøknadsinnhold).søknad.søknadId.id)
                         MDCUtil.toMDC(Constants.JOURNALPOST_ID, (hendelse.data as PsbSøknadsinnhold).journalpostId)
                     }
+                    is SøknadTrukket -> {
+                        MDCUtil.toMDC(Constants.JOURNALPOST_ID, (hendelse.data as SøknadTrukket).journalpostId)
+                    }
+                    is Omsorg -> {
+                        // ingen info vi kan legge til i MDC.
+                    }
                     else -> {
-                        throw IllegalStateException("Ukjent data type på InnsynHendelse.")
+                        throw IllegalStateException("Ukjent data type på InnsynHendelse: ${hendelse.data.javaClass}")
                     }
                 }
 
