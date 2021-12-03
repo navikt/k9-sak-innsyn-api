@@ -276,8 +276,6 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         )
         k9SakProducer.leggPåTopic(omsorgHendelseMedOmsorg, K9_SAK_TOPIC)
 
-        //await.during(Duration.ofSeconds(1))
-
         val omsorgHendelseUtenOmsorg = defaultOmsorgHendelse(
             søkerAktørId = hovedSøkerAktørId,
             pleiepetrengendeAktørId = barn1AktørId,
