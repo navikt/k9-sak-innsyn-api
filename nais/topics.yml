@@ -17,7 +17,7 @@ spec:
   acl:
     - team: dusseldorf
       application: k9-sak-innsyn-api
-      access: read
+      access: readwrite
     - team: k9saksbehandling
       application: k9-sak
       access: write
