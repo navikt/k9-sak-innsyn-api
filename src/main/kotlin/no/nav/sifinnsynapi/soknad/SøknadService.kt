@@ -42,6 +42,7 @@ class SøknadService(
 
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
 
+    @Transactional
     fun trekkSøknad(journalpostId: String): Boolean {
         repo.deleteById(journalpostId)
         return !repo.existsById(journalpostId)

@@ -49,9 +49,6 @@ class K9SakHendelseKonsument(
             is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
             is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
             is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
-            else -> {
-                throw IllegalStateException("Ikke støttet data type på InnsynHendelse.")
-            }
         }
     }
 

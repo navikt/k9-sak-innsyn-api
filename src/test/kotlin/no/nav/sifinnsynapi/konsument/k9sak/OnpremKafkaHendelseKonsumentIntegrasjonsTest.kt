@@ -321,7 +321,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
         }
 
         k9SakProducer.leggPåTopic(defaultSøknadTrukket(journalpostId = journalpostId), K9_SAK_TOPIC)
-        await/*.atLeast(Duration.ofSeconds(1))*/.atMost(Duration.ofSeconds(10)).untilAsserted {
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val søknad = repository.findById(journalpostId)
             assertTrue(søknad.isEmpty)
         }
