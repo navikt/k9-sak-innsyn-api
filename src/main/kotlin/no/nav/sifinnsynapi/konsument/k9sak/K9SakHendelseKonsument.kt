@@ -56,40 +56,40 @@ class K9SakHendelseKonsument(
     }
 
     private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
-        logger.trace("Innsynhendelse mappet til SøknadTrukket.")
+        logger.info("Innsynhendelse mappet til SøknadTrukket.")
 
         val journalpostId = innsynHendelse.data.journalpostId
-        logger.info("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
-        if (søknadService.trekkSøknad(journalpostId)) logger.info("Søknad er trukket tilbake", journalpostId)
+        logger.trace("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
+        if (søknadService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
          else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
     }
 
     private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
-        logger.trace("Innsynhendelse mappet til PsbSøknadsinnhold.")
+        logger.info("Innsynhendelse mappet til PsbSøknadsinnhold.")
 
-        logger.info("Lagrer PsbSøknadsinnhold med journalpostId: {}...", innsynHendelse.data.journalpostId)
+        logger.trace("Lagrer PsbSøknadsinnhold med journalpostId: {}...", innsynHendelse.data.journalpostId)
         søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
-        logger.info("PsbSøknadsinnhold lagret.")
+        logger.trace("PsbSøknadsinnhold lagret.")
     }
 
     private fun håndterOmsorg(innsynHendelse: InnsynHendelse<Omsorg>) {
-        logger.trace("Innsynhendelse mappet til Omsorg.")
+        logger.info("Innsynhendelse mappet til Omsorg.")
 
         val omsorg = innsynHendelse.data
         when (omsorgService.omsorgEksisterer(omsorg.søkerAktørId, omsorg.pleietrengendeAktørId)) {
             true -> {
-                logger.info("Oppdaterer Omsorg...")
+                logger.trace("Oppdaterer Omsorg...")
                 omsorgService.oppdaterOmsorg(
                     søkerAktørId = omsorg.søkerAktørId,
                     pleietrengendeAktørId = omsorg.pleietrengendeAktørId,
                     harOmsorgen = omsorg.isHarOmsorgen
                 )
-                logger.info("Omsorg oppdatert.")
+                logger.trace("Omsorg oppdatert.")
             }
             else -> {
-                logger.info("Lagrer Omsorg...")
+                logger.trace("Lagrer Omsorg...")
                 omsorgService.lagre(innsynHendelse.somOmsorgDAO())
-                logger.info("Omsorg lagret.")
+                logger.trace("Omsorg lagret.")
             }
         }
     }
