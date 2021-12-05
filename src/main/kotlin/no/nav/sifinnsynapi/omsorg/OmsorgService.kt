@@ -17,6 +17,14 @@ class OmsorgService(
     fun hentOmsorg(søkerAktørId: String, pleietrengendeAktørId: String): OmsorgDAO? =
         omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(søkerAktørId, pleietrengendeAktørId)
 
+    /**
+     * Oppdaterer omsorgen for pleietrengende.
+     * @param harOmsorgen: boolsk verdi for omsorgen. 'True' hvis søker har omsorg for pleietrengende, 'false' ellers.
+     * @param søkerAktørId: AktørId på søker registrert i DB.
+     * @param pleietrengendeAktørId: AktørId på pleietrengende registrert i DB.
+     * @return true hvis raden ble oppdatert.
+     * @throws OmsorgIkkeFunnetException hvis oppdatering feilet. Antakligvis fordi kombinasjon av søkerAktørId og pleietrengendeAktørId ikke ble funnet.
+     */
     @Transactional
     fun oppdaterOmsorg(søkerAktørId: String, pleietrengendeAktørId: String, harOmsorgen: Boolean): Boolean {
         val oppdatertOmsorg = omsorgRepository.oppdaterOmsorg(
