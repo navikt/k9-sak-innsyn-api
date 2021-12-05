@@ -36,7 +36,7 @@ class OmsorgService(
         else throw OmsorgIkkeFunnetException("Omsorg ikke funnet/oppdatert.")
     }
 
-    fun lagre(omsorgDAO: OmsorgDAO): OmsorgDAO {
+    fun lagreOmsorg(omsorgDAO: OmsorgDAO): OmsorgDAO {
         return omsorgRepository.save(omsorgDAO)
     }
 }

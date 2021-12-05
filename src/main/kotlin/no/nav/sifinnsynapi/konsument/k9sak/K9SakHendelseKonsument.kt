@@ -88,7 +88,7 @@ class K9SakHendelseKonsument(
             }
             else -> {
                 logger.trace("Lagrer Omsorg...")
-                omsorgService.lagre(innsynHendelse.somOmsorgDAO())
+                omsorgService.lagreOmsorg(innsynHendelse.somOmsorgDAO())
                 logger.trace("Omsorg lagret.")
             }
         }
