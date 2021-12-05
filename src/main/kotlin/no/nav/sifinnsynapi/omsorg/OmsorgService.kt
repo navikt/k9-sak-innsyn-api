@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.omsorg
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class OmsorgService(
@@ -16,10 +17,15 @@ class OmsorgService(
     fun hentOmsorg(søkerAktørId: String, pleietrengendeAktørId: String): OmsorgDAO? =
         omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(søkerAktørId, pleietrengendeAktørId)
 
-    fun oppdaterOmsorg(søkerAktørId: String, pleietrengendeAktørId: String, harOmsorgen: Boolean): OmsorgDAO {
-        val omsorgDAO =
-            hentOmsorg(søkerAktørId, pleietrengendeAktørId) ?: throw OmsorgIkkeFunnetException("Omsorg ikke funnet.")
-        return omsorgRepository.save(omsorgDAO.copy(harOmsorgen = harOmsorgen))
+    @Transactional
+    fun oppdaterOmsorg(søkerAktørId: String, pleietrengendeAktørId: String, harOmsorgen: Boolean): Boolean {
+        val oppdatertOmsorg = omsorgRepository.oppdaterOmsorg(
+            harOmsorgen = harOmsorgen,
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+        if (oppdatertOmsorg == 1) return true
+        else throw OmsorgIkkeFunnetException("Omsorg ikke funnet/oppdatert.")
     }
 
     fun lagre(omsorgDAO: OmsorgDAO): OmsorgDAO {

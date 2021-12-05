@@ -85,4 +85,29 @@ internal class OmsorgServiceTest {
         assertNotNull(harOmsorgen)
         assertFalse { harOmsorgen }
     }
+
+    @Test
+    fun `gitt at omsorg for pleiepetrengende oppdateres, forvent true`() {
+        val søkerAktørId = "11111111111"
+        val pleietrengendeAktørId = "22222222222"
+        omsorgRepository.save(
+            OmsorgDAO(
+                id = "1",
+                søkerAktørId = søkerAktørId,
+                pleietrengendeAktørId = pleietrengendeAktørId,
+                harOmsorgen = false,
+                opprettetDato = ZonedDateTime.now(UTC),
+                oppdatertDato = ZonedDateTime.now(UTC)
+            )
+        )
+
+        val harOmsorgen = omsorgService.harOmsorgen(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+        assertNotNull(harOmsorgen)
+        assertFalse { harOmsorgen }
+
+        assertTrue { omsorgService.oppdaterOmsorg(søkerAktørId, pleietrengendeAktørId, true) }
+    }
 }
