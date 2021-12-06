@@ -39,7 +39,15 @@ class OppslagsService(
 
         val barnUrl = UriComponentsBuilder
             .fromUriString("/meg")
-            .queryParam("a", "barn[].aktør_id")
+            .queryParam(
+                "a",
+                "barn[].aktør_id",
+                "barn[].fornavn",
+                "barn[].mellomnavn",
+                "barn[].etternavn",
+                "barn[].fødselsdato",
+                "barn[].identitetsnummer"
+            )
             .build()
     }
 
