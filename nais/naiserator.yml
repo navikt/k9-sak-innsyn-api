@@ -39,7 +39,7 @@ spec:
       cpu: 2000m
       memory: 3072Mi
     requests:
-      cpu: 250m
+      cpu: 60m
       memory: 1536Mi
   ingresses:
   {{#each ingresses as |url|}}
