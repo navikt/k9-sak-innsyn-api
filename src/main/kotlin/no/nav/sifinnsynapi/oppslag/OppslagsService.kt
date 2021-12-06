@@ -13,6 +13,7 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
+import java.time.LocalDate
 
 @Service
 @Retryable(
@@ -102,9 +103,14 @@ data class SøkerOppslagRespons(@JsonProperty("aktør_id") val aktør_id: String
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
 
 data class BarnOppslagDTO(
-    @JsonProperty("aktør_id") val aktør_id: String
+    val fødselsdato: LocalDate,
+    val fornavn: String,
+    val mellomnavn: String? = null,
+    val etternavn: String,
+    val aktør_id: String,
+    val identitetsnummer: String? = null
 ) {
     override fun toString(): String {
-        return "BarnOppslagDTO(aktør_id='******', identitetsnummer=******)"
+        return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
 }

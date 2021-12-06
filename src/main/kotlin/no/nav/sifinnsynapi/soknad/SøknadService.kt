@@ -4,6 +4,7 @@ import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,20 +24,19 @@ class SøknadService(
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktør_id
 
         return oppslagsService.hentBarn()
-            .map { it.aktør_id }
-            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it) }
+            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktør_id) }
             .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it) }
     }
 
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
-        pleietrengendeAktørId: String
+        barn: BarnOppslagDTO
     ): SøknadDTO? {
-        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, pleietrengendeAktørId).use { s ->
+        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barn.aktør_id).use { s ->
             s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
                 .reduce(Søknadsammenslåer::slåSammen)
                 .orElse(null)
-                ?.somSøknadDTO(pleietrengendeAktørId)
+                ?.somSøknadDTO(barn)
         }
     }
 
@@ -48,8 +48,8 @@ class SøknadService(
         return !repo.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(pleietrengendeAktørId: String) = SøknadDTO(
-        pleietrengendeAktørId = pleietrengendeAktørId,
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO) = SøknadDTO(
+        barn = barn,
         søknad = this
     )
 

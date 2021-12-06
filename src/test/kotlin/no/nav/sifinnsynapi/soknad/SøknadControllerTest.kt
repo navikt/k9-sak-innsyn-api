@@ -7,6 +7,7 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.Assert.assertNotNull
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
+import java.time.LocalDate
 import java.util.*
 import javax.servlet.http.Cookie
 
@@ -104,7 +106,14 @@ class SøknadControllerTest {
             søknadService.hentSøknadsopplysningerPerBarn()
         } returns listOf(
             SøknadDTO(
-                pleietrengendeAktørId = "22222222222",
+                barn = BarnOppslagDTO(
+                    aktør_id = "22222222222",
+                    fødselsdato = LocalDate.parse("2005-02-12"),
+                    fornavn = "Ole",
+                    mellomnavn = null,
+                    etternavn = "Doffen",
+                    identitetsnummer = "12020567099"
+                ),
                 søknad = Søknad()
                     .medSøknadId(søknadId)
             )
@@ -119,7 +128,7 @@ class SøknadControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].pleietrengendeAktørId").value("22222222222"))
+            .andExpect(jsonPath("$[0].barn").isMap)
             .andExpect(jsonPath("$[0].søknad").isMap)
             .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
     }

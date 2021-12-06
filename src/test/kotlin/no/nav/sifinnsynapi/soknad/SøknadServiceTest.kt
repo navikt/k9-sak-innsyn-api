@@ -13,8 +13,8 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -88,8 +88,22 @@ internal class SøknadServiceTest {
     internal fun beforeEach() {
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
-            BarnOppslagDTO(aktør_id = barn1AktørId),
-            BarnOppslagDTO(aktør_id = barn2AktørId)
+            BarnOppslagDTO(
+                aktør_id = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            ),
+            BarnOppslagDTO(
+                aktør_id = barn2AktørId,
+                fødselsdato = LocalDate.parse("2005-10-30"),
+                fornavn = "Dole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "30100577255"
+            )
         )
     }
 
