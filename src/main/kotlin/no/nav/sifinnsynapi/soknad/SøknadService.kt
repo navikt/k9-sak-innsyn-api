@@ -13,9 +13,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneOffset.UTC
-import java.time.ZonedDateTime
-import java.util.*
+import java.util.stream.Stream
 
 
 @Service
@@ -41,19 +39,12 @@ class SøknadService(
         barnAktørId: String
     ): Søknad? {
         return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barnAktørId)
-            .use { s ->
-                val sammenslåttSøknad =
-                    s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
-                        .reduce(Søknadsammenslåer::slåSammen)
-                        .orElse(null)
-
-                // TODO: 07/12/2021 Blir det riktig å sette disse påkrevde feltene på denne måten?
-                sammenslåttSøknad
-                    ?.medSøknadId(SøknadId.of(UUID.randomUUID().toString()))
-                    ?.medMottattDato(ZonedDateTime.now(UTC))
-                    ?.medSpråk(Språk.NORSK_BOKMÅL)
-                    ?.medVersjon(Versjon.of("1.0.0"))
-                    ?.medSøker(Søker(NorskIdentitetsnummer.of("11111111111")))
+            .use { søknadStream: Stream<PsbSøknadDAO> ->
+                søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
+                    psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
+                }
+                    .reduce(Søknadsammenslåer::slåSammen)
+                    .orElse(null)
             }
     }
 
