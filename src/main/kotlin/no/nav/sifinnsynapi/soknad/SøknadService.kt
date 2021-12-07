@@ -3,11 +3,15 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.Versjon
+import no.nav.k9.søknad.felles.type.Språk
+import no.nav.k9.søknad.felles.type.SøknadId
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 
 @Service
@@ -32,12 +36,19 @@ class SøknadService(
         søkersAktørId: String,
         barn: BarnOppslagDTO
     ): SøknadDTO? {
-        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barn.aktør_id).use { s ->
-            s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
-                .reduce(Søknadsammenslåer::slåSammen)
-                .orElse(null)
-                ?.somSøknadDTO(barn)
-        }
+        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barn.aktør_id)
+            .use { s ->
+                val sammenslåttSøknad =
+                    s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
+                        .reduce(Søknadsammenslåer::slåSammen)
+                        .orElse(null)
+
+                sammenslåttSøknad
+                    ?.medSøknadId(SøknadId.of(UUID.randomUUID().toString()))
+                    ?.medSpråk(Språk.NORSK_BOKMÅL)
+                    ?.medVersjon(Versjon.of("1.0.0"))
+                    ?.somSøknadDTO(barn)
+            }
     }
 
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
