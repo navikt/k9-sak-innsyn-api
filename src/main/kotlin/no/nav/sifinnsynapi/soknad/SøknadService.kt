@@ -29,25 +29,25 @@ class SøknadService(
 
         return oppslagsService.hentBarn()
             .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktør_id) }
-            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it) }
+            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktør_id)?.somSøknadDTO(it) }
     }
 
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
-        barn: BarnOppslagDTO
-    ): SøknadDTO? {
-        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barn.aktør_id)
+        barnAktørId: String
+    ): Søknad? {
+        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barnAktørId)
             .use { s ->
                 val sammenslåttSøknad =
                     s.map { psbSøknadDAO: PsbSøknadDAO -> psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId) }
                         .reduce(Søknadsammenslåer::slåSammen)
                         .orElse(null)
 
+                // TODO: 07/12/2021 Blir det riktig å sette disse påkrevde feltene på denne måten?
                 sammenslåttSøknad
                     ?.medSøknadId(SøknadId.of(UUID.randomUUID().toString()))
                     ?.medSpråk(Språk.NORSK_BOKMÅL)
                     ?.medVersjon(Versjon.of("1.0.0"))
-                    ?.somSøknadDTO(barn)
             }
     }
 
