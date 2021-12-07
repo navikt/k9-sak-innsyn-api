@@ -4,6 +4,8 @@ import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Versjon
+import no.nav.k9.søknad.felles.personopplysninger.Søker
+import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.k9.søknad.felles.type.Språk
 import no.nav.k9.søknad.felles.type.SøknadId
 import no.nav.sifinnsynapi.omsorg.OmsorgService
@@ -51,6 +53,7 @@ class SøknadService(
                     ?.medMottattDato(ZonedDateTime.now(UTC))
                     ?.medSpråk(Språk.NORSK_BOKMÅL)
                     ?.medVersjon(Versjon.of("1.0.0"))
+                    ?.medSøker(Søker(NorskIdentitetsnummer.of("11111111111")))
             }
     }
 
