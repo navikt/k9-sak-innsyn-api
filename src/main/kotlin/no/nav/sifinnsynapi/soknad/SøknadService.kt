@@ -3,11 +3,6 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
-import no.nav.k9.søknad.felles.Versjon
-import no.nav.k9.søknad.felles.personopplysninger.Søker
-import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
-import no.nav.k9.søknad.felles.type.Språk
-import no.nav.k9.søknad.felles.type.SøknadId
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
@@ -34,11 +29,12 @@ class SøknadService(
             .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktør_id)?.somSøknadDTO(it) }
     }
 
+    @Transactional(readOnly = true)
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
         barnAktørId: String
     ): Søknad? {
-        return repo.hentSøknaderSortertPåOppdatertTidspunkt(søkersAktørId, barnAktørId)
+        return repo.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(barnAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
                     psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)

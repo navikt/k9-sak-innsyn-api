@@ -67,7 +67,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker // Broker som brukes til å konfigurere opp en kafka producer.
 
     @Autowired
-    lateinit var repository: SøknadRepository // Repository som brukes til databasekall.
+    lateinit var søknadRepository: SøknadRepository // Repository som brukes til databasekall.
 
     @Autowired
     lateinit var søknadService: SøknadService
@@ -97,14 +97,14 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
     @BeforeAll
     fun setUp() {
-        repository.deleteAll()
+        søknadRepository.deleteAll()
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
     }
 
     @BeforeEach
     internal fun beforeEach() {
         logger.info("Tømmer databasen...")
-        repository.deleteAll()
+        søknadRepository.deleteAll()
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
             BarnOppslagDTO(
@@ -142,13 +142,13 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
     @AfterEach
     fun afterEach() {
         logger.info("Tømmer databasen...")
-        repository.deleteAll()
+        søknadRepository.deleteAll()
         omsorgRepository.deleteAll()
     }
 
     @AfterAll
     fun tearDown() {
-        repository.deleteAll()
+        søknadRepository.deleteAll()
         k9SakProducer.close()
     }
 
@@ -242,7 +242,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
             assertThat(faktiskPSB).isNotNull()
             assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size).isEqualTo(1)
 
-            logger.info("Antall søknader: {}", repository.findAll().size)
+            logger.info("Antall søknader: {}", søknadRepository.findAll().size)
             assertResultet(
                 faktiskArbeidstaker = faktiskPSB.arbeidstid.arbeidstakerList[0],
                 forventetOrganisasjonsnummer = org,
@@ -336,7 +336,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
         k9SakProducer.leggPåTopic(defaultSøknadTrukket(journalpostId = journalpostId), K9_SAK_TOPIC)
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            val søknad = repository.findById(journalpostId)
+            val søknad = søknadRepository.findById(journalpostId)
             assertTrue(søknad.isEmpty)
         }
 
