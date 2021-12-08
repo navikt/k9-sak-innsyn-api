@@ -1,27 +1,15 @@
 package no.nav.sifinnsynapi.soknad
 
-import assertk.assertions.isEqualTo
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
-import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidInfo
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.konsument.k9sak.OnpremKafkaHendelseKonsumentIntegrasjonsTest
-import no.nav.sifinnsynapi.omsorg.OmsorgDAO
-import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
@@ -34,7 +22,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
-import java.util.stream.Stream
 
 
 @ExtendWith(SpringExtension::class)
@@ -121,7 +108,7 @@ internal class SøknadServiceTest {
             )
         )
 
-        // forent at søknadene blir slått sammen...
+        // forvent at søknadene blir slått sammen.
         val søknad: Søknad? = søknadService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
         Assert.assertNotNull(søknad)
 
