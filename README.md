@@ -27,7 +27,7 @@ Denne tjenesten understøtter behovet for innsyn for bruker. Tjenesten lytter et
 søknadsopplysninger, informasjon om omsorg, tilbaketrekking av søknader. og lagrer/fjerner dem i/fra databasen.
 Tjenesten eksponerer også api-er for henting av overnevnte data, for å gi bruker innsyn i egne saker.
 
-Denne tjenesten understøttet også behovet for etterrapportering av søknadsopplysninger for pleiepenger sykt-barn.
+Denne tjenesten understøtter også behovet for etterrapportering av søknadsopplysninger for pleiepenger sykt-barn.
 For å gjøre det enklere konsumenter av disse opplysningene blir søknader slått sammen.
 Alle søknader registrert på barna søker har omsorg for blir hentet opp og slått sammen (kun perioder på arbeidstimer og tilsyn pr. nå). 
 I de tilfellene det er kommet inn søknad fra annen omsorgsperson på samme barn som søker har omsorg for, 
