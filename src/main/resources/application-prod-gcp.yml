@@ -39,6 +39,3 @@ no.nav:
         loginservice:
           discoveryUrl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL} # settes av configmap: loginservice-idporten i naiserator.yml
           accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE} # settes av configmap: loginservice-idporten i naiserator.yml
-
-  metrics:
-    interval: 3_600_000 # 1 time

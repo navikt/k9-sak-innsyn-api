@@ -1,8 +1,6 @@
 no.nav:
   gateways:
     k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
-  metrics:
-    interval: 60_000
 
 topic:
   # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
