@@ -2,8 +2,8 @@ topic:
   # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
   listener:
     k9-sak:
-      bryter: false
-      dry-run: false
+      bryter: true
+      dry-run: true
 
 management:
   endpoint:

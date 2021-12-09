@@ -42,13 +42,41 @@ class K9SakHendelseKonsument(
     fun konsumer(
         @Payload innsynHendelseJson: String
     ) {
-        logger.info("Mapper om innsynhendelse...")
-        val innsynHendelse = JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+        when (dryRun) {
+            true -> {
+                try {
+                    logger.info("DRY RUN - Mapper om innsynhendelse...")
+                    val innsynHendelse =
+                        JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+                    when (innsynHendelse.data) {
+                        is PsbSøknadsinnhold -> {
+                            innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<PsbSøknadsinnhold>")
+                        }
+                        is Omsorg -> {
+                            innsynHendelse as InnsynHendelse<Omsorg>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<Omsorg>")
+                        }
+                        is SøknadTrukket -> {
+                            innsynHendelse as InnsynHendelse<SøknadTrukket>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<SøknadTrukket>")
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error("DRY RUN - konsumering av innsynshendelse feilet.", e)
+                }
+            }
+            else -> {
+                logger.info("Mapper om innsynhendelse...")
+                val innsynHendelse =
+                    JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
 
-        when (innsynHendelse.data) {
-            is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
-            is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
-            is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
+                when (innsynHendelse.data) {
+                    is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
+                    is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
+                    is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
+                }
+            }
         }
     }
 
@@ -58,7 +86,7 @@ class K9SakHendelseKonsument(
         val journalpostId = innsynHendelse.data.journalpostId
         logger.trace("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
         if (søknadService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
-         else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
+        else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
     }
 
     private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
