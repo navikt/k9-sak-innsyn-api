@@ -15,75 +15,7 @@
         }
       ],
       "numPartitions": 3,
-      "topicName": "privat-pleiepengesoknad-cleanup"
-    },
-    {
-      "configEntries": {
-        "retention.ms": -1
-      },
-      "members": [
-        {
-          "member": "igroup",
-          "role": "CONSUMER"
-        },
-        {
-          "member": "igroup",
-          "role": "PRODUCER"
-        }
-      ],
-      "numPartitions": 3,
-      "topicName": "privat-omsorgspenger-midlertidig-alene-cleanup"
-    },
-    {
-      "configEntries": {
-        "retention.ms": -1
-      },
-      "members": [
-        {
-          "member": "igroup",
-          "role": "CONSUMER"
-        },
-        {
-          "member": "igroup",
-          "role": "PRODUCER"
-        }
-      ],
-      "numPartitions": 3,
-      "topicName": "privat-omsorgsdager-melding-cleanup"
-    },
-    {
-      "configEntries": {
-        "retention.ms": -1
-      },
-      "members": [
-        {
-          "member": "igroup",
-          "role": "CONSUMER"
-        },
-        {
-          "member": "igroup",
-          "role": "PRODUCER"
-        }
-      ],
-      "numPartitions": 3,
-      "topicName": "privat-omp-utbetalingsoknad-arbeidstaker-cleanup"
-    },
-    {
-      "configEntries": {
-        "retention.ms": -1
-      },
-      "members": [
-        {
-          "member": "igroup",
-          "role": "CONSUMER"
-        },
-        {
-          "member": "igroup",
-          "role": "PRODUCER"
-        }
-      ],
-      "numPartitions": 3,
-      "topicName": "privat-k9-dittnav-varsel-beskjed"
+      "topicName": "dusseldorf.privat-k9-sak-innsyn-v1"
     }
   ]
 }
