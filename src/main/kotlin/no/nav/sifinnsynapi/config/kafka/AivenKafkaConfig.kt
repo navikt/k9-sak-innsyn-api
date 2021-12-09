@@ -19,7 +19,6 @@ import org.springframework.kafka.transaction.KafkaTransactionManager
 
 @Configuration
 class AivenKafkaConfig(
-    private val søknadRepository: SøknadRepository,
     private val kafkaClusterProperties: KafkaClusterProperties
 ) {
 
@@ -52,7 +51,6 @@ class AivenKafkaConfig(
         kafkaTemplate = aivenKafkaTemplate,
         transactionManager = aivenKafkaTransactionManager,
         retryInterval = kafkaClusterProperties.aiven.consumer.retryInterval,
-        søknadRepository = søknadRepository,
         logger = logger
     )
 }

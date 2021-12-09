@@ -35,7 +35,7 @@ class K9SakHendelseKonsument(
     @KafkaListener(
         topics = ["#{'\${topic.listener.k9-sak.navn}'}"],
         id = "#{'\${topic.listener.k9-sak.id}'}",
-        groupId = "#{'\${kafka.onprem.consumer.group-id}'}",
+        groupId = "#{'\${kafka.aiven.consumer.group-id}'}",
         containerFactory = "aivenKafkaJsonListenerContainerFactory",
         autoStartup = "#{'\${topic.listener.k9-sak.bryter}'}"
     )

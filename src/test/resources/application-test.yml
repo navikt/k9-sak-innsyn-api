@@ -36,16 +36,6 @@ logging:
            metrics: ERROR
 
 kafka:
-  onprem:
-    servers: localhost:9092 # placeholder
-    consumer:
-      retry-interval: 5_000 # Egendefinert property
-      group-id: k9-sak-innsyn-api-onprem
-      auto-offset-reset: earliest
-      schema-registry-url: mock://localhost
-    producer:
-      client-id: k9-sak-innsyn-api-onprem
-
   aiven:
     servers: localhost:9092 # placeholder
     consumer:
