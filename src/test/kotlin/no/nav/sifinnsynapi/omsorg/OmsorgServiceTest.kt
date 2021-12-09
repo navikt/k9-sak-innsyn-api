@@ -109,5 +109,6 @@ internal class OmsorgServiceTest {
         assertFalse { harOmsorgen }
 
         assertTrue { omsorgService.oppdaterOmsorg(søkerAktørId, pleietrengendeAktørId, true) }
+        assertTrue { omsorgService.hentOmsorg(søkerAktørId, pleietrengendeAktørId)!!.harOmsorgen }
     }
 }

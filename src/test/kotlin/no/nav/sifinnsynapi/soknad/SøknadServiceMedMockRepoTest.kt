@@ -17,7 +17,7 @@ import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -42,7 +42,7 @@ import java.util.stream.Stream
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK) // Integrasjonstest - Kjører opp hele Spring Context med alle konfigurerte beans.
 internal class SøknadServiceMedMockRepoTest {
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     private lateinit var søknadRepository: SøknadRepository
 
     @MockkBean
@@ -58,30 +58,6 @@ internal class SøknadServiceMedMockRepoTest {
         private val hovedSøkerAktørId = "11111111111"
         private val barn1AktørId = "22222222222"
         private val barn2AktørId = "33333333333"
-    }
-
-    @BeforeAll
-    internal fun setUp() {
-        omsorgRepository.saveAll(
-            listOf(
-                OmsorgDAO(
-                    id = "1",
-                    søkerAktørId = hovedSøkerAktørId,
-                    pleietrengendeAktørId = barn1AktørId,
-                    harOmsorgen = true,
-                    opprettetDato = ZonedDateTime.now(UTC),
-                    oppdatertDato = ZonedDateTime.now(UTC)
-                ),
-                OmsorgDAO(
-                    id = "2",
-                    søkerAktørId = hovedSøkerAktørId,
-                    pleietrengendeAktørId = barn2AktørId,
-                    harOmsorgen = true,
-                    opprettetDato = ZonedDateTime.now(UTC),
-                    oppdatertDato = ZonedDateTime.now(UTC)
-                )
-            )
-        )
     }
 
     @BeforeEach
@@ -105,11 +81,37 @@ internal class SøknadServiceMedMockRepoTest {
                 identitetsnummer = "30100577255"
             )
         )
+
+        omsorgRepository.saveAll(
+            listOf(
+                OmsorgDAO(
+                    id = "1",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                ),
+                OmsorgDAO(
+                    id = "2",
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn2AktørId,
+                    harOmsorgen = true,
+                    opprettetDato = ZonedDateTime.now(UTC),
+                    oppdatertDato = ZonedDateTime.now(UTC)
+                )
+            )
+        )
+    }
+
+    @AfterEach
+    internal fun tearDown() {
+        omsorgRepository.deleteAll()
     }
 
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt( any()) } answers {
+        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -436,6 +438,15 @@ internal class SøknadServiceMedMockRepoTest {
                     .medJobberNormaltTimerPerDag(Duration.ofHours(8))
             )
         )
+    }
+
+    @Test
+    fun `gitt ingen søknader blir funnet, forvent tom liste`() {
+        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+            Stream.empty()
+        }
+
+        assertThat(søknadService.hentSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     private fun psbSøknadDAO(

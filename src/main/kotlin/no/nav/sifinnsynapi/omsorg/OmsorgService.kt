@@ -25,7 +25,6 @@ class OmsorgService(
      * @return true hvis raden ble oppdatert.
      * @throws OmsorgIkkeFunnetException hvis oppdatering feilet. Antakligvis fordi kombinasjon av søkerAktørId og pleietrengendeAktørId ikke ble funnet.
      */
-    @Transactional
     fun oppdaterOmsorg(søkerAktørId: String, pleietrengendeAktørId: String, harOmsorgen: Boolean): Boolean {
         val oppdatertOmsorg = omsorgRepository.oppdaterOmsorg(
             harOmsorgen = harOmsorgen,
