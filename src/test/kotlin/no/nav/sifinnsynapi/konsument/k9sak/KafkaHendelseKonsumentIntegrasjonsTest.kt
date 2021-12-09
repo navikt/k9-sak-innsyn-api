@@ -325,12 +325,10 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         )
         k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
 
-        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+        await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
             val faktiskPSB =
-                kotlin.runCatching {
-                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
-                }
-                    .getOrNull()
+                søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+
             assertNotNull(faktiskPSB)
         }
 
