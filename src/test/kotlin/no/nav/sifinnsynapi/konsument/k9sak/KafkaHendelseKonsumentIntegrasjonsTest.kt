@@ -12,7 +12,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.SifInnsynApiApplication
 import no.nav.sifinnsynapi.config.SecurityConfiguration
-import no.nav.sifinnsynapi.config.Topics.K9_SAK_TOPIC
+import no.nav.sifinnsynapi.config.kafka.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
