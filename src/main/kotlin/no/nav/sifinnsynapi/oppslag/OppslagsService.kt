@@ -52,15 +52,17 @@ class OppslagsService(
     }
 
     fun hentAktørId(): SøkerOppslagRespons? {
+        logger.info("Slår opp søker...")
         val exchange = oppslagsKlient.getForEntity(søkerUrl.toUriString(), SøkerOppslagRespons::class.java)
-        logger.info("Fikk response {} fra oppslag: {}", exchange.statusCode)
+        logger.info("Fikk response {} for oppslag av søker.", exchange.statusCode)
 
         return exchange.body
     }
 
     fun hentBarn(): List<BarnOppslagDTO> {
+        logger.info("Slår opp barn...")
         val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
-        logger.info("Fikk response {} fra oppslag: {}", exchange.statusCode)
+        logger.info("Fikk response {} fra oppslag av barn.", exchange.statusCode)
 
         return exchange.body?.barn ?: listOf()
     }
