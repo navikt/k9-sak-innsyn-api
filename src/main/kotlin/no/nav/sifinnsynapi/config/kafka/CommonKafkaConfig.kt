@@ -102,7 +102,6 @@ class CommonKafkaConfig {
             retryInterval: Long,
             transactionManager: PlatformTransactionManager,
             kafkaTemplate: KafkaTemplate<String, String>,
-            søknadRepository: SøknadRepository,
             logger: Logger
         ): ConcurrentKafkaListenerContainerFactory<String, String> {
             val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
