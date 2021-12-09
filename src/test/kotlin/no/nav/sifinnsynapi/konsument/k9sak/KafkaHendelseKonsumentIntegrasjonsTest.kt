@@ -60,7 +60,7 @@ import java.time.ZonedDateTime
     classes = [SifInnsynApiApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 ) // Integrasjonstest - Kjører opp hele Spring Context med alle konfigurerte beans.
-class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
+class KafkaHendelseKonsumentIntegrasjonsTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -88,7 +88,7 @@ class OnpremKafkaHendelseKonsumentIntegrasjonsTest {
 
     companion object {
         private val logger: Logger =
-            LoggerFactory.getLogger(OnpremKafkaHendelseKonsumentIntegrasjonsTest::class.java)
+            LoggerFactory.getLogger(KafkaHendelseKonsumentIntegrasjonsTest::class.java)
 
         private val hovedSøkerAktørId = "11111111111"
         private val barn1AktørId = "22222222222"
