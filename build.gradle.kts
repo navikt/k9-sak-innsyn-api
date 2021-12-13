@@ -37,6 +37,7 @@ val orgJsonVersion by extra("20210307")
 
 ext["okhttp3.version"] = okHttp3Version
 ext["testcontainersVersion"] = "1.15.3"
+ext["log4j2.version"] = "2.15.0" // TODO: 13/12/2021 kan fjernes når spring boot oppgraderes til  v2.5.8 eller v2.6.2
 
 repositories {
     mavenCentral()
