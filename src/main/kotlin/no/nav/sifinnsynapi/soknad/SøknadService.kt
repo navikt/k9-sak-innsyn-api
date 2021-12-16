@@ -3,20 +3,12 @@ package no.nav.sifinnsynapi.soknad
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Versjon
-import no.nav.k9.søknad.felles.personopplysninger.Barn
 import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.Journalpost
 import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.felles.type.Språk
-import no.nav.k9.søknad.ytelse.psb.v1.*
-import no.nav.k9.søknad.ytelse.psb.v1.Beredskap.BeredskapPeriodeInfo
-import no.nav.k9.søknad.ytelse.psb.v1.LovbestemtFerie.LovbestemtFeriePeriodeInfo
-import no.nav.k9.søknad.ytelse.psb.v1.Nattevåk.NattevåkPeriodeInfo
-import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstaker
-import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
-import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
-import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.Tilsynsordning
+import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarnSøknadValidator
 import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
 import no.nav.sifinnsynapi.http.SøknadNotFoundException
 import no.nav.sifinnsynapi.util.komplettYtelse
@@ -25,10 +17,6 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.*
-import java.util.Map
-import kotlin.collections.List
-import kotlin.collections.listOf
-import kotlin.collections.map
 
 
 @Service

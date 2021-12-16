@@ -2,7 +2,6 @@ package no.nav.sifinnsynapi.soknad
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import no.nav.k9.søknad.Søknad
-import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.common.PersonIdentifikator
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
