@@ -1,6 +1,6 @@
 package no.nav.sifinnsynapi.oppslag
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonAlias
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -104,7 +104,7 @@ class OppslagsService(
     }
 }
 
-data class SøkerOppslagRespons(@JsonProperty("aktør_id") val aktørId: String) {
+data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
     override fun toString(): String {
         return "SøkerOppslagRespons(aktør_id='******')"
     }
@@ -117,7 +117,7 @@ data class BarnOppslagDTO(
     val fornavn: String,
     val mellomnavn: String? = null,
     val etternavn: String,
-    @JsonProperty("aktør_id") val aktørId: String,
+    @JsonAlias("aktør_id") val aktørId: String,
     val identitetsnummer: String? = null
 ) {
     override fun toString(): String {
