@@ -22,11 +22,11 @@ class SøknadService(
     fun hentSøknadsopplysningerPerBarn(): List<SøknadDTO> {
         val søkersAktørId =
             (oppslagsService.hentAktørId()
-                ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktør_id
+                ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
         return oppslagsService.hentBarn()
-            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktør_id) }
-            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktør_id)?.somSøknadDTO(it) }
+            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktørId) }
+            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktørId)?.somSøknadDTO(it) }
     }
 
     @Transactional(readOnly = true)

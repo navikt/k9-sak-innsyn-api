@@ -107,7 +107,7 @@ class SøknadControllerTest {
         } returns listOf(
             SøknadDTO(
                 barn = BarnOppslagDTO(
-                    aktør_id = "22222222222",
+                    aktørId = "22222222222",
                     fødselsdato = LocalDate.parse("2005-02-12"),
                     fornavn = "Ole",
                     mellomnavn = null,

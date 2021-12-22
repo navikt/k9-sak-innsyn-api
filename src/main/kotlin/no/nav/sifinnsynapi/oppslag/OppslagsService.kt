@@ -104,7 +104,7 @@ class OppslagsService(
     }
 }
 
-data class SøkerOppslagRespons(@JsonProperty("aktør_id") val aktør_id: String) {
+data class SøkerOppslagRespons(@JsonProperty("aktør_id") val aktørId: String) {
     override fun toString(): String {
         return "SøkerOppslagRespons(aktør_id='******')"
     }
@@ -117,7 +117,7 @@ data class BarnOppslagDTO(
     val fornavn: String,
     val mellomnavn: String? = null,
     val etternavn: String,
-    val aktør_id: String,
+    @JsonProperty("aktør_id") val aktørId: String,
     val identitetsnummer: String? = null
 ) {
     override fun toString(): String {

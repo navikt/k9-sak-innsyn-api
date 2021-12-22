@@ -105,10 +105,10 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     internal fun beforeEach() {
         logger.info("Tømmer databasen...")
         søknadRepository.deleteAll()
-        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktør_id = hovedSøkerAktørId)
+        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
             BarnOppslagDTO(
-                aktør_id = barn1AktørId,
+                aktørId = barn1AktørId,
                 fødselsdato = LocalDate.parse("2005-02-12"),
                 fornavn = "Ole",
                 mellomnavn = null,
@@ -116,7 +116,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                 identitetsnummer = "12020567099"
             ),
             BarnOppslagDTO(
-                aktør_id = barn2AktørId,
+                aktørId = barn2AktørId,
                 fødselsdato = LocalDate.parse("2005-10-30"),
                 fornavn = "Dole",
                 mellomnavn = null,
