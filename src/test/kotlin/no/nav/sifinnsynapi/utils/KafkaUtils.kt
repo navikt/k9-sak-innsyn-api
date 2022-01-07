@@ -1,8 +1,6 @@
 package no.nav.sifinnsynapi.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.k9.innsyn.InnsynHendelse
-import no.nav.k9.innsyn.PsbSøknadsinnhold
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -12,6 +10,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import java.util.*
+
+private val logger = LoggerFactory.getLogger("K9SakProducer")
 
 fun EmbeddedKafkaBroker.opprettK9SakKafkaProducer(): Producer<String, String> {
     val producerProps = KafkaTestUtils.producerProps(this)
@@ -23,7 +23,6 @@ fun EmbeddedKafkaBroker.opprettK9SakKafkaProducer(): Producer<String, String> {
 }
 
 fun Producer<String, String>.leggPåTopic(hendelse: InnsynHendelse<*>, topic: String): RecordMetadata {
-    val logger = LoggerFactory.getLogger("K9SakProducer")
     logger.info("Legger innsynshendelse på topic: {}", hendelse)
     val recordMetadata = send(ProducerRecord(topic, hendelse.somJson())).get()
     logger.info("Innsynshendelse lagt på topic: {}.{} med offset {}", recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset())
