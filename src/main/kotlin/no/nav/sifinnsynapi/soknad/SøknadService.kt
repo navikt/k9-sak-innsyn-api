@@ -25,7 +25,7 @@ class SøknadService(
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
         return oppslagsService.hentBarn()
-            .filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktørId) }
+            //.filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktørId) }
             .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktørId)?.somSøknadDTO(it) }
     }
 

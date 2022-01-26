@@ -258,6 +258,7 @@ internal class SøknadServiceTest {
     }
 
     @Test
+    @Disabled("Har deaktivert sjekk på omsorg i SøknadService.kt:28")
     fun `gitt at søker ikke har omsorg for barna, forvent tom liste`() {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
