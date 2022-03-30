@@ -134,6 +134,40 @@ class SøknadControllerTest {
     }
 
     @Test
+    fun `Gitt 200 respons, forvent korrekt format på liste av søknader med tokenx token`() {
+        val søknadId = UUID.randomUUID().toString()
+        every {
+            søknadService.hentSøknadsopplysningerPerBarn()
+        } returns listOf(
+            SøknadDTO(
+                barn = BarnOppslagDTO(
+                    aktørId = "22222222222",
+                    fødselsdato = LocalDate.parse("2005-02-12"),
+                    fornavn = "Ole",
+                    mellomnavn = null,
+                    etternavn = "Doffen",
+                    identitetsnummer = "12020567099"
+                ),
+                søknad = Søknad()
+                    .medSøknadId(søknadId)
+            )
+        )
+
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken(issuerId = "tokenx").serialize()}")
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].barn").isMap)
+            .andExpect(jsonPath("$[0].søknad").isMap)
+            .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
+    }
+
+    @Test
     fun `gitt request uten token, forevnt 401`() {
         mockMvc.perform(
             MockMvcRequestBuilders
