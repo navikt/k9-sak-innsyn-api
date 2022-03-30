@@ -93,10 +93,13 @@ class OppslagsKlientKonfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            logger.info("request.uri.path {}", request.uri.path)
-            if (request.uri.path !== "/isalive") {
-                val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
-                request.headers.setBearerAuth(response.accessToken)
+            when {
+                request.uri.path == "/isalive" -> {} // ignorer
+                else -> {
+                    logger.info("request.uri.path {}", request.uri.path)
+                    val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
+                    request.headers.setBearerAuth(response.accessToken)
+                }
             }
             execution.execute(request, body)
         }
