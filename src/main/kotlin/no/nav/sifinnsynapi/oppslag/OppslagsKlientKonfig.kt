@@ -36,20 +36,24 @@ class OppslagsKlientKonfig(
         const val TOKEN_X_K9_SELVBETJENING_OPPSLAG = "tokenx-k9-selvbetjening-oppslag"
     }
 
-    private val tokenxK9SelvbetjeningOppslagClientProperties = oauth2Config.registration[TOKEN_X_K9_SELVBETJENING_OPPSLAG]
-        ?: throw RuntimeException("could not find oauth2 client config for $TOKEN_X_K9_SELVBETJENING_OPPSLAG")
+    private val tokenxK9SelvbetjeningOppslagClientProperties =
+        oauth2Config.registration[TOKEN_X_K9_SELVBETJENING_OPPSLAG]
+            ?: throw RuntimeException("could not find oauth2 client config for $TOKEN_X_K9_SELVBETJENING_OPPSLAG")
 
     @Bean(name = ["k9OppslagsKlient"])
-    fun restTemplate(builder: RestTemplateBuilder, mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor): RestTemplate {
+    fun restTemplate(
+        builder: RestTemplateBuilder,
+        mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor
+    ): RestTemplate {
         return builder
-                .setConnectTimeout(Duration.ofSeconds(20))
-                .setReadTimeout(Duration.ofSeconds(20))
-                .defaultHeader(X_CORRELATION_ID, UUID.randomUUID().toString())
-                .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .rootUri(oppslagsUrl)
-                .defaultMessageConverters()
-                .interceptors(bearerTokenInterceptor(), mdcInterceptor)
-                .build()
+            .setConnectTimeout(Duration.ofSeconds(20))
+            .setReadTimeout(Duration.ofSeconds(20))
+            .defaultHeader(X_CORRELATION_ID, UUID.randomUUID().toString())
+            .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .rootUri(oppslagsUrl)
+            .defaultMessageConverters()
+            .interceptors(bearerTokenInterceptor(), mdcInterceptor)
+            .build()
     }
 
     override fun <T : Any, E : Throwable> open(context: RetryContext, callback: RetryCallback<T, E>): Boolean {
@@ -57,13 +61,26 @@ class OppslagsKlientKonfig(
         return true
     }
 
-    override fun <T : Any, E : Throwable?> close(context: RetryContext, callback: RetryCallback<T, E>, throwable: Throwable?) {
+    override fun <T : Any, E : Throwable?> close(
+        context: RetryContext,
+        callback: RetryCallback<T, E>,
+        throwable: Throwable?
+    ) {
         val backoff = context.getAttribute("backOffContext")!!
 
-        if (context.retryCount > 0) logger.info("Gir opp etter {} av {} forsøk og {} ms", context.retryCount, maxAttempts, backoff.nextInterval() - 1000)
+        if (context.retryCount > 0) logger.info(
+            "Gir opp etter {} av {} forsøk og {} ms",
+            context.retryCount,
+            maxAttempts,
+            backoff.nextInterval() - 1000
+        )
     }
 
-    override fun <T : Any, E : Throwable> onError(context: RetryContext, callback: RetryCallback<T, E>, throwable: Throwable) {
+    override fun <T : Any, E : Throwable> onError(
+        context: RetryContext,
+        callback: RetryCallback<T, E>,
+        throwable: Throwable
+    ) {
         val currentTry = context.retryCount
         val contextString = context.getAttribute("context.name") as String
         val backoff = context.getAttribute("backOffContext")!!
@@ -76,8 +93,11 @@ class OppslagsKlientKonfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
-            request.headers.setBearerAuth(response.accessToken)
+            logger.info("request.uri.path", request.uri.path)
+            if (request.uri.path !== "/actuator/health") {
+                val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
+                request.headers.setBearerAuth(response.accessToken)
+            }
             execution.execute(request, body)
         }
     }
