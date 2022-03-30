@@ -96,7 +96,6 @@ class OppslagsKlientKonfig(
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
                 else -> {
-                    logger.info("request.uri.path {}", request.uri.path)
                     val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
                     request.headers.setBearerAuth(response.accessToken)
                 }
