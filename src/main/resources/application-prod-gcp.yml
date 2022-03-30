@@ -39,6 +39,9 @@ no.nav:
         loginservice:
           discoveryUrl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL} # settes av configmap: loginservice-idporten i naiserator.yml
           accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE} # settes av configmap: loginservice-idporten i naiserator.yml
+        tokenx:
+          discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
+          accepted_audience: ${TOKEN_X_CLIENT_ID}
     client:
       registration:
         tokenx-k9-selvbetjening-oppslag:
