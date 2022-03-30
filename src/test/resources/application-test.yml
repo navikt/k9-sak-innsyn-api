@@ -8,18 +8,32 @@ no.nav:
           discoveryurl: http://localhost:${mock-oauth2-server.port}/loginservice/.well-known/openid-configuration
           accepted_audience: aud-localhost
           cookie_name: selvbetjening-idtoken
+        tokenx:
+          discoveryurl: http://localhost:${mock-oauth2-server.port}/tokenx/.well-known/openid-configuration
+          accepted_audience: aud-localhost
+      client:
+        registration:
+          tokenx-k9-selvbetjening-oppslag:
+            token-endpoint-url: http://localhost:8080/default/token
+            grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: dev-gcp:dusseldorf:sif-innsyn-api
+              client-jwk: src/test/resources/tokenx-jwk.json
+            token-exchange:
+              audience: dev-gcp:dusseldorf:k9-selvbetjening-oppslag
   metrics:
     interval: 36000
 
 spring:
   datasource:
-    url: jdbc:tc:postgresql:9.6:///
+    url: jdbc:tc:postgresql:12:///
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   flyway:
     enabled: true
   jpa:
     show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQL12Dialect
 
 logging:
   level:
