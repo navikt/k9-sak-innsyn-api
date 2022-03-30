@@ -93,7 +93,7 @@ class OppslagsKlientKonfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            logger.info("request.uri.path", request.uri.path)
+            logger.info("request.uri.path {}", request.uri.path)
             if (request.uri.path !== "/actuator/health") {
                 val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
                 request.headers.setBearerAuth(response.accessToken)
