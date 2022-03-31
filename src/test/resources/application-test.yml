@@ -14,7 +14,7 @@ no.nav:
       client:
         registration:
           tokenx-k9-selvbetjening-oppslag:
-            token-endpoint-url: http://localhost:8080/default/token
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/default/token
             grant-type: urn:ietf:params:oauth:grant-type:token-exchange
             authentication:
               client-auth-method: private_key_jwt
