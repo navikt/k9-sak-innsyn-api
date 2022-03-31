@@ -21,7 +21,7 @@ no.nav:
               client-id: dev-gcp:dusseldorf:sif-innsyn-api
               client-jwk: src/test/resources/tokenx-jwk.json
             token-exchange:
-              audience: dev-gcp:dusseldorf:k9-selvbetjening-oppslag
+              audience: dev-fss:dusseldorf:k9-selvbetjening-oppslag
   metrics:
     interval: 36000
 
