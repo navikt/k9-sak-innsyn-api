@@ -22,7 +22,7 @@ val springfoxVersion by extra("3.0.0")
 val confluentVersion by extra("5.5.0")
 val logstashLogbackEncoderVersion by extra("6.6")
 val tokenSupportVersion by extra("1.3.8")
-val k9FormatVersion by extra("5.4.14")
+val k9FormatVersion by extra("5.5.20")
 val springCloudVersion by extra("2020.0.3")
 val retryVersion by extra("1.3.0")
 val zalandoVersion by extra("0.26.2")
@@ -36,7 +36,7 @@ val okHttp3Version by extra("4.9.1")
 val orgJsonVersion by extra("20210307")
 
 ext["okhttp3.version"] = okHttp3Version
-ext["testcontainersVersion"] = "1.15.3"
+ext["testcontainersVersion"] = "1.16.3"
 ext["log4j2.version"] = "2.15.0" // TODO: 13/12/2021 kan fjernes når spring boot oppgraderes til  v2.5.8 eller v2.6.2
 
 repositories {
@@ -61,6 +61,7 @@ dependencies {
 
     // NAV
     implementation("no.nav.k9:soknad:$k9FormatVersion")
+    implementation("no.nav.k9:innsyn:$k9FormatVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
@@ -108,8 +109,8 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.hibernate:hibernate-jpamodelgen")
     implementation("com.vladmihalcea:hibernate-types-52:$hibernateTypes52Version")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:junit-jupiter:1.16.3")
+    testImplementation("org.testcontainers:postgresql:1.16.3")
 
     // Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

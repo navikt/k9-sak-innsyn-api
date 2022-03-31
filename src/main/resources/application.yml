@@ -1,8 +1,6 @@
 no.nav:
   gateways:
     k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
-  metrics:
-    interval: 60_000
 
 topic:
   # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
@@ -10,7 +8,7 @@ topic:
     # topic.listener.k9-sak
     k9-sak:
       id: k9-sak-listener
-      navn: dusseldorf.privat-k9-sak-innsyn-pleiepenger-sykt-barn
+      navn: dusseldorf.privat-k9-sak-innsyn-v1
       bryter: true
       dry-run: false
 
@@ -53,25 +51,6 @@ spring:
     driver-class-name: org.postgresql.Driver
 
 kafka:
-  onprem:
-    servers: # overstyres fra nais/<cluster>.json
-    consumer:
-      enable-auto-commit: false
-      group-id: ${spring.application.name}
-      auto-offset-reset:  # overstyres fra nais/<cluster>.json
-      isolation-level: read_committed
-      retry-interval: 60_000 # Egendefinert property
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      schemaRegistryUrl: # overstyres fra nais/<cluster>.json
-
-    producer:
-      client-id: ${HOSTNAME}
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      transaction-id-prefix: .tx-
-      retries: 3
-
   aiven:
     servers: ${KAFKA_BROKERS}
     consumer:

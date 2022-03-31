@@ -1,93 +1,69 @@
 package no.nav.sifinnsynapi.soknad
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.k9.innsyn.Søknadsammenslåer
+import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
-import no.nav.k9.søknad.felles.Versjon
-import no.nav.k9.søknad.felles.personopplysninger.Søker
-import no.nav.k9.søknad.felles.type.Journalpost
-import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
-import no.nav.k9.søknad.felles.type.Periode
-import no.nav.k9.søknad.felles.type.Språk
-import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarnSøknadValidator
-import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
-import no.nav.sifinnsynapi.http.SøknadNotFoundException
-import no.nav.sifinnsynapi.util.komplettYtelse
-import no.nav.sifinnsynapi.util.personIdent
+import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
-import java.time.LocalDate
-import java.time.ZonedDateTime
-import java.util.*
+import org.springframework.transaction.annotation.Transactional
+import java.util.stream.Stream
 
 
 @Service
 class SøknadService(
     private val repo: SøknadRepository,
-    private val tokenValidationContextHolder: SpringTokenValidationContextHolder
+    private val omsorgService: OmsorgService,
+    private val oppslagsService: OppslagsService
 ) {
 
-    companion object {
-        private val mapper = ObjectMapper()
+    @Transactional(readOnly = true)
+    fun hentSøknadsopplysningerPerBarn(): List<SøknadDTO> {
+        val søkersAktørId =
+            (oppslagsService.hentAktørId()
+                ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
+
+        return oppslagsService.hentBarn()
+            // Todo: Aktiver filter igjen før lansering.
+            //.filter { omsorgService.harOmsorgen(søkerAktørId = søkersAktørId, pleietrengendeAktørId = it.aktørId) }
+            .mapNotNull { slåSammenSøknaderFor(søkersAktørId, it.aktørId)?.somSøknadDTO(it) }
     }
 
-    fun hentSøknadsopplysninger(): SøknadDTO {
-
-        val søknadId = UUID.randomUUID()
-        val søknad = Søknad()
-            .medSøknadId(søknadId.toString())
-            .medSøker(Søker(NorskIdentitetsnummer.of(tokenValidationContextHolder.personIdent().personIdent)))
-            .medJournalpost(Journalpost().medJournalpostId("123456789"))
-            .medSpråk(Språk.NORSK_BOKMÅL)
-            .medMottattDato(ZonedDateTime.now())
-            .medVersjon(Versjon.of("1.0"))
-            .medYtelse(
-                komplettYtelse(Periode(LocalDate.parse("2021-08-12"), LocalDate.parse("2022-01-12")))
-            )
-        check(PleiepengerSyktBarnSøknadValidator().valider(søknad).isNotEmpty()) { "Mocking av søknadsopplysninger feilet validering" }
-        return SøknadDTO(
-            søknadId = søknadId,
-            søknad = søknad,
-            opprettet = null,
-            endret = null,
-            behandlingsdato = null
-        )
-        /*return repo.findAllByPersonIdent(personIdent = tokenValidationContextHolder.personIdent())
-            .map { it.tilSøknadDTO() }*/
+    @Transactional(readOnly = true)
+    fun slåSammenSøknaderFor(
+        søkersAktørId: String,
+        barnAktørId: String
+    ): Søknad? {
+        return repo.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(barnAktørId)
+            .use { søknadStream: Stream<PsbSøknadDAO> ->
+                søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
+                    psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
+                }
+                    .reduce(Søknadsammenslåer::slåSammen)
+                    .orElse(null)
+            }
     }
 
-    fun hentSøknad(søknadId: UUID): SøknadDTO {
-        val søknadDAO = repo.findBySøknadId(søknadId) ?: throw SøknadNotFoundException(søknadId.toString())
-        return søknadDAO.tilSøknadDTO()
+    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
+
+    @Transactional
+    fun trekkSøknad(journalpostId: String): Boolean {
+        repo.deleteById(journalpostId)
+        return !repo.existsById(journalpostId)
     }
 
-    fun SøknadDAO.tilSøknadDTO() = SøknadDTO(
-        søknadId = søknadId,
-        opprettet = opprettet,
-        endret = endret,
-        behandlingsdato = behandlingsdato,
-        søknad = søknad
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO) = SøknadDTO(
+        barn = barn,
+        søknad = this
     )
 
-    fun hentTestData(): List<SøknadDTO> {
-        val søknadId = UUID.randomUUID()
-
-        return listOf(
-            SøknadDTO(
-                søknadId = søknadId,
-                søknad = Søknad()
-                    .medSøknadId(søknadId.toString())
-                    .medSøker(Søker(NorskIdentitetsnummer.of(tokenValidationContextHolder.personIdent().personIdent)))
-                    .medJournalpost(Journalpost().medJournalpostId("123456789"))
-                    .medSpråk(Språk.NORSK_BOKMÅL)
-                    .medMottattDato(ZonedDateTime.now())
-                    .medVersjon(Versjon.of("1.0"))
-                    .medYtelse(
-                        komplettYtelse(Periode(LocalDate.now().minusWeeks(1), LocalDate.now().plusWeeks(1)))
-                    ),
-                opprettet = null,
-                endret = null,
-                behandlingsdato = null
-            )
-        )
+    private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
+        val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)
+        return when (this.søkerAktørId) {
+            søkerAktørId -> søknad
+            else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
+        }
     }
 }
 

@@ -32,7 +32,8 @@
     "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "latest",
     "NO_NAV_SECURITY_CORS_ALLOWED_ORIGINS": "https://www.nav.no",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "https://k9-selvbetjening-oppslag.prod-fss-pub.nais.io",
-    "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io"
+    "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io",
+    "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-fss:dusseldorf:k9-selvbetjening-oppslag"
   },
   "slack-channel": "sif-alerts",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | "

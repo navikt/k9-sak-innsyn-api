@@ -1,7 +1,9 @@
 package no.nav.sifinnsynapi.oppslag
 
 import assertk.assertThat
+import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
+import assertk.assertions.size
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
@@ -23,7 +25,10 @@ import org.springframework.web.client.RestTemplate
 import java.time.Duration
 import java.util.*
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = ["spring.main.allow-bean-definition-overriding=true"])
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["spring.main.allow-bean-definition-overriding=true"]
+)
 @AutoConfigureWireMock
 @ActiveProfiles("test")
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test. Se application-test.yml -> no.nav.security.jwt.issuer.selvbetjening for konfigurasjon
@@ -37,16 +42,20 @@ internal class OppslagsServiceTest {
 
         @Bean(name = ["k9OppslagsKlient"])
         @Primary
-        fun restTemplate(builder: RestTemplateBuilder, tokenInterceptor: BearerTokenClientHttpRequestInterceptor, mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor): RestTemplate {
+        fun restTemplate(
+            builder: RestTemplateBuilder,
+            tokenInterceptor: BearerTokenClientHttpRequestInterceptor,
+            mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor
+        ): RestTemplate {
             return builder
-                    .setConnectTimeout(Duration.ofSeconds(20))
-                    .setReadTimeout(Duration.ofSeconds(20))
-                    .defaultHeader(Constants.X_CORRELATION_ID, UUID.randomUUID().toString())
-                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, anyString())
-                    .defaultMessageConverters()
-                    .rootUri(oppslagsUrl)
-                    .build()
+                .setConnectTimeout(Duration.ofSeconds(20))
+                .setReadTimeout(Duration.ofSeconds(20))
+                .defaultHeader(Constants.X_CORRELATION_ID, UUID.randomUUID().toString())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, anyString())
+                .defaultMessageConverters()
+                .rootUri(oppslagsUrl)
+                .build()
         }
     }
 
@@ -57,5 +66,11 @@ internal class OppslagsServiceTest {
     fun hentAktørId() {
         val hentAktørId = oppslagsService.hentAktørId()
         assertThat(hentAktørId).isNotNull()
+    }
+
+    @Test
+    fun hentBarn() {
+        val barn = oppslagsService.hentBarn()
+        assertThat(barn).size().isEqualTo(2)
     }
 }

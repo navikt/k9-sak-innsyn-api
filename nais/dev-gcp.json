@@ -33,7 +33,8 @@
     "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "latest",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "https://k9-selvbetjening-oppslag.dev-fss-pub.nais.io",
     "NO_NAV_GATEWAYS_SAF_BASE_URL": "https://saf.dev-fss-pub.nais.io",
-    "TOKENDINGS_BASE_URL": "https://tokendings.dev-gcp.nais.io"
+    "TOKENDINGS_BASE_URL": "https://tokendings.dev-gcp.nais.io",
+    "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-fss:dusseldorf:k9-selvbetjening-oppslag"
   },
   "slack-channel": "sif-alerts-dev",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | "

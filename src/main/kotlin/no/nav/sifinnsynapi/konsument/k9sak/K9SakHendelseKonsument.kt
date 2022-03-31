@@ -1,24 +1,29 @@
 package no.nav.sifinnsynapi.konsument.k9sak
 
-import no.nav.k9.søknad.Søknad
-import no.nav.sifinnsynapi.common.PersonIdentifikator
+import no.nav.k9.innsyn.InnsynHendelse
+import no.nav.k9.innsyn.Omsorg
+import no.nav.k9.innsyn.PsbSøknadsinnhold
+import no.nav.k9.innsyn.SøknadTrukket
+import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.soknad.SøknadDAO
-import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.omsorg.OmsorgDAO
+import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
+import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 import java.util.*
 
 @Service
 class K9SakHendelseKonsument(
-    private val repository: SøknadRepository,
-    private val oppslagsService: OppslagsService,
+    private val søknadService: SøknadService,
+    private val omsorgService: OmsorgService,
     @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean
 ) {
 
@@ -30,22 +35,105 @@ class K9SakHendelseKonsument(
     @KafkaListener(
         topics = ["#{'\${topic.listener.k9-sak.navn}'}"],
         id = "#{'\${topic.listener.k9-sak.id}'}",
-        groupId = "#{'\${kafka.onprem.consumer.group-id}'}",
+        groupId = "#{'\${kafka.aiven.consumer.group-id}'}",
         containerFactory = "aivenKafkaJsonListenerContainerFactory",
         autoStartup = "#{'\${topic.listener.k9-sak.bryter}'}"
     )
     fun konsumer(
-        @Payload søknad: Søknad
+        @Payload innsynHendelseJson: String
     ) {
-        logger.info("Mottatt hendelse fra k9-sak: {}", Søknad.SerDes.serialize(søknad))
+        when (dryRun) {
+            true -> {
+                try {
+                    logger.info("DRY RUN - Mapper om innsynhendelse...")
+                    val innsynHendelse =
+                        JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+                    when (innsynHendelse.data) {
+                        is PsbSøknadsinnhold -> {
+                            innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<PsbSøknadsinnhold>")
+                        }
+                        is Omsorg -> {
+                            innsynHendelse as InnsynHendelse<Omsorg>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<Omsorg>")
+                        }
+                        is SøknadTrukket -> {
+                            innsynHendelse as InnsynHendelse<SøknadTrukket>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<SøknadTrukket>")
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error("DRY RUN - konsumering av innsynshendelse feilet.", e)
+                }
+            }
+            else -> {
+                logger.info("Mapper om innsynhendelse...")
+                val innsynHendelse =
+                    JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
 
-        val søknadDAO = SøknadDAO(
-            søknadId = UUID.fromString(søknad.søknadId.id),
-            personIdent = PersonIdentifikator(søknad.søker.personIdent.verdi),
-            søknad = søknad,
-            opprettet = ZonedDateTime.now()
-        )
+                when (innsynHendelse.data) {
+                    is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
+                    is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
+                    is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
+                }
+            }
+        }
+    }
 
-        repository.save(søknadDAO)
+    private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
+        logger.info("Innsynhendelse mappet til SøknadTrukket.")
+
+        val journalpostId = innsynHendelse.data.journalpostId
+        logger.trace("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
+        if (søknadService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
+        else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
+    }
+
+    private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
+        logger.info("Innsynhendelse mappet til PsbSøknadsinnhold.")
+
+        logger.trace("Lagrer PsbSøknadsinnhold med journalpostId: {}...", innsynHendelse.data.journalpostId)
+        søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
+        logger.trace("PsbSøknadsinnhold lagret.")
+    }
+
+    private fun håndterOmsorg(innsynHendelse: InnsynHendelse<Omsorg>) {
+        logger.info("Innsynhendelse mappet til Omsorg.")
+
+        val omsorg = innsynHendelse.data
+        when (omsorgService.omsorgEksisterer(omsorg.søkerAktørId, omsorg.pleietrengendeAktørId)) {
+            true -> {
+                logger.trace("Oppdaterer Omsorg...")
+                omsorgService.oppdaterOmsorg(
+                    søkerAktørId = omsorg.søkerAktørId,
+                    pleietrengendeAktørId = omsorg.pleietrengendeAktørId,
+                    harOmsorgen = omsorg.isHarOmsorgen
+                )
+                logger.trace("Omsorg oppdatert.")
+            }
+            else -> {
+                logger.trace("Lagrer Omsorg...")
+                omsorgService.lagreOmsorg(innsynHendelse.somOmsorgDAO())
+                logger.trace("Omsorg lagret.")
+            }
+        }
     }
 }
+
+private fun InnsynHendelse<PsbSøknadsinnhold>.somPsbSøknadDAO() = PsbSøknadDAO(
+    journalpostId = data.journalpostId,
+    søkerAktørId = data.søkerAktørId,
+    pleietrengendeAktørId = data.pleietrengendeAktørId,
+    søknad = JsonUtils.toString(data.søknad),
+    opprettetDato = ZonedDateTime.now(UTC),
+    oppdatertDato = oppdateringstidspunkt
+)
+
+private fun InnsynHendelse<Omsorg>.somOmsorgDAO() = OmsorgDAO(
+    id = UUID.randomUUID().toString(),
+    søkerAktørId = data.søkerAktørId,
+    pleietrengendeAktørId = data.pleietrengendeAktørId,
+    harOmsorgen = data.isHarOmsorgen,
+    opprettetDato = ZonedDateTime.now(UTC),
+    oppdatertDato = oppdateringstidspunkt
+)

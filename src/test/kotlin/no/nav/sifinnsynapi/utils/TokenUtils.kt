@@ -7,9 +7,9 @@ import org.springframework.http.HttpHeaders
 
 fun MockOAuth2Server.hentToken(
     subject: String = "12345678910",
-    issuerId: String = "tokenx",
+    issuerId: String = "loginservice",
     claims: Map<String, String> = mapOf("acr" to "level4"),
-    audience: String = "k9-sak-innsyn-api",
+    audience: String = "aud-localhost",
     expiry: Long = 3600
 ): SignedJWT = issueToken(issuerId = issuerId, subject = subject, claims = claims, audience = audience, expiry = expiry)
 

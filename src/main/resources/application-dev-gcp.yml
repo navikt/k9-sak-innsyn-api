@@ -2,7 +2,7 @@ topic:
   # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
   listener:
     k9-sak:
-      bryter: false
+      bryter: true
       dry-run: false
 
 management:
@@ -19,17 +19,6 @@ spring:
       ddl-auto: none
 
 kafka:
-  onprem:
-    properties:
-      security:
-        protocol: SASL_SSL
-      sasl:
-        mechanism: PLAIN
-        jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${sts.username}" password="${sts.password}";
-      ssl:
-        trust-store-location: file:${javax.net.ssl.trustStore}
-        trust-store-password: ${javax.net.ssl.trustStorePassword}
-        trust-store-type: JKS
   aiven:
     properties:
       security:
@@ -44,6 +33,20 @@ kafka:
 
 no.nav.security.jwt:
   issuer:
+    loginservice:
+      discoveryUrl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL} # settes av configmap: loginservice-idporten i naiserator.yml
+      accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE} # settes av configmap: loginservice-idporten i naiserator.yml
     tokenx:
       discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
       accepted_audience: ${TOKEN_X_CLIENT_ID}
+  client:
+    registration:
+      tokenx-k9-selvbetjening-oppslag:
+        token-endpoint-url: ${TOKENDINGS_BASE_URL}/token
+        grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+        authentication:
+          client-auth-method: private_key_jwt
+          client-id: ${TOKEN_X_CLIENT_ID}
+          client-jwk: ${TOKEN_X_PRIVATE_JWK}
+        token-exchange:
+          audience: ${K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE}

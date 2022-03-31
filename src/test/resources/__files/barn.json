@@ -1,0 +1,20 @@
+{
+  "barn": [
+    {
+      "aktør_id": "22222222222",
+      "identitetsnummer": "12020567099",
+      "fødselsdato": "2005-02-12",
+      "fornavn": "Ole,",
+      "mellomnavn": null,
+      "etternavn": "Doffen"
+    },
+    {
+      "aktør_id": "33333333333",
+      "identitetsnummer": "30100577255",
+      "fødselsdato": "2005-10-30",
+      "fornavn": "Dole,",
+      "mellomnavn": null,
+      "etternavn": "Doffen"
+    }
+  ]
+}

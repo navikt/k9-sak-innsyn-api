@@ -9,7 +9,6 @@ import org.springframework.validation.annotation.Validated
 @ConfigurationProperties(prefix = "kafka")
 @Validated
 data class KafkaClusterProperties(
-    val onprem: KafkaConfigProperties,
     val aiven: KafkaConfigProperties,
 )
 
