@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.5.7"
+    id("org.springframework.boot") version "2.6.5"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.6.10"
     kotlin("plugin.spring") version "1.6.10"
@@ -18,12 +18,12 @@ configurations {
     }
 }
 
-val springfoxVersion by extra("3.0.0")
+val springdocVersion by extra("1.6.6")
 val confluentVersion by extra("5.5.0")
 val logstashLogbackEncoderVersion by extra("6.6")
-val tokenSupportVersion by extra("1.3.8")
+val tokenSupportVersion by extra("1.3.19")
 val k9FormatVersion by extra("5.5.20")
-val springCloudVersion by extra("2020.0.3")
+val springCloudVersion by extra("2021.0.1")
 val retryVersion by extra("1.3.0")
 val zalandoVersion by extra("0.26.2")
 val hibernateTypes52Version by extra("2.11.1")
@@ -37,7 +37,6 @@ val orgJsonVersion by extra("20210307")
 
 ext["okhttp3.version"] = okHttp3Version
 ext["testcontainersVersion"] = "1.16.3"
-ext["log4j2.version"] = "2.15.0" // TODO: 13/12/2021 kan fjernes når spring boot oppgraderes til  v2.5.8 eller v2.6.2
 
 repositories {
     mavenCentral()
@@ -95,8 +94,9 @@ dependencies {
     testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
     testImplementation("org.springframework.cloud:spring-cloud-starter")
 
-    // SpringFox
-    implementation("io.springfox:springfox-boot-starter:$springfoxVersion")
+    // Swagger (openapi 3)
+    implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
 
     // Metrics
     implementation("io.micrometer:micrometer-registry-prometheus")

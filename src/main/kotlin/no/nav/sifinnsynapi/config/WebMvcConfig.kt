@@ -20,22 +20,6 @@ class WebMvcConfig() : WebMvcConfigurer {
         val log: Logger = LoggerFactory.getLogger(WebMvcConfigurer::class.java)
     }
 
-    /**
-     * Add handlers to serve static resources such as images, js, and, css
-     * files from specific locations under web application root, the classpath,
-     * and others.
-     */
-    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-
-        registry.addResourceHandler("swagger-ui.html")
-            .addResourceLocations("classpath:/META-INF/resources/");
-
-        registry.addResourceHandler("/webjars/**")
-            .addResourceLocations("classpath:/META-INF/resources/webjars/");
-
-        super.addResourceHandlers(registry)
-    }
-
     @Bean
     fun problemModules(): ProblemModule {
         return ProblemModule()
