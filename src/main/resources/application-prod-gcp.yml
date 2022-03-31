@@ -17,7 +17,7 @@ spring:
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: create-drop # TODO: Sett til none etter prodsetting.
+      ddl-auto: none
 
 kafka:
   aiven:

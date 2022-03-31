@@ -122,7 +122,7 @@ gjøre kall på endepunktene, må man ha et gyldig token.
 1. Åpne oicd-provider-gui i nettleseren enten ved å bruke docker dashbord, eller ved å gå til http://localhost:5000.
 2. Trykk "Token for nivå 4" for å logge inn med ønsket bruker, ved å oppgi fødselsnummer. Tokenet blir da satt som en
    cookie (selvbetjening-idtoken) i nettleseren.
-3. Deretter kan du åpne http://localhost:8080/swagger-ui/index.html for å teste ut endepunktene.
+3. Deretter kan du åpne http://localhost:8080/swagger-ui.html for å teste ut endepunktene.
 
 Om man ønsker å bruke postman må man selv, lage en cookie og sette tokenet manuelt. Eksempel:
 selvbetjening-idtoken=eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp.eyJzdWIiOiIwMTAxMDExMjM0NSIsImFjc.FBmVFuHI9d8akrVdAxi1dRg03qKV4EGk;

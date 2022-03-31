@@ -6,11 +6,6 @@ registries:
     url: https://maven.pkg.github.com/navikt/k9-format
     username: x-access-token
     password: ${{secrets.DEPENDABOT_TOKEN}}
-  token-support:
-    type: maven-repository
-    url: https://maven.pkg.github.com/navikt/token-support
-    username: x-access-token
-    password: ${{secrets.DEPENDABOT_TOKEN}}
 
 updates:
   - package-ecosystem: github-actions
@@ -25,4 +20,3 @@ updates:
       interval: daily
     registries:
       - k9-format
-      - token-support

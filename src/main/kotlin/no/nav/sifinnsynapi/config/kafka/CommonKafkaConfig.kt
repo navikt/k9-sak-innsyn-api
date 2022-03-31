@@ -17,6 +17,7 @@ import org.apache.kafka.common.config.SslConfigs
 import org.slf4j.Logger
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.*
+import org.springframework.kafka.listener.ConsumerRecordRecoverer
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultAfterRollbackProcessor
 import org.springframework.kafka.support.KafkaHeaders
@@ -139,7 +140,7 @@ class CommonKafkaConfig {
             factory.containerProperties.transactionManager = transactionManager
 
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#exactly-once
-            factory.containerProperties.eosMode = ContainerProperties.EOSMode.BETA
+            factory.containerProperties.eosMode = ContainerProperties.EOSMode.V2
 
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#committing-offsets
             factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD;
@@ -148,7 +149,7 @@ class CommonKafkaConfig {
             factory.containerProperties.isDeliveryAttemptHeader = true
 
             // https://docs.spring.io/spring-kafka/reference/html/#listener-container
-            factory.containerProperties.authorizationExceptionRetryInterval = Duration.ofSeconds(10L)
+            factory.containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(10L))
 
             //https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#after-rollback
 
@@ -176,7 +177,7 @@ class CommonKafkaConfig {
             }
 
 
-        fun defaultRecoverer(logger: Logger) = BiConsumer { cr: ConsumerRecord<*, *>, ex: Exception ->
+        fun defaultRecoverer(logger: Logger) = ConsumerRecordRecoverer { cr: ConsumerRecord<*, *>, ex: Exception ->
             logger.error("Retry attempts exhausted for ${cr.topic()}-${cr.partition()}@${cr.offset()}", ex)
         }
     }
