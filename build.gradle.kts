@@ -110,7 +110,7 @@ dependencies {
     runtimeOnly("org.hibernate:hibernate-jpamodelgen")
     implementation("com.vladmihalcea:hibernate-types-52:$hibernateTypes52Version")
     testImplementation("org.testcontainers:junit-jupiter:1.16.3")
-    testImplementation("org.testcontainers:postgresql:1.16.3")
+    testImplementation("org.testcontainers:postgresql:1.17.0")
 
     // Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
