@@ -109,7 +109,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.hibernate:hibernate-jpamodelgen")
     implementation("com.vladmihalcea:hibernate-types-52:$hibernateTypes52Version")
-    testImplementation("org.testcontainers:junit-jupiter:1.16.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.17.1")
     testImplementation("org.testcontainers:postgresql:1.16.3")
 
     // Jackson
