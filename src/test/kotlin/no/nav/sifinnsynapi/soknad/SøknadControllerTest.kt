@@ -179,7 +179,6 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.type").value("/problem-details/uautentisert-forespørsel"))
             .andExpect(jsonPath("$.title").value("Ikke autentisert"))
             .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("no.nav.security.token.support.core.exceptions.JwtTokenMissingException: no valid token found in validation context"))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 
@@ -201,7 +200,6 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.type").value("/problem-details/uautentisert-forespørsel"))
             .andExpect(jsonPath("$.title").value("Ikke autentisert"))
             .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("no.nav.security.token.support.core.exceptions.JwtTokenMissingException: no valid token found in validation context"))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 
@@ -223,7 +221,6 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.type").value("/problem-details/uautentisert-forespørsel"))
             .andExpect(jsonPath("$.title").value("Ikke autentisert"))
             .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("no.nav.security.token.support.core.exceptions.JwtTokenMissingException: no valid token found in validation context"))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 }
