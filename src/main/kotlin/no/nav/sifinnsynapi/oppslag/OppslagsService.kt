@@ -73,7 +73,11 @@ class OppslagsService(
 
     fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>) {
         logger.info("Henter identer...")
-        val entity = oppslagsKlient.getForEntity(hentIdenterUrl.toUriString(), String::class.java)
+        val entity = oppslagsKlient.postForEntity(
+            hentIdenterUrl.toUriString(),
+            HentIdenterForespørsel(identer, identGrupper),
+            String::class.java
+        )
         logger.info("Identer hentet: {}", entity)
     }
 
@@ -121,6 +125,11 @@ data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
 }
 
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
+
+private data class HentIdenterForespørsel(
+    val identer: List<String>,
+    val identGrupper: List<IdentGruppe>
+)
 
 data class BarnOppslagDTO(
     val fødselsdato: LocalDate,
