@@ -45,7 +45,7 @@ internal class SøknadServiceMedMockRepoTest {
     @MockkBean(relaxed = true)
     private lateinit var søknadRepository: SøknadRepository
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     private lateinit var oppslagsService: OppslagsService
 
     @Autowired

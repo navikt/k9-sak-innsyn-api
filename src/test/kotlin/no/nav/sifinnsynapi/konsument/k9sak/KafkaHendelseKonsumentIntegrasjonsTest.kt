@@ -81,7 +81,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @Autowired
     lateinit var omsorgService: OmsorgService
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var oppslagsService: OppslagsService
 
     lateinit var k9SakProducer: Producer<String, String> // Kafka producer som brukes til å legge på kafka meldinger.

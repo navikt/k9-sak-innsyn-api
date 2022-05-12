@@ -49,6 +49,10 @@ class OppslagsService(
                 "barn[].identitetsnummer"
             )
             .build()
+
+        val hentIdenterUrl = UriComponentsBuilder
+            .fromUriString("/system/hent-identer")
+            .build()
     }
 
     fun hentAktørId(): SøkerOppslagRespons? {
@@ -65,6 +69,12 @@ class OppslagsService(
         logger.info("Fikk response {} fra oppslag av barn.", exchange.statusCode)
 
         return exchange.body?.barn ?: listOf()
+    }
+
+    fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>) {
+        logger.info("Henter identer...")
+        val entity = oppslagsKlient.getForEntity(hentIdenterUrl.toUriString(), String::class.java)
+        logger.info("Identer hentet: {}", entity)
     }
 
     @Recover
@@ -123,4 +133,10 @@ data class BarnOppslagDTO(
     override fun toString(): String {
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
+}
+
+enum class IdentGruppe {
+    AKTORID,
+    FOLKEREGISTERIDENT,
+    NPID
 }

@@ -34,11 +34,16 @@ class OppslagsKlientKonfig(
         val logger: Logger = LoggerFactory.getLogger(OppslagsKlientKonfig::class.java)
 
         const val TOKEN_X_K9_SELVBETJENING_OPPSLAG = "tokenx-k9-selvbetjening-oppslag"
+        const val AZURE_K9_SELVBETJENING_OPPSLAG = "azure-k9-selvbetjening-oppslag"
     }
 
     private val tokenxK9SelvbetjeningOppslagClientProperties =
         oauth2Config.registration[TOKEN_X_K9_SELVBETJENING_OPPSLAG]
             ?: throw RuntimeException("could not find oauth2 client config for $TOKEN_X_K9_SELVBETJENING_OPPSLAG")
+
+    private val azureK9SelvbetjeningOppslagClientProperties =
+        oauth2Config.registration[AZURE_K9_SELVBETJENING_OPPSLAG]
+            ?: throw RuntimeException("could not find oauth2 client config for $AZURE_K9_SELVBETJENING_OPPSLAG")
 
     @Bean(name = ["k9OppslagsKlient"])
     fun restTemplate(
@@ -95,6 +100,10 @@ class OppslagsKlientKonfig(
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
+                request.uri.path.contains("/system") -> {
+                    val response = oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties)
+                    request.headers.setBearerAuth(response.accessToken)
+                }
                 else -> {
                     val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
                     request.headers.setBearerAuth(response.accessToken)

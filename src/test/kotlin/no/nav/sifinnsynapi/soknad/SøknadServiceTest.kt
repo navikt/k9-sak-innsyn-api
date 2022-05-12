@@ -48,7 +48,7 @@ internal class SøknadServiceTest {
     @Autowired
     private lateinit var omsorgRepository: OmsorgRepository
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     private lateinit var oppslagsService: OppslagsService
 
     private companion object {

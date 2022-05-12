@@ -5,6 +5,7 @@ import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +24,14 @@ class SøknadService(
         val søkersAktørId =
             (oppslagsService.hentAktørId()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
+
+        val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
+
+        // Hent folkeregistrert ident for alle pleietrengende aktørIder...
+        oppslagsService.hentIdenter(
+            identer = pleietrengendeAktørIder,
+            identGrupper = listOf(IdentGruppe.FOLKEREGISTERIDENT)
+        )
 
         return oppslagsService.hentBarn()
             // Todo: Aktiver filter igjen før lansering.

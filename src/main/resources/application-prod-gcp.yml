@@ -31,25 +31,3 @@ kafka:
         key-store-location: file:${KAFKA_KEYSTORE_PATH}
         key-store-password: ${KAFKA_CREDSTORE_PASSWORD}
         key-store-type: PKCS12
-
-no.nav:
-  security.jwt:
-    issuer:
-      issuer:
-        loginservice:
-          discoveryUrl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL} # settes av configmap: loginservice-idporten i naiserator.yml
-          accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE} # settes av configmap: loginservice-idporten i naiserator.yml
-        tokenx:
-          discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
-          accepted_audience: ${TOKEN_X_CLIENT_ID}
-    client:
-      registration:
-        tokenx-k9-selvbetjening-oppslag:
-          token-endpoint-url: ${TOKENDINGS_BASE_URL}/token
-          grant-type: urn:ietf:params:oauth:grant-type:token-exchange
-          authentication:
-            client-auth-method: private_key_jwt
-            client-id: ${TOKEN_X_CLIENT_ID}
-            client-jwk: ${TOKEN_X_PRIVATE_JWK}
-          token-exchange:
-            audience: ${K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE}

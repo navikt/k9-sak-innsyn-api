@@ -35,6 +35,7 @@
     "NO_NAV_GATEWAYS_SAF_BASE_URL": "https://saf.dev-fss-pub.nais.io",
     "TOKENDINGS_BASE_URL": "https://tokendings.dev-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-fss:dusseldorf:k9-selvbetjening-oppslag",
+    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://602f69bd-4536-47a9-aa90-cfd92255b32d/.default",
     "SWAGGER_ENABLED": "true"
   },
   "slack-channel": "sif-alerts-dev",
