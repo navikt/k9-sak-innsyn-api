@@ -25,7 +25,7 @@ no.nav:
 
           azure-k9-selvbetjening-oppslag:
             token-endpoint-url: http://localhost:${mock-oauth2-server.port}/oauth2/v2.0/token
-            grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+            grant-type: client_credentials
             scope: api://dev-fss:dusseldorf:k9-selvbetjening-oppslag
             authentication:
               client-auth-method: private_key_jwt
