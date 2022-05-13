@@ -102,7 +102,6 @@ class OppslagsKlientKonfig(
                 request.uri.path == "/isalive" -> {} // ignorer
                 request.uri.path.contains("/system") -> {
                     val response = oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties)
-                    logger.info("Hentet azure token: {}", response.accessToken) // TODO: Fjernes før prodsetting.
                     request.headers.setBearerAuth(response.accessToken)
                 }
                 else -> {
