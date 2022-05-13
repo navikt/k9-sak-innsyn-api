@@ -96,6 +96,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @BeforeAll
     fun setUp() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
     }
 
@@ -151,6 +152,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @AfterAll
     fun tearDown() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
         k9SakProducer.close()
     }
 

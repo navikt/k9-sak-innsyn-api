@@ -150,6 +150,7 @@ internal class SøknadServiceTest {
     @AfterAll
     fun cleanup() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
     }
 
     @Test
