@@ -44,7 +44,6 @@ class SøknadService(
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
                 val identInformasjon = hentIdentInformasjonForPleietrengendeAktørId(identer, pleietrengendeAktørId)
-                logger.info("Hentet identInformasjon for pleietrengende: {}", identInformasjon)
                 slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(identInformasjon.ident)
             }
     }

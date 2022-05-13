@@ -25,8 +25,6 @@ class SøknadController(
     @ResponseStatus(OK)
     fun hentSøknader(): List<SøknadDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
-        val søknadsopplysningerPerBarn = søknadService.hentSøknadsopplysningerPerBarn()
-        logger.info("Hentet søknadsopplysninger: {}", søknadsopplysningerPerBarn)
-        return søknadsopplysningerPerBarn
+        return søknadService.hentSøknadsopplysningerPerBarn()
     }
 }
