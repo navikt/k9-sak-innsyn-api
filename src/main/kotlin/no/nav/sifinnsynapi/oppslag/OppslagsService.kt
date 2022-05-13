@@ -77,7 +77,7 @@ class OppslagsService(
     fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>): List<HentIdenterResultat> {
         logger.info("Henter identer...")
         val entity = oppslagsKlient.exchange(
-            hentIdenterUrl.toUri(),
+            hentIdenterUrl.toUriString(),
             HttpMethod.POST,
             HttpEntity(HentIdenterForespørsel(identer, identGrupper)),
             object: ParameterizedTypeReference<List<HentIdenterResultat>>() {}
