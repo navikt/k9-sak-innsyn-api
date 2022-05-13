@@ -111,7 +111,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                 identer = listOf(
                     IdentInformasjon(
                         ident = "12020567099",
-                        identGruppe = IdentGruppe.FOLKEREGISTERIDENT
+                        gruppe = IdentGruppe.FOLKEREGISTERIDENT
                     )
                 )
             ),
@@ -121,7 +121,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                 identer = listOf(
                     IdentInformasjon(
                         ident = "30100577255",
-                        identGruppe = IdentGruppe.FOLKEREGISTERIDENT
+                        gruppe = IdentGruppe.FOLKEREGISTERIDENT
                     )
                 )
             )

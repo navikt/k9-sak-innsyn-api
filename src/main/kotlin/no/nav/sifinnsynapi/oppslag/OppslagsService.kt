@@ -163,5 +163,5 @@ data class HentIdenterResultat(
 
 data class IdentInformasjon(
     val ident: String,
-    val identGruppe: IdentGruppe
+    val gruppe: IdentGruppe
 )

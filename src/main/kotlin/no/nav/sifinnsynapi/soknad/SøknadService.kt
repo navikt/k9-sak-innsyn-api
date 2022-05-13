@@ -48,7 +48,7 @@ class SøknadService(
     ): IdentInformasjon {
         return hentIdenterResultat
             .first { it.ident == pleietrengendeAktørId }.identer
-            .first { it.identGruppe == IdentGruppe.FOLKEREGISTERIDENT }
+            .first { it.gruppe == IdentGruppe.FOLKEREGISTERIDENT }
     }
 
     @Transactional(readOnly = true)
