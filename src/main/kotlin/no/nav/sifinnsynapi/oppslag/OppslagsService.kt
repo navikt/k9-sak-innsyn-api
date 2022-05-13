@@ -82,7 +82,7 @@ class OppslagsService(
             HttpEntity(HentIdenterForespørsel(identer, identGrupper)),
             object: ParameterizedTypeReference<List<HentIdenterResultat>>() {}
         )
-        logger.info("Identer hentet: {}", entity.body)
+
         return entity.body ?: listOf()
     }
 

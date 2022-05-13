@@ -8,6 +8,7 @@ import no.nav.sifinnsynapi.oppslag.HentIdenterResultat
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.IdentInformasjon
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.stream.Stream
@@ -19,6 +20,10 @@ class SøknadService(
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService
 ) {
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(SøknadService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun hentSøknadsopplysningerPerBarn(): List<SøknadDTO> {
@@ -34,10 +39,12 @@ class SøknadService(
             identer = pleietrengendeAktørIder,
             identGrupper = listOf(IdentGruppe.FOLKEREGISTERIDENT)
         )
+        logger.info("Identer hentet: {}", identer)
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
                 val identInformasjon = hentIdentInformasjonForPleietrengendeAktørId(identer, pleietrengendeAktørId)
+                logger.info("Hentet identInformasjon for pleietrengende: {}", identInformasjon)
                 slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(identInformasjon.ident)
             }
     }
