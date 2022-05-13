@@ -12,9 +12,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
+import no.nav.sifinnsynapi.oppslag.*
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -63,22 +61,26 @@ internal class SøknadServiceMedMockRepoTest {
     @BeforeEach
     internal fun beforeEach() {
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
-            BarnOppslagDTO(
-                aktørId = barn1AktørId,
-                fødselsdato = LocalDate.parse("2005-02-12"),
-                fornavn = "Ole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+        every { oppslagsService.hentIdenter(any(), any()) } returns listOf(
+            HentIdenterResultat(
+                code = "ok",
+                ident = barn1AktørId,
+                identer = listOf(
+                    IdentInformasjon(
+                        ident = "12020567099",
+                        identGruppe = IdentGruppe.FOLKEREGISTERIDENT
+                    )
+                )
             ),
-            BarnOppslagDTO(
-                aktørId = barn2AktørId,
-                fødselsdato = LocalDate.parse("2005-10-30"),
-                fornavn = "Dole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "30100577255"
+            HentIdenterResultat(
+                code = "ok",
+                ident = barn2AktørId,
+                identer = listOf(
+                    IdentInformasjon(
+                        ident = "30100577255",
+                        identGruppe = IdentGruppe.FOLKEREGISTERIDENT
+                    )
+                )
             )
         )
 

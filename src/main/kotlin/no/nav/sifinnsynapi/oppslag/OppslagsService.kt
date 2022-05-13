@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpMethod
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
 import org.springframework.retry.annotation.Retryable
@@ -71,14 +74,16 @@ class OppslagsService(
         return exchange.body?.barn ?: listOf()
     }
 
-    fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>) {
+    fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>): List<HentIdenterResultat> {
         logger.info("Henter identer...")
-        val entity = oppslagsKlient.postForEntity(
-            hentIdenterUrl.toUriString(),
-            HentIdenterForespørsel(identer, identGrupper),
-            String::class.java
+        val entity = oppslagsKlient.exchange(
+            hentIdenterUrl.toUri(),
+            HttpMethod.POST,
+            HttpEntity(HentIdenterForespørsel(identer, identGrupper)),
+            object: ParameterizedTypeReference<List<HentIdenterResultat>>() {}
         )
-        logger.info("Identer hentet: {}", entity)
+        logger.info("Identer hentet: {}", entity.body)
+        return entity.body ?: listOf()
     }
 
     @Recover
@@ -149,3 +154,14 @@ enum class IdentGruppe {
     FOLKEREGISTERIDENT,
     NPID
 }
+
+data class HentIdenterResultat(
+    val code: String,
+    val ident: String,
+    val identer: List<IdentInformasjon>
+)
+
+data class IdentInformasjon(
+    val ident: String,
+    val identGruppe: IdentGruppe
+)
