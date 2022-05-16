@@ -33,7 +33,8 @@
     "NO_NAV_SECURITY_CORS_ALLOWED_ORIGINS": "https://www.nav.no",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "https://k9-selvbetjening-oppslag.prod-fss-pub.nais.io",
     "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io",
-    "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-fss:dusseldorf:k9-selvbetjening-oppslag"
+    "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-fss:dusseldorf:k9-selvbetjening-oppslag",
+    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://d821a3c6-a571-446d-955b-9f5e843cbf84/.default"
   },
   "slack-channel": "sif-alerts",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | "
