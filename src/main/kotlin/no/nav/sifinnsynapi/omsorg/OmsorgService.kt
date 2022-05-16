@@ -38,6 +38,10 @@ class OmsorgService(
     fun lagreOmsorg(omsorgDAO: OmsorgDAO): OmsorgDAO {
         return omsorgRepository.save(omsorgDAO)
     }
+
+    fun hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId: String): List<String> {
+      return omsorgRepository.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
+    }
 }
 
 class OmsorgIkkeFunnetException(override val message: String) : RuntimeException(message)

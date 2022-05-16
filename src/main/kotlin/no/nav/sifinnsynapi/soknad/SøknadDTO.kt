@@ -3,10 +3,9 @@ package no.nav.sifinnsynapi.soknad
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.k9.søknad.Søknad
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 
 data class SøknadDTO @JsonCreator constructor(
-    @JsonProperty("barn") val barn: BarnOppslagDTO,
+    @JsonProperty("pleietrengendeIdent") val pleietrengendeIdent: String,
     @JsonProperty("søknad") val søknad: Søknad
 ) {
     override fun toString(): String {

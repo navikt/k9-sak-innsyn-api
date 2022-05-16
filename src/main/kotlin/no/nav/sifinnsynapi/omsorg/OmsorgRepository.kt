@@ -24,4 +24,16 @@ interface OmsorgRepository : JpaRepository<OmsorgDAO, String> {
         value = "UPDATE omsorg SET har_omsorgen = ?1 WHERE søker_aktør_id = ?2 AND pleietrengende_aktør_id = ?3"
     )
     fun oppdaterOmsorg(harOmsorgen: Boolean, søkerAktørId: String, pleietrengendeAktørId: String): Int
+
+    /**
+     * Henter alle pleietrengende som søker har omsorgen for.
+     *
+     * @param søkerAktørId AktørId på søker.
+     * @return En liste med pleietrengendeAktørId.
+     */
+    @Query(
+        nativeQuery = true,
+        value = "SELECT pleietrengende_aktør_id FROM omsorg WHERE søker_aktør_id = ?1 AND har_omsorgen = true"
+    )
+    fun hentPleietrengendeSøkerHarOmsorgFor(søkerAktørId: String): List<String>
 }

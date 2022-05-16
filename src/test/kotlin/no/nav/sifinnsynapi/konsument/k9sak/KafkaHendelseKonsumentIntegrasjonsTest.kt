@@ -16,9 +16,7 @@ import no.nav.sifinnsynapi.config.kafka.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
+import no.nav.sifinnsynapi.oppslag.*
 import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.soknad.SøknadService
 import no.nav.sifinnsynapi.utils.*
@@ -81,7 +79,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @Autowired
     lateinit var omsorgService: OmsorgService
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var oppslagsService: OppslagsService
 
     lateinit var k9SakProducer: Producer<String, String> // Kafka producer som brukes til å legge på kafka meldinger.
@@ -98,6 +96,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @BeforeAll
     fun setUp() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
         k9SakProducer = embeddedKafkaBroker.opprettK9SakKafkaProducer()
     }
 
@@ -106,24 +105,6 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         logger.info("Tømmer databasen...")
         søknadRepository.deleteAll()
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
-            BarnOppslagDTO(
-                aktørId = barn1AktørId,
-                fødselsdato = LocalDate.parse("2005-02-12"),
-                fornavn = "Ole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "12020567099"
-            ),
-            BarnOppslagDTO(
-                aktørId = barn2AktørId,
-                fødselsdato = LocalDate.parse("2005-10-30"),
-                fornavn = "Dole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "30100577255"
-            )
-        )
 
         omsorgRepository.saveAll(
             listOf(
@@ -149,6 +130,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @AfterAll
     fun tearDown() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
         k9SakProducer.close()
     }
 
@@ -281,7 +263,6 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
     @Test
     fun `gitt konsumering og persistering der søker mister omsorg, forvent at søker ikke har omsorg`() {
-        omsorgRepository.deleteAll()
 
         val omsorgHendelseMedOmsorg = defaultOmsorgHendelse(
             søkerAktørId = hovedSøkerAktørId,

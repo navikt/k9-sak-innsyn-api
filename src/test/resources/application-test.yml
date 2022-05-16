@@ -19,9 +19,18 @@ no.nav:
             authentication:
               client-auth-method: private_key_jwt
               client-id: dev-gcp:dusseldorf:sif-innsyn-api
-              client-jwk: src/test/resources/tokenx-jwk.json
+              client-jwk: src/test/resources/private_jwk.json
             token-exchange:
               audience: dev-fss:dusseldorf:k9-selvbetjening-oppslag
+
+          azure-k9-selvbetjening-oppslag:
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/oauth2/v2.0/token
+            grant-type: client_credentials
+            scope: api://dev-fss:dusseldorf:k9-selvbetjening-oppslag
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: dev-gcp:dusseldorf:sif-innsyn-api
+              client-jwk: src/test/resources/private_jwk.json
   metrics:
     interval: 36000
 

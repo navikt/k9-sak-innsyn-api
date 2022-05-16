@@ -11,9 +11,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
+import no.nav.sifinnsynapi.oppslag.*
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
@@ -48,7 +46,7 @@ internal class SøknadServiceTest {
     @Autowired
     private lateinit var omsorgRepository: OmsorgRepository
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     private lateinit var oppslagsService: OppslagsService
 
     private companion object {
@@ -103,24 +101,7 @@ internal class SøknadServiceTest {
     @BeforeEach
     fun setUp() {
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
-            BarnOppslagDTO(
-                aktørId = barn1AktørId,
-                fødselsdato = LocalDate.parse("2005-02-12"),
-                fornavn = "Ole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "12020567099"
-            ),
-            BarnOppslagDTO(
-                aktørId = barn2AktørId,
-                fødselsdato = LocalDate.parse("2005-10-30"),
-                fornavn = "Dole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "30100577255"
-            )
-        )
+
         omsorgRepository.saveAll(
             listOf(
                 OmsorgDAO(
@@ -151,6 +132,7 @@ internal class SøknadServiceTest {
     @AfterAll
     fun cleanup() {
         søknadRepository.deleteAll()
+        omsorgRepository.deleteAll()
     }
 
     @Test
@@ -258,7 +240,7 @@ internal class SøknadServiceTest {
     }
 
     @Test
-    @Disabled("Har deaktivert sjekk på omsorg i SøknadService.kt:28")
+    //@Disabled("Har deaktivert sjekk på omsorg i SøknadService.kt:28")
     fun `gitt at søker ikke har omsorg for barna, forvent tom liste`() {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
