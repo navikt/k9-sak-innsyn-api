@@ -285,7 +285,6 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
     @Test
     fun `gitt konsumering og persistering der søker mister omsorg, forvent at søker ikke har omsorg`() {
-        omsorgRepository.deleteAll()
 
         val omsorgHendelseMedOmsorg = defaultOmsorgHendelse(
             søkerAktørId = hovedSøkerAktørId,
