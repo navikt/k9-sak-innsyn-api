@@ -105,28 +105,6 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         logger.info("Tømmer databasen...")
         søknadRepository.deleteAll()
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentIdenter(any(), any()) } returns listOf(
-            HentIdenterResultat(
-                code = "ok",
-                ident = barn1AktørId,
-                identer = listOf(
-                    IdentInformasjon(
-                        ident = "12020567099",
-                        gruppe = IdentGruppe.FOLKEREGISTERIDENT
-                    )
-                )
-            ),
-            HentIdenterResultat(
-                code = "ok",
-                ident = barn2AktørId,
-                identer = listOf(
-                    IdentInformasjon(
-                        ident = "30100577255",
-                        gruppe = IdentGruppe.FOLKEREGISTERIDENT
-                    )
-                )
-            )
-        )
 
         omsorgRepository.saveAll(
             listOf(

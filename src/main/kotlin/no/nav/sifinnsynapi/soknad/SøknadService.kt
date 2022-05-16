@@ -3,10 +3,8 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.ytelse.Ytelse
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.oppslag.HentIdenterResultat
-import no.nav.sifinnsynapi.oppslag.IdentGruppe
-import no.nav.sifinnsynapi.oppslag.IdentInformasjon
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -34,27 +32,10 @@ class SøknadService(
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
         if (pleietrengendeAktørIder.isEmpty()) return listOf()
 
-        // Hent folkeregistrert ident for alle pleietrengende aktørIder...
-        val identer = oppslagsService.hentIdenter(
-            identer = pleietrengendeAktørIder,
-            identGrupper = listOf(IdentGruppe.FOLKEREGISTERIDENT)
-        )
-        logger.info("Identer hentet: {}", identer)
-
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
-                val identInformasjon = hentIdentInformasjonForPleietrengendeAktørId(identer, pleietrengendeAktørId)
-                slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(identInformasjon.ident)
+                slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO()
             }
-    }
-
-    fun hentIdentInformasjonForPleietrengendeAktørId(
-        hentIdenterResultat: List<HentIdenterResultat>,
-        pleietrengendeAktørId: String
-    ): IdentInformasjon {
-        return hentIdenterResultat
-            .first { it.ident == pleietrengendeAktørId }.identer
-            .first { it.gruppe == IdentGruppe.FOLKEREGISTERIDENT }
     }
 
     @Transactional(readOnly = true)
@@ -80,10 +61,13 @@ class SøknadService(
         return !repo.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(barnFolkeregistrertIdentGruppe: String) = SøknadDTO(
-        barnFolkeregistrertIdent = barnFolkeregistrertIdentGruppe,
-        søknad = this
-    )
+    private fun Søknad.somSøknadDTO(): SøknadDTO {
+        val ytelse: Ytelse = this.getYtelse()
+        return SøknadDTO(
+            barnFolkeregistrertIdent = ytelse.pleietrengende.personIdent.verdi,
+            søknad = this
+        )
+    }
 
     private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
         val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)

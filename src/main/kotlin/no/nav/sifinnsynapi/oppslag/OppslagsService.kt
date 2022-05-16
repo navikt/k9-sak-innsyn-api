@@ -74,18 +74,6 @@ class OppslagsService(
         return exchange.body?.barn ?: listOf()
     }
 
-    fun hentIdenter(identer: List<String>, identGrupper: List<IdentGruppe>): List<HentIdenterResultat> {
-        logger.info("Henter identer...")
-        val entity = oppslagsKlient.exchange(
-            hentIdenterUrl.toUriString(),
-            HttpMethod.POST,
-            HttpEntity(HentIdenterForespørsel(identer, identGrupper)),
-            object: ParameterizedTypeReference<List<HentIdenterResultat>>() {}
-        )
-
-        return entity.body ?: listOf()
-    }
-
     @Recover
     private fun recover(error: HttpServerErrorException): SøkerOppslagRespons? {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
@@ -131,11 +119,6 @@ data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
 
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
 
-private data class HentIdenterForespørsel(
-    val identer: List<String>,
-    val identGrupper: List<IdentGruppe>
-)
-
 data class BarnOppslagDTO(
     val fødselsdato: LocalDate,
     val fornavn: String,
@@ -148,20 +131,3 @@ data class BarnOppslagDTO(
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
 }
-
-enum class IdentGruppe {
-    AKTORID,
-    FOLKEREGISTERIDENT,
-    NPID
-}
-
-data class HentIdenterResultat(
-    val code: String,
-    val ident: String,
-    val identer: List<IdentInformasjon>
-)
-
-data class IdentInformasjon(
-    val ident: String,
-    val gruppe: IdentGruppe
-)
