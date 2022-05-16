@@ -52,10 +52,6 @@ class OppslagsService(
                 "barn[].identitetsnummer"
             )
             .build()
-
-        val hentIdenterUrl = UriComponentsBuilder
-            .fromUriString("/system/hent-identer")
-            .build()
     }
 
     fun hentAktørId(): SøkerOppslagRespons? {

@@ -112,8 +112,8 @@ class K9SakHendelseKonsument(
                 logger.trace("Omsorg oppdatert.")
             }
             else -> {
+                logger.trace("Lagrer Omsorg...")
                 val omsorgDAO = innsynHendelse.somOmsorgDAO()
-                logger.trace("Lagrer Omsorg: {}", omsorgDAO) // TODO: Fjern før prodsetting.
                 omsorgService.lagreOmsorg(omsorgDAO)
                 logger.trace("Omsorg lagret.")
             }
