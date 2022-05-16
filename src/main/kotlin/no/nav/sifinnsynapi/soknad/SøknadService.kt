@@ -41,9 +41,9 @@ class SøknadService(
     @Transactional(readOnly = true)
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
-        barnAktørId: String
+        pleietrengendeAktørId: String
     ): Søknad? {
-        return repo.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(barnAktørId)
+        return repo.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
                     psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
