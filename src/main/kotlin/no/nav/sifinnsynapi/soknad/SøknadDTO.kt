@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.k9.søknad.Søknad
 
 data class SøknadDTO @JsonCreator constructor(
-    @JsonProperty("barnFolkeregistrertIdent") val barnFolkeregistrertIdent: String,
+    @JsonProperty("pleietrengendeIdent") val pleietrengendeIdent: String,
     @JsonProperty("søknad") val søknad: Søknad
 ) {
     override fun toString(): String {

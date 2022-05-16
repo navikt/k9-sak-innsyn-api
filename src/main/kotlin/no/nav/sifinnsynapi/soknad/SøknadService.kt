@@ -64,7 +64,7 @@ class SøknadService(
     private fun Søknad.somSøknadDTO(): SøknadDTO {
         val ytelse: Ytelse = this.getYtelse()
         return SøknadDTO(
-            barnFolkeregistrertIdent = ytelse.pleietrengende.personIdent.verdi,
+            pleietrengendeIdent = ytelse.pleietrengende.personIdent.verdi,
             søknad = this
         )
     }
