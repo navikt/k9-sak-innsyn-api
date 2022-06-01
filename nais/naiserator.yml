@@ -23,7 +23,8 @@ spec:
         {{#each externalHosts as |host|}}
         - host: {{host}}
         {{/each}}
-      rules: []
+      rules:
+        - application: k9-selvbetjening-oppslag
   liveness:
     path: /actuator/health
     initialDelay: 60
