@@ -10,7 +10,7 @@
     "https://k9-sak-innsyn-api.dev.nav.no"
   ],
   "externalHosts": [
-    "login.microsoftonline.com",
+    "login.microsoftonline.com"
   ],
   "database": {
     "name": "k9-sak-innsyn-api-db",

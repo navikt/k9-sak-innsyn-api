@@ -66,7 +66,6 @@ dependencies {
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
 
-    implementation("no.nav.syfo.schemas:dok-journalfoering-hendelse-v1:67a9be4476b63b7247cfacfaf821ab656bd2a952")
     testImplementation("no.nav.security:token-validation-spring-test:$tokenSupportVersion")
     testImplementation("com.squareup.okhttp3:okhttp:$okHttp3Version")
 
@@ -125,8 +124,6 @@ dependencies {
 
     //Kafka
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("io.confluent:kafka-connect-avro-converter:$confluentVersion")
-    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     // Diverse
