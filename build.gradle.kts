@@ -108,7 +108,7 @@ dependencies {
     // Database
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core")
-    runtimeOnly("org.hibernate:hibernate-OpenModelica")
+    runtimeOnly("org.hibernate:hibernate-jpamodelgen")
     implementation("com.vladmihalcea:hibernate-types-52:$hibernateTypes52Version")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
