@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.2"
-    id("io.spring.dependency-management") version "1.0.12.RELEASE"
+    id("org.springframework.boot") version "2.7.3"
+    id("io.spring.dependency-management") version "1.0.13.RELEASE"
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.jpa") version "1.7.10"
@@ -18,20 +18,20 @@ configurations {
     }
 }
 
-val springdocVersion by extra("1.6.9")
+val springdocVersion by extra("1.6.11")
 val confluentVersion by extra("5.5.0")
 val logstashLogbackEncoderVersion by extra("7.2")
-val tokenSupportVersion by extra("2.1.3")
+val tokenSupportVersion by extra("2.1.4")
 val k9FormatVersion by extra("5.8.8")
 val springCloudVersion by extra("2021.0.1")
 val retryVersion by extra("1.3.3")
 val zalandoVersion by extra("0.27.0")
-val postgresqlVersion by extra("42.4.1")
-val hibernateTypes52Version by extra("2.17.0")
+val postgresqlVersion by extra("42.5.0")
+val hibernateTypes52Version by extra("2.18.0")
 val awailitilityKotlinVersion by extra("4.1.1")
 val assertkJvmVersion by extra("0.25")
 val springMockkVersion by extra("3.1.1")
-val mockkVersion by extra("1.12.5")
+val mockkVersion by extra("1.12.7")
 val guavaVersion by extra("31.1-jre")
 val okHttp3Version by extra("4.10.0")
 val orgJsonVersion by extra("20220320")
@@ -108,7 +108,7 @@ dependencies {
     // Database
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core")
-    runtimeOnly("org.hibernate:hibernate-jpamodelgen")
+    runtimeOnly("org.hibernate:hibernate-OpenModelica")
     implementation("com.vladmihalcea:hibernate-types-52:$hibernateTypes52Version")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
