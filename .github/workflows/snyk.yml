@@ -21,4 +21,4 @@ jobs:
         uses: snyk/actions/gradle@master
         with:
           command: monitor
-          args: --org=dusseldorf --configuration-matching=^runtimeClasspath$|^compileClasspath$ --project-name=${{ github.repository }} --remote-repo-url=https://github.com/${{ github.repository }}.git
+          args: --org=dusseldorf --configuration-matching="^runtimeClasspath$|^compileClasspath$" --project-name=${{ github.repository }} --remote-repo-url=https://github.com/${{ github.repository }}.git
