@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.3"
-    id("io.spring.dependency-management") version "1.0.13.RELEASE"
+    id("org.springframework.boot") version "2.7.4"
+    id("io.spring.dependency-management") version "1.0.14.RELEASE"
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.jpa") version "1.7.10"
@@ -27,11 +27,11 @@ val springCloudVersion by extra("2021.0.1")
 val retryVersion by extra("1.3.3")
 val zalandoVersion by extra("0.27.0")
 val postgresqlVersion by extra("42.5.0")
-val hibernateTypes52Version by extra("2.18.0")
+val hibernateTypes52Version by extra("2.19.2")
 val awailitilityKotlinVersion by extra("4.1.1")
 val assertkJvmVersion by extra("0.25")
 val springMockkVersion by extra("3.1.1")
-val mockkVersion by extra("1.12.7")
+val mockkVersion by extra("1.12.8")
 val guavaVersion by extra("31.1-jre")
 val okHttp3Version by extra("4.10.0")
 val orgJsonVersion by extra("20220320")
