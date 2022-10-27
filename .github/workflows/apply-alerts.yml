@@ -1,5 +1,5 @@
 # This workflow trigger on push to any branch.
-name: Alerts
+name: Deploy alerts to GCP
 on:
   push:
     paths:
@@ -12,8 +12,8 @@ on:
       - 'dev-**'
 
 jobs:
-  deploy-dev-gcp:
-    name: Deploy to dev-gcp
+  deploy-alerts-dev-gcp:
+    name: Deploy Alerts to dev-gcp
     if: startsWith(github.ref, 'refs/heads/dev-') || startsWith(github.ref, 'refs/heads/master') # Deploy if branch is either master or dev-*
     runs-on: ubuntu-latest
     steps:
@@ -25,8 +25,8 @@ jobs:
           RESOURCE: nais/alerterator-dev.yml
           VARS: nais/dev-gcp.json
 
-  deploy-prod-gcp:
-    name: Deploy to prod-gcp
+  deploy-alerts-prod-gcp:
+    name: Deploy Alerts to prod-gcp
     if: startsWith(github.ref, 'refs/heads/master')  # If the branch is master
     runs-on: ubuntu-latest
     steps:
