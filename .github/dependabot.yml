@@ -1,9 +1,9 @@
 version: 2
 
 registries:
-  k9-format:
+  dusseldorf-ktor:
     type: maven-repository
-    url: https://maven.pkg.github.com/navikt/k9-format
+    url: https://maven.pkg.github.com/navikt/dusseldorf-ktor
     username: x-access-token
     password: ${{secrets.DEPENDABOT_TOKEN}}
 
@@ -19,4 +19,9 @@ updates:
     schedule:
       interval: daily
     registries:
-      - k9-format
+      - dusseldorf-ktor
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: daily
