@@ -6,6 +6,10 @@ topic:
       dry-run: false
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
   endpoint:
     health:
       show-details: always

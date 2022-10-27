@@ -26,13 +26,13 @@ spec:
       rules:
         - application: k9-selvbetjening-oppslag
   liveness:
-    path: /actuator/health
+    path: /health/liveness
     initialDelay: 60
     timeout: 1
     periodSeconds: 5
     failureThreshold: 10
   readiness:
-    path: /actuator/health
+    path: /health/readiness
     initialDelay: 60
     timeout: 1
   resources:
@@ -52,7 +52,7 @@ spec:
     cpuThresholdPercentage: 90
   prometheus:
     enabled: true
-    path: /actuator/prometheus
+    path: /metrics
   env:
   {{#each env}}
    - name: {{@key}}

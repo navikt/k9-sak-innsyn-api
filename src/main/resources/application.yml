@@ -42,10 +42,16 @@ topic:
       dry-run: false
 
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
+      base-path: /
       exposure:
         include: health, prometheus
+      path-mapping:
+        prometheus: /metrics
 
 spring:
   application:

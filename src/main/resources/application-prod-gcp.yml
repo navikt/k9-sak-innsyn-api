@@ -5,11 +5,6 @@ topic:
       bryter: true
       dry-run: true
 
-management:
-  endpoint:
-    health:
-      show-details: never
-
 spring:
   mvc:
     log-request-details: false
