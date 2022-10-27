@@ -6,7 +6,7 @@
   "minReplicas": "1",
   "maxReplicas": "2",
   "ingresses": [
-    "https://k9-sak-innsyn-api.nav.no"
+    "https://k9-sak-innsyn-api.intern.nav.no"
   ],
   "externalHosts": [
     "login.microsoftonline.com"
@@ -26,7 +26,6 @@
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
     "SPRING_PROFILES_ACTIVE": "prod-gcp",
     "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "latest",
-    "NO_NAV_SECURITY_CORS_ALLOWED_ORIGINS": "https://www.nav.no",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-gcp:dusseldorf:k9-selvbetjening-oppslag",
