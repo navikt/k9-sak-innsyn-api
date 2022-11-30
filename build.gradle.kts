@@ -40,7 +40,6 @@ ext["okhttp3.version"] = okHttp3Version
 ext["testcontainersVersion"] = testcontainersVersion
 
 repositories {
-    mavenLocal()
     maven {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/navikt/dusseldorf-ktor")
@@ -48,6 +47,11 @@ repositories {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
             password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
         }
+    }
+
+    maven {
+        name = "confluent"
+        url = uri("https://packages.confluent.io/maven/")
     }
 
     maven("https://jitpack.io")
@@ -124,7 +128,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     //Kafka
     implementation("org.springframework.kafka:spring-kafka")

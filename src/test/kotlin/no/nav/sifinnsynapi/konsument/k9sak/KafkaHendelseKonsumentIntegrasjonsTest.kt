@@ -105,6 +105,25 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         logger.info("Tømmer databasen...")
         søknadRepository.deleteAll()
         every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
+        every { oppslagsService.hentBarn() } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            ),
+            BarnOppslagDTO(
+                aktørId = barn2AktørId,
+                fødselsdato = LocalDate.parse("2005-10-30"),
+                fornavn = "Dole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "30100577255"
+            )
+        )
+
 
         omsorgRepository.saveAll(
             listOf(

@@ -5,6 +5,7 @@ import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.ytelse.Ytelse
 import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -29,12 +30,20 @@ class SøknadService(
             (oppslagsService.hentAktørId()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
+        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
+
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
         if (pleietrengendeAktørIder.isEmpty()) return listOf()
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
-                slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO()
+                val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
+                if (barn != null) {
+                    slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(barn)
+                } else {
+                    logger.info("PleietrengedeAktørId matchet ikke med aktørId på barn fra oppslag.")
+                    null
+                }
             }
     }
 
@@ -61,10 +70,9 @@ class SøknadService(
         return !repo.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(): SøknadDTO {
-        val ytelse: Ytelse = this.getYtelse()
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO): SøknadDTO {
         return SøknadDTO(
-            pleietrengendeIdent = ytelse.pleietrengende.personIdent.verdi,
+            barn = barn,
             søknad = this
         )
     }
