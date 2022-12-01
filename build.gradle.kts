@@ -95,8 +95,9 @@ dependencies {
     testImplementation("org.springframework.cloud:spring-cloud-starter")
 
     // Swagger (openapi 3)
-    implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
-    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
+   /* implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")*/
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.0")
 
     // Metrics
     implementation("io.micrometer:micrometer-registry-prometheus")
