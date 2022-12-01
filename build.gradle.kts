@@ -18,7 +18,7 @@ configurations {
     }
 }
 
-val springdocVersion by extra("1.6.13")
+val springdocVersion by extra("2.0.0")
 val logstashLogbackEncoderVersion by extra("7.2")
 val tokenSupportVersion by extra("3.0.0")
 val k9FormatVersion by extra("8.0.0")
@@ -95,9 +95,7 @@ dependencies {
     testImplementation("org.springframework.cloud:spring-cloud-starter")
 
     // Swagger (openapi 3)
-   /* implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
-    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")*/
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
 
     // Metrics
     implementation("io.micrometer:micrometer-registry-prometheus")
