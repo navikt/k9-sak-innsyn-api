@@ -84,8 +84,6 @@ dependencies {
         exclude(module = "mockito-core")
     }
 
-    runtimeOnly("org.springframework.boot:spring-boot-properties-migrator")
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.1")
 
 
