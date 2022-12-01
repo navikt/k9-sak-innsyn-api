@@ -6,155 +6,101 @@ import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnaut
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.http.HttpStatus.UNAUTHORIZED
+import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.ServletWebRequest
-import org.springframework.web.context.request.WebRequest
-import org.zalando.problem.Problem
-import org.zalando.problem.Status
-import org.zalando.problem.spring.web.advice.AdviceTrait
-import org.zalando.problem.spring.web.advice.ProblemHandling
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
-@ControllerAdvice
-class ExceptionHandler : ProblemHandling, AdviceTrait {
+@RestControllerAdvice
+class ExceptionHandler : ResponseEntityExceptionHandler() {
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(ExceptionHandler::class.java)
+        private val log: Logger = LoggerFactory.getLogger(ExceptionHandler::class.java)
     }
 
     @ExceptionHandler(value = [Exception::class])
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    fun håndtereGeneriskException(exception: Exception, request: ServletWebRequest): ResponseEntity<Problem> {
-        log(HttpStatus.INTERNAL_SERVER_ERROR, exception, request)
-        return create(Status.INTERNAL_SERVER_ERROR, exception, request, URI("/problem-details/internal-server-error"))
-    }
-
-    @ExceptionHandler(value = [DocumentNotFoundException::class])
-    fun håndterDokumentIkkeFunnet(
-        exception: DocumentNotFoundException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/dokument-ikke-funnet"))
-            .withTitle("Dokument ikke funnet")
-            .withStatus(Status.NOT_FOUND)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(
-            throwableProblem, request
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    fun håndtereGeneriskException(exception: Exception, request: ServletWebRequest): ProblemDetail {
+        val problemDetails = request.respondProblemDetails(
+            status = INTERNAL_SERVER_ERROR,
+            title = "Et uventet feil har oppstått",
+            type = URI("/problem-details/internal-server-error"),
+            detail = exception.message ?: ""
         )
-    }
-
-    @ExceptionHandler(value = [SøknadNotFoundException::class])
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun håndterSøknadIkkeFunnet(
-        exception: SøknadNotFoundException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/søknad-ikke-funnet"))
-            .withTitle("Søknad ikke funnet")
-            .withStatus(Status.NOT_FOUND)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(
-            throwableProblem, request
-        )
-    }
-
-    @ExceptionHandler(value = [PleiepengesøknadMedOrganisasjonsnummerIkkeFunnetException::class])
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun håndterPleiepengesøknadMedOrganisasjonsnummerIkkeFunnetException(
-        exception: PleiepengesøknadMedOrganisasjonsnummerIkkeFunnetException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/arbeidsgiver-ikke-funner"))
-            .withTitle("Arbeidsgiver ikke funnet")
-            .withStatus(Status.NOT_FOUND)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(
-            throwableProblem, request
-        )
+        log.error("{}", problemDetails)
+        return problemDetails
     }
 
     @ExceptionHandler(value = [JwtTokenUnauthorizedException::class])
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     fun håndtereTokenUnauthorizedException(
         exception: JwtTokenUnauthorizedException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/uautentisert-forespørsel"))
-            .withTitle("Ikke autentisert")
-            .withStatus(Status.UNAUTHORIZED)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(throwableProblem, request)
+        request: ServletWebRequest,
+    ): ProblemDetail {
+        val problemDetails = request.respondProblemDetails(
+            status = UNAUTHORIZED,
+            title = "Ikke autentisert",
+            type = URI("/problem-details/uautentisert-forespørsel"),
+            detail = exception.message ?: ""
+        )
+        log.debug("{}", problemDetails)
+        return problemDetails
     }
 
     @ExceptionHandler(JwtTokenValidatorException::class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(FORBIDDEN)
     fun håndtereTokenUnauthenticatedException(
         exception: JwtTokenValidatorException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-        log(HttpStatus.FORBIDDEN, exception, request)
-
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/uautorisert-forespørsel"))
-            .withTitle("Ikke uautorisert")
-            .withStatus(Status.FORBIDDEN)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(throwableProblem, request)
+        request: ServletWebRequest,
+    ): ProblemDetail {
+        val problemDetails = request.respondProblemDetails(
+            status = FORBIDDEN,
+            title = "Ikke uautorisert",
+            type = URI("/problem-details/uautorisert-forespørsel"),
+            detail = exception.message ?: ""
+        )
+        log.debug("{}", problemDetails)
+        return problemDetails
     }
 
     @ExceptionHandler(JwtTokenMissingException::class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     fun håndtereJwtTokenMissingException(
         exception: JwtTokenMissingException,
-        request: ServletWebRequest
-    ): ResponseEntity<Problem> {
-        val throwableProblem = Problem.builder()
-            .withType(URI("/problem-details/uautorisert-forespørsel"))
-            .withTitle("Ikke uautorisert")
-            .withStatus(Status.UNAUTHORIZED)
-            .withDetail(exception.message)
-            .withInstance(URI(URLDecoder.decode(request.request.requestURL.toString(), Charset.defaultCharset())))
-            .build()
-
-        return create(throwableProblem, request)
+        request: ServletWebRequest,
+    ): ProblemDetail {
+        val problemDetails = request.respondProblemDetails(
+            status = UNAUTHORIZED,
+            title = "Ingen token funnet.",
+            type = URI("/problem-details/mangler-token"),
+            detail = exception.message ?: ""
+        )
+        log.debug("{}", problemDetails)
+        return problemDetails
     }
 
-    fun log(status: HttpStatus, exception: Exception, request: WebRequest) {
-        logger.error("{} - {}, {}", status, exception, request.toString())
+    private fun ServletWebRequest.respondProblemDetails(
+        status: HttpStatus,
+        title: String,
+        type: URI,
+        properties: Map<String, Any> = mapOf(),
+        detail: String,
+    ): ProblemDetail {
+        val problemDetail = ProblemDetail.forStatusAndDetail(status, detail)
+        problemDetail.title = title
+        problemDetail.type = type
+        problemDetail.instance = URI(URLDecoder.decode(request.requestURL.toString(), Charset.defaultCharset()))
+        properties.forEach {
+            problemDetail.setProperty(it.key, it.value)
+        }
+        return problemDetail
     }
 }
-
-class DocumentNotFoundException(søknadId: String) :
-    RuntimeException("Dokument med søknadId = $søknadId ble ikke funnet.")
-
-class SøknadNotFoundException(søknadId: String) : RuntimeException("Søknad med søknadId = $søknadId ble ikke funnet.")
-
-class PleiepengesøknadMedOrganisasjonsnummerIkkeFunnetException(søknadId: String, organisasjonsnummer: String) :
-    RuntimeException("Søknad med søknadId = $søknadId  og organisasjonsnummer = $organisasjonsnummer ble ikke funnet.")

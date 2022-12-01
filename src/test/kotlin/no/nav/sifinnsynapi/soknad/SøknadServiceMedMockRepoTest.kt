@@ -110,7 +110,7 @@ internal class SøknadServiceMedMockRepoTest {
 
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -163,7 +163,7 @@ internal class SøknadServiceMedMockRepoTest {
     @Test
     fun `kan slå sammen arbeidstid for en arbeidstaker`() {
         val org = "987654321"
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -222,7 +222,7 @@ internal class SøknadServiceMedMockRepoTest {
         val org2 = "922222222";
         val org3 = "933333333";
         val org4 = "944444444";
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -335,7 +335,7 @@ internal class SøknadServiceMedMockRepoTest {
 
     @Test
     fun `kan slå sammen arbeidstid for frilanser`() {
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -388,7 +388,7 @@ internal class SøknadServiceMedMockRepoTest {
 
     @Test
     fun `kan slå sammen arbeidstid for selvstendig næringsdrivende`() {
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.of(
                 psbSøknadDAO(
                     journalpostId = "1",
@@ -441,7 +441,7 @@ internal class SøknadServiceMedMockRepoTest {
 
     @Test
     fun `gitt ingen søknader blir funnet, forvent tom liste`() {
-        every { søknadRepository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(any()) } answers {
+        every { søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(any()) } answers {
             Stream.empty()
         }
 
