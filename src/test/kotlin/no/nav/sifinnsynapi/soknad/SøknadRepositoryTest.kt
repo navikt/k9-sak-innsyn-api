@@ -53,7 +53,8 @@ class SøknadRepositoryTest {
     @Test
     fun `hent alle søknader som stream`() {
         assertNotNull(repository.save(lagSøknadDAO()))
-        assertk.assertThat(repository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt( "10987654321").count()).isEqualTo(1)
+        assertk.assertThat(repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").count())
+            .isEqualTo(1)
     }
 
     @Test
@@ -61,7 +62,7 @@ class SøknadRepositoryTest {
         IntStream.range(0, 1000).forEach {
             repository.save(lagSøknadDAO(journalpostId = it.toString()))
         }
-        repository.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt( "10987654321").use {
+        repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").use {
             assertk.assertThat(it.count()).isEqualTo(1000)
         }
     }
@@ -71,7 +72,7 @@ class SøknadRepositoryTest {
         journalpostId: String = "00000000001",
         søkerPersonIdentifikator: String = "14026223262",
         søkerAktørId: String = "12345678910",
-        pleietrengendeAktørId: String = "10987654321"
+        pleietrengendeAktørId: String = "10987654321",
     ): PsbSøknadDAO = PsbSøknadDAO(
         journalpostId = journalpostId,
         søkerAktørId = søkerAktørId,

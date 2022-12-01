@@ -3,7 +3,7 @@ package no.nav.sifinnsynapi.common
 import com.fasterxml.jackson.annotation.JsonValue
 import com.google.common.base.Objects
 import com.google.common.base.Strings
-import javax.persistence.Embeddable
+import jakarta.persistence.Embeddable
 
 @Embeddable
 data class PersonIdentifikator(

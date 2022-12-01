@@ -1,8 +1,6 @@
 package no.nav.sifinnsynapi.omsorg
 
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith

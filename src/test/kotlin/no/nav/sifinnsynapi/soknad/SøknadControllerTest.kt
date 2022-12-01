@@ -31,7 +31,7 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.time.LocalDate
 import java.util.*
-import javax.servlet.http.Cookie
+import jakarta.servlet.http.Cookie
 
 
 @ExtendWith(SpringExtension::class)
@@ -63,23 +63,9 @@ class SøknadControllerTest {
             søknadService.hentSøknadsopplysningerPerBarn()
         } throws Exception("Ooops, noe gikk galt...")
 
-        mockMvc.perform(
-            MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
-                .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
-        )
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(status().isInternalServerError)
-            .andExpect(jsonPath("$.type").value("/problem-details/internal-server-error"))
-            .andExpect(jsonPath("$.stackTrace").doesNotExist())
-    }
-
-    @Test
-    fun `internal server error gir 500 med forventet problem-details i header`() {
-        every {
-            søknadService.hentSøknadsopplysningerPerBarn()
-        } throws Exception("Ooops, noe gikk galt...")
+        //language=json
+        val errorResponse =
+            """{"type":"/problem-details/internal-server-error","title":"Et uventet feil har oppstått","status":500,"detail":"Ooops, noe gikk galt...","instance":"http://localhost/soknad"}""".trimIndent()
 
         mockMvc.perform(
             MockMvcRequestBuilders
@@ -90,13 +76,8 @@ class SøknadControllerTest {
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isInternalServerError)
             .andExpect(header().exists("problem-details"))
-            .andExpect(
-                header().string(
-                    "problem-details",
-                    //language=json
-                    """{"type":"/problem-details/internal-server-error","title":"Internal Server Error","status":500,"detail":"Ooops, noe gikk galt..."}""".trimIndent()
-                )
-            )
+            .andExpect(content().json(errorResponse))
+            .andExpect(header().string("problem-details", errorResponse))
     }
 
     @Test
@@ -158,7 +139,10 @@ class SøknadControllerTest {
             MockMvcRequestBuilders
                 .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken(issuerId = "tokenx").serialize()}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${mockOAuth2Server.hentToken(issuerId = "tokenx").serialize()}"
+                )
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)

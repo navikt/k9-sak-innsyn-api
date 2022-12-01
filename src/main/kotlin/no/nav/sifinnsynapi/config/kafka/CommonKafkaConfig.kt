@@ -5,10 +5,10 @@ import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.søknad.JsonUtils
-import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.util.MDCUtil
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -16,7 +16,11 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.slf4j.Logger
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.*
+import org.springframework.kafka.core.ConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ConsumerRecordRecoverer
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultAfterRollbackProcessor
@@ -26,7 +30,6 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.util.backoff.FixedBackOff
 import java.nio.ByteBuffer
 import java.time.Duration
-import java.util.function.BiConsumer
 
 class CommonKafkaConfig {
     companion object {
@@ -111,11 +114,11 @@ class CommonKafkaConfig {
 
             factory.setReplyTemplate(kafkaTemplate)
 
-            factory.setRecordInterceptor {
+            factory.setRecordInterceptor { record: ConsumerRecord<String, String>, consumer: Consumer<String, String> ->
                 MDCUtil.toMDC(Constants.NAV_CONSUMER_ID, clientId)
-                logger.loggAntallForsøk(it)
+                logger.loggAntallForsøk(record)
 
-                val hendelse = JsonUtils.fromString(it.value(), InnsynHendelse::class.java) as InnsynHendelse<*>
+                val hendelse = JsonUtils.fromString(record.value(), InnsynHendelse::class.java) as InnsynHendelse<*>
 
                 when (hendelse.data) {
                     is PsbSøknadsinnhold -> {
@@ -133,7 +136,7 @@ class CommonKafkaConfig {
                     }
                 }
 
-                it
+                record
             }
 
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#chained-transaction-manager

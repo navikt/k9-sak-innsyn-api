@@ -1,11 +1,9 @@
 package no.nav.sifinnsynapi.config.kafka
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.core.io.Resource
 import org.springframework.validation.annotation.Validated
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "kafka")
 @Validated
 data class KafkaClusterProperties(

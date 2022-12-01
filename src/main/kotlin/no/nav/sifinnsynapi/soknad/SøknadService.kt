@@ -52,7 +52,7 @@ class SøknadService(
         søkersAktørId: String,
         pleietrengendeAktørId: String
     ): Søknad? {
-        return repo.hentSøknaderPåPleietrengendeSortertPåOppdatertTidspunkt(pleietrengendeAktørId)
+        return repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
                     psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
