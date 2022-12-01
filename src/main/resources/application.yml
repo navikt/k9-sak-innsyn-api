@@ -112,6 +112,3 @@ springdoc:
     enabled: ${SWAGGER_ENABLED:false}
     disable-swagger-default-url: true
     path: swagger-ui.html
-
-jakarta-servlet:
-  version: "5.0"
