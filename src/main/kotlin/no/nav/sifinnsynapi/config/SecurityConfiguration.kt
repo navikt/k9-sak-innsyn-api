@@ -6,3 +6,8 @@ import org.springframework.context.annotation.Configuration
 @EnableJwtTokenValidation(ignore = ["org.springframework", "org.springdoc"])
 @Configuration
 internal class SecurityConfiguration
+
+object Issuers {
+    const val ID_PORTEN = "idporten"
+    const val TOKEN_X = "tokenx"
+}

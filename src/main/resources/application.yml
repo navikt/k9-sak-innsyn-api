@@ -4,7 +4,7 @@ no.nav:
 
   security.jwt:
     issuer:
-      loginservice:
+      idporten:
         discoveryUrl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL} # settes av configmap: loginservice-idporten i naiserator.yml
         accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE} # settes av configmap: loginservice-idporten i naiserator.yml
       tokenx:
