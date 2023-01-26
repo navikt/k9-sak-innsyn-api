@@ -37,7 +37,7 @@ class SøknadController(
     @GetMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE])
     @Unprotected
     @ResponseStatus(OK)
-    fun debugSøknader(@RequestParam søkerAktørId: String, @RequestParam pleietrengendeAktørIder: List<String>): List<SøknadDTO> {
+    fun debugSøknader(@RequestParam søkerAktørId: String, @RequestParam pleietrengendeAktørIder: List<String>): List<DebugDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
         return søknadService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
     }

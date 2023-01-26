@@ -47,25 +47,20 @@ class SøknadService(
     }
 
     @Transactional(readOnly = true)
-    fun slåSammenSøknadsopplysningerPerBarn(søkerAktørId: String, pleietrengendeAktørIder: List<String>): List<SøknadDTO> {
-        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
-
+    fun slåSammenSøknadsopplysningerPerBarn(
+        søkerAktørId: String,
+        pleietrengendeAktørIder: List<String>,
+    ): List<DebugDTO> {
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkerAktørId)
         if (pleietrengendeAktørIder.isEmpty()) return listOf()
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
-                val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
-                if (barn != null) {
-                    val alleSøknader =
-                        repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
-                            .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
-                            .toList()
-                    slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId)?.somSøknadDTO(barn, alleSøknader)
-                } else {
-                    logger.info("PleietrengedeAktørId matchet ikke med aktørId på barn fra oppslag.")
-                    null
-                }
+                val alleSøknader =
+                    repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+                        .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+                        .toList()
+                slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId)?.somDebugDTO(pleietrengendeAktørId, alleSøknader)
             }
     }
 
@@ -92,9 +87,17 @@ class SøknadService(
         return !repo.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>?= null): SøknadDTO {
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>? = null): SøknadDTO {
         return SøknadDTO(
             barn = barn,
+            søknad = this,
+            søknader = alleSøknader
+        )
+    }
+
+    private fun Søknad.somDebugDTO(pleietrengendeAktørId: String, alleSøknader: List<Søknad>? = null): DebugDTO {
+        return DebugDTO(
+            pleietrengendeAktørId = pleietrengendeAktørId,
             søknad = this,
             søknader = alleSøknader
         )
