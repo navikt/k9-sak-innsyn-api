@@ -254,7 +254,7 @@ internal class SøknadServiceTest {
     @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
         every { oppslagsService.hentBarn() } answers { listOf() }
-        assertThat(søknadService.hentSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     @Test
@@ -276,7 +276,7 @@ internal class SøknadServiceTest {
             )!!.harOmsorgen
         )
 
-        assertThat(søknadService.hentSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
 
     }
 
@@ -285,7 +285,7 @@ internal class SøknadServiceTest {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
-        assertThat(søknadService.hentSøknadsopplysningerPerBarn()).size().isEqualTo(1)
+        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).size().isEqualTo(1)
     }
 
     private fun psbSøknadDAO(

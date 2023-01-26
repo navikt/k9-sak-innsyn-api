@@ -7,7 +7,8 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 
 data class SøknadDTO @JsonCreator constructor(
     @JsonProperty("barn") val barn: BarnOppslagDTO,
-    @JsonProperty("søknad") val søknad: Søknad
+    @JsonProperty("søknad") val søknad: Søknad,
+    @JsonProperty("søknader") val søknader: List<Søknad>? = null
 ) {
     override fun toString(): String {
         return "SøknadDTO()"

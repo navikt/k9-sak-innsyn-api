@@ -60,7 +60,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            søknadService.hentSøknadsopplysningerPerBarn()
+            søknadService.slåSammenSøknadsopplysningerPerBarn()
         } throws Exception("Ooops, noe gikk galt...")
 
         //language=json
@@ -84,7 +84,7 @@ class SøknadControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
         val søknadId = UUID.randomUUID().toString()
         every {
-            søknadService.hentSøknadsopplysningerPerBarn()
+            søknadService.slåSammenSøknadsopplysningerPerBarn()
         } returns listOf(
             SøknadDTO(
                 barn = BarnOppslagDTO(
@@ -118,7 +118,7 @@ class SøknadControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader med tokenx token`() {
         val søknadId = UUID.randomUUID().toString()
         every {
-            søknadService.hentSøknadsopplysningerPerBarn()
+            søknadService.slåSammenSøknadsopplysningerPerBarn()
         } returns listOf(
             SøknadDTO(
                 barn = BarnOppslagDTO(
