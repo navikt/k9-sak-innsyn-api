@@ -3,7 +3,7 @@ topic:
   listener:
     k9-sak:
       bryter: true
-      dry-run: true
+      dry-run: false
 
 spring:
   mvc:
