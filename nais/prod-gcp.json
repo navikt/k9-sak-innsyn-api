@@ -25,7 +25,7 @@
     "SERVER_PORT": "8080",
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
     "SPRING_PROFILES_ACTIVE": "prod-gcp",
-    "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "latest",
+    "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "none",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-gcp:dusseldorf:k9-selvbetjening-oppslag",
