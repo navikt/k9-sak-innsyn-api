@@ -116,8 +116,10 @@ springdoc:
     disable-swagger-default-url: true
     path: swagger-ui.html
     oauth:
-      client-id: ${AZURE_APP_CLIENT_ID:'localhost:8080'}
-      client-secret: ${AZURE_APP_CLIENT_SECRET:secret}
-    oauth2-redirect-url: /swagger-ui.html
+      use-pkce-with-authorization-code-grant: true
+      client-id: ${AZURE_APP_CLIENT_ID}
+      scope-separator: ","
   oAuthFlow:
-    loginUrl: ${APPLICATION_INGRESS:http://localhost:8080}/oauth2/login
+    authorizationUrl: ${AZURE_OPENID_CONFIG_ISSUER:http://localhost:8000}/authorize
+    tokenUrl: ${AZURE_OPENID_CONFIG_ISSUER:http://localhost:8000}/token
+    apiScope: ${AZURE_APP_CLIENT_ID:abc123}

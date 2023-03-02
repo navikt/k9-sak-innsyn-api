@@ -16,13 +16,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import java.net.URI
-import java.util.Map
 
 
 @Configuration
 class SwaggerConfiguration(
     @Value("\${APPLICATION_INGRESS}") private val applicationIngress: URI,
-    @Value("\${springdoc.oAuthFlow.loginUrl}") private val loginUrl: URI,
+    @Value("\${springdoc.oAuthFlow.authorizationUrl}") val authorizationUrl: String,
+    @Value("\${springdoc.oAuthFlow.tokenUrl}") val tokenUrl: String,
+    @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String
 ) : EnvironmentAware {
     private var env: Environment? = null
 
@@ -43,22 +44,24 @@ class SwaggerConfiguration(
                     .description("K9 Sak Innsyn Api GitHub repository")
                     .url("https://github.com/navikt/k9-sak-innsyn-api")
             )
-            .components(getComponents())
-            .addSecurityItem(SecurityRequirement().addList("Password Flow"))
+            .components(Components().addSecuritySchemes("oauth2", securitySchemes()))
+            .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
     }
 
-    private fun getComponents(): Components {
-        val passwordFlowScheme: SecurityScheme = SecurityScheme()
+    private fun securitySchemes(): SecurityScheme {
+        return SecurityScheme()
+            .name("oauth2")
             .type(SecurityScheme.Type.OAUTH2)
+            .scheme("oauth2")
+            .`in`(SecurityScheme.In.HEADER)
             .flows(
                 OAuthFlows()
-                    .password(
-                        OAuthFlow()
-                            .authorizationUrl(loginUrl.toString())
+                    .authorizationCode(
+                        OAuthFlow().authorizationUrl(authorizationUrl)
+                            .tokenUrl(tokenUrl)
+                            .scopes(Scopes().addString(apiScope, "read,write"))
                     )
             )
-        return Components()
-            .securitySchemes(Map.of("Password Flow", passwordFlowScheme))
     }
 
     override fun setEnvironment(env: Environment) {
