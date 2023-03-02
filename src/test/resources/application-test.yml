@@ -13,6 +13,9 @@ no.nav:
         tokenx:
           discoveryurl: http://localhost:${mock-oauth2-server.port}/tokenx/.well-known/openid-configuration
           accepted_audience: aud-localhost
+        azure:
+          discoveryurl: http://localhost:${mock-oauth2-server.port}/azure/.well-known/openid-configuration
+          accepted_audience: aud-localhost
       client:
         registration:
           tokenx-k9-selvbetjening-oppslag:

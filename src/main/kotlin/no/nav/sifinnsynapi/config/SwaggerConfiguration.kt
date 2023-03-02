@@ -22,6 +22,7 @@ import java.util.Map
 @Configuration
 class SwaggerConfiguration(
     @Value("\${APPLICATION_INGRESS}") private val applicationIngress: URI,
+    @Value("\${springdoc.oAuthFlow.loginUrl}") private val loginUrl: URI,
 ) : EnvironmentAware {
     private var env: Environment? = null
 
@@ -53,8 +54,7 @@ class SwaggerConfiguration(
                 OAuthFlows()
                     .password(
                         OAuthFlow()
-                            .tokenUrl("http://localhost:8080/oauth/token")
-                            .scopes(Scopes().addString("trust", "trust all"))
+                            .authorizationUrl(loginUrl.toString())
                     )
             )
         return Components()
