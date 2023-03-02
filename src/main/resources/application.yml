@@ -10,6 +10,9 @@ no.nav:
       tokenx:
         discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
         accepted_audience: ${TOKEN_X_CLIENT_ID}
+      azure:
+        discoveryUrl: ${AZURE_APP_WELL_KNOWN_URL}
+        accepted_audience: ${AZURE_APP_CLIENT_ID}
     client:
       registration:
         tokenx-k9-selvbetjening-oppslag:
@@ -112,3 +115,7 @@ springdoc:
     enabled: ${SWAGGER_ENABLED:false}
     disable-swagger-default-url: true
     path: swagger-ui.html
+    oauth:
+      client-id: ${AZURE_APP_CLIENT_ID}
+      client-secret: ${AZURE_APP_CLIENT_SECRET}
+    oauth2-redirect-url: /swagger-ui.html
