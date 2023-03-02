@@ -118,8 +118,9 @@ springdoc:
     oauth:
       use-pkce-with-authorization-code-grant: true
       client-id: ${AZURE_APP_CLIENT_ID}
+      client-secret: ${AZURE_APP_CLIENT_SECRET}
       scope-separator: ","
   oAuthFlow:
     authorizationUrl: ${AZURE_OPENID_CONFIG_ISSUER:http://localhost:8000}/authorize
     tokenUrl: ${AZURE_OPENID_CONFIG_ISSUER:http://localhost:8000}/token
-    apiScope: ${AZURE_APP_CLIENT_ID:abc123}
+    apiScope: api://${AZURE_APP_CLIENT_ID:abc123}/.default
