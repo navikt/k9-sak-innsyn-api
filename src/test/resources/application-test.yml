@@ -1,3 +1,5 @@
+APPLICATION_INGRESS: localhost:8000
+
 no.nav:
   gateways:
     k9-selvbetjening-oppslag: http://localhost:${wiremock.server.port}/k9-selvbetjening-oppslag-mock

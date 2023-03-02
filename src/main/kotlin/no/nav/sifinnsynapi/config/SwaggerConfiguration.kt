@@ -4,22 +4,24 @@ import io.swagger.v3.oas.models.ExternalDocumentation
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.servers.Server
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
+import java.net.URI
 
 @Configuration
-@Profile("local", "dev-gcp")
-class SwaggerConfiguration : EnvironmentAware {
+class SwaggerConfiguration(
+    @Value("\${APPLICATION_INGRESS}") private val applicationIngress: URI
+) : EnvironmentAware {
     private var env: Environment? = null
 
     @Bean
     fun openAPI(): OpenAPI {
         return OpenAPI()
             .addServersItem(
-                Server().url("https://k9-sak-innsyn-api.dev.nav.no/").description("Swagger Server")
+                Server().url(applicationIngress.toString()).description("Swagger Server")
             )
             .info(
                 Info()
