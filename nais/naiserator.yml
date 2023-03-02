@@ -12,6 +12,7 @@ spec:
     application:
       enabled: true
       tenant: {{azureTenant}}
+      allowAllUsers: true
     sidecar:
       enabled: true
   tokenx:
