@@ -119,7 +119,6 @@ springdoc:
     oauth:
       use-pkce-with-authorization-code-grant: true
       client-id: ${AZURE_APP_CLIENT_ID}
-      client-secret: ${AZURE_APP_CLIENT_SECRET}
       scope-separator: ","
   oAuthFlow:
     authorizationUrl: https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0/authorize
