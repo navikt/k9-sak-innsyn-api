@@ -122,6 +122,6 @@ springdoc:
       client-secret: ${AZURE_APP_CLIENT_SECRET}
       scope-separator: ","
   oAuthFlow:
-    authorizationUrl: https://login.microsoftonline.com/${AZURE_APP_TENANT_ID:1234}/oauth2/authorize
-    tokenUrl: https://login.microsoftonline.com/${AZURE_APP_TENANT_ID:1234}/oauth2/token
+    authorizationUrl: https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0/authorize
+    tokenUrl: https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0/token
     apiScope: api://${AZURE_APP_CLIENT_ID:abc123}/.default
