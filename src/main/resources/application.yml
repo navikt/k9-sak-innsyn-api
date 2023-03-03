@@ -122,5 +122,5 @@ springdoc:
       scope-separator: ","
   oAuthFlow:
     authorizationUrl: ${AZURE_LOGIN_URL:http://localhost:8080}/authorize
-    tokenUrl: ${AZURE_LOGIN_URL:http://localhost:8080}token
+    tokenUrl: ${AZURE_LOGIN_URL:http://localhost:8080}/token
     apiScope: api://${AZURE_APP_CLIENT_ID:abc123}/.default
