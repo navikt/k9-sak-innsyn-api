@@ -15,7 +15,7 @@ spec:
       allowAllUsers: true
       singlePageApplication: true
       replyUrls:
-        - "https://k9-sak-innsyn-api.dev.nav.no/swagger-ui/oauth2-redirect.html"
+        - https://k9-sak-innsyn-api.dev.nav.no/swagger-ui/oauth2-redirect.html
     sidecar:
       enabled: true
   tokenx:
