@@ -14,7 +14,7 @@ spec:
       tenant: {{azureTenant}}
       allowAllUsers: true
       replyUrls:
-        - "https://k9-sak-innsyn-api.dev.nav.no/swagger-ui.html"
+        - "https://k9-sak-innsyn-api.dev.nav.no/swagger-ui/oauth2-redirect.html.html"
     sidecar:
       enabled: true
   tokenx:
