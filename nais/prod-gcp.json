@@ -8,6 +8,11 @@
   "ingresses": [
     "https://k9-sak-innsyn-api.intern.nav.no"
   ],
+  "azure": {
+    "replyURLs": [
+      "https://k9-sak-innsyn-api.intern.nav.no/swagger-ui/oauth2-redirect.html"
+    ]
+  },
   "externalHosts": [
     "login.microsoftonline.com"
   ],
@@ -19,7 +24,6 @@
     "diskAutoresize": "true",
     "highAvailability": "true"
   },
-  "azureTenant": "nav.no",
   "kafkaPool": "nav-prod",
   "env": {
     "APPLICATION_INGRESS": "https://k9-sak-innsyn-api.intern.nav.no",

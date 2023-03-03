@@ -7,8 +7,13 @@
   "minReplicas": "1",
   "maxReplicas": "2",
   "ingresses": [
-    "https://k9-sak-innsyn-api.dev.nav.no"
+    "https://k9-sak-innsyn-api.intern.dev.nav.no"
   ],
+  "azure": {
+    "replyURLs": [
+      "https://k9-sak-innsyn-api.intern.dev.nav.no/swagger-ui/oauth2-redirect.html"
+    ]
+  },
   "externalHosts": [
     "login.microsoftonline.com"
   ],

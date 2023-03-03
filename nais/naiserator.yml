@@ -11,11 +11,12 @@ spec:
   azure:
     application:
       enabled: true
-      tenant: {{azureTenant}}
       allowAllUsers: true
       singlePageApplication: true
       replyURLs:
-        - https://k9-sak-innsyn-api.dev.nav.no/swagger-ui/oauth2-redirect.html
+        {{#each azure.replyURLs as |url|}}
+        - {{url}}
+        {{/each}}
     sidecar:
       enabled: true
   tokenx:
