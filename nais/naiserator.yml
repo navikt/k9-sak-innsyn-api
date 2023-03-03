@@ -15,10 +15,10 @@ spec:
       claims:
         extra:
           - "NAVident"
-      groups:
-        {{#each azure.groups as |group|}}
-        - {{group.objectId}}
-        {{/each}}
+        groups:
+          {{#each azure.groups as |group|}}
+          - {{group.objectId}}
+          {{/each}}
       singlePageApplication: true
       replyURLs:
         {{#each azure.replyURLs as |url|}}
