@@ -12,6 +12,11 @@ spec:
     application:
       enabled: true
       allowAllUsers: true
+      claims:
+        extra:
+          - "NAVident"
+      groups:
+        # hvilket grupper?
       singlePageApplication: true
       replyURLs:
         {{#each azure.replyURLs as |url|}}
