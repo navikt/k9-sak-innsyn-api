@@ -77,14 +77,6 @@ class SøknadService(
         )
     }
 
-    private fun Søknad.somDebugDTO(pleietrengendeAktørId: String, alleSøknader: List<Søknad>? = null): DebugDTO {
-        return DebugDTO(
-            pleietrengendeAktørId = pleietrengendeAktørId,
-            søknad = this,
-            søknader = alleSøknader
-        )
-    }
-
     private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
         val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)
         return when (this.søkerAktørId) {
