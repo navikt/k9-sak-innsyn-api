@@ -17,7 +17,7 @@ spec:
           - "NAVident"
         groups:
           {{#each azure.groups as |group|}}
-          - {{group.objectId}}
+          - id: {{group.objectId}}
           {{/each}}
       singlePageApplication: true
       replyURLs:
