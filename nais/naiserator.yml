@@ -17,8 +17,6 @@ spec:
         {{#each azure.replyURLs as |url|}}
         - {{url}}
         {{/each}}
-    sidecar:
-      enabled: true
   tokenx:
     enabled: true
   accessPolicy:
