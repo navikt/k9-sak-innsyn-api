@@ -20,7 +20,6 @@ import java.net.URI
 
 @Configuration
 class SwaggerConfiguration(
-    @Value("\${APPLICATION_INGRESS}") private val applicationIngress: URI,
     @Value("\${springdoc.oAuthFlow.authorizationUrl}") val authorizationUrl: String,
     @Value("\${springdoc.oAuthFlow.tokenUrl}") val tokenUrl: String,
     @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String
@@ -30,9 +29,6 @@ class SwaggerConfiguration(
     @Bean
     fun openAPI(): OpenAPI {
         return OpenAPI()
-            .addServersItem(
-                Server().url(applicationIngress.toString()).description("Swagger Server")
-            )
             .info(
                 Info()
                     .title("K9 Sak Innsyn Api")

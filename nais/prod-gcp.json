@@ -26,7 +26,6 @@
   },
   "kafkaPool": "nav-prod",
   "env": {
-    "APPLICATION_INGRESS": "https://k9-sak-innsyn-api.intern.nav.no",
     "SERVER_PORT": "8080",
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
     "SPRING_PROFILES_ACTIVE": "prod-gcp",
