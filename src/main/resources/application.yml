@@ -1,4 +1,7 @@
 no.nav:
+  audit:
+    vendor: k9
+    product: k9-sak-innsyn-api
   gateways:
     k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
 

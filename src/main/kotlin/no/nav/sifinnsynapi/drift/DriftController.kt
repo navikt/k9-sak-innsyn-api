@@ -1,9 +1,15 @@
 package no.nav.sifinnsynapi.drift
 
+import no.nav.k9.felles.log.audit.Auditdata
+import no.nav.k9.felles.log.audit.AuditdataHeader
+import no.nav.k9.felles.log.audit.CefField
+import no.nav.k9.felles.log.audit.CefFieldName
+import no.nav.k9.felles.log.audit.EventClassId
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
+import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
-import no.nav.sifinnsynapi.audit.AuditLoggerUtils
+import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
@@ -13,13 +19,17 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @RestController
 @RequiredIssuers(
     ProtectedWithClaims(issuer = Issuers.AZURE)
 )
 class DriftController(
-    private val driftService: DriftService
+    private val driftService: DriftService,
+    private val auditlogger: Auditlogger,
+    private val tokenValidationContextHolder: TokenValidationContextHolder
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
@@ -27,9 +37,32 @@ class DriftController(
 
     @GetMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(OK)
-    fun debugSøknader(@RequestParam søkerAktørId: String, @RequestParam pleietrengendeAktørIder: List<String>): List<DebugDTO> {
-        logger.info("Forsøker å hente søknadsopplynsinger...")
-        AuditLoggerUtils.auditLogger.info("Bruker henter søknadsopplysninger")
+    fun debugSøknader(
+        @RequestParam søkerAktørId: String,
+        @RequestParam pleietrengendeAktørIder: List<String>,
+    ): List<DebugDTO> {
+        val identTilInnloggetBruker: String = tokenValidationContextHolder.tokenValidationContext.firstValidToken.get().jwtTokenClaims.getStringClaim("NAVident")
+        auditLogg(uri = "/debug$SØKNAD", innloggetIdent = identTilInnloggetBruker, berørtBrukerIdent = søkerAktørId)
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
+    }
+
+    private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String) {
+        auditlogger.logg(
+            Auditdata(
+                AuditdataHeader.Builder()
+                    .medVendor(auditlogger.vendor)
+                    .medProduct(auditlogger.product)
+                    .medSeverity("INFO")
+                    .medName("Debug sammenslåtte søknadsopplysninger")
+                    .medEventClassId(EventClassId.AUDIT_ACCESS)
+                    .build(),
+                setOf(
+                    CefField(CefFieldName.EVENT_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) * 1000L),
+                    CefField(CefFieldName.REQUEST, uri),
+                    CefField(CefFieldName.USER_ID, innloggetIdent),
+                    CefField(CefFieldName.BERORT_BRUKER_ID, berørtBrukerIdent)
+                )
+            )
+        )
     }
 }
