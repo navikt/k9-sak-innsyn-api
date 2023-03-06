@@ -16,7 +16,7 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/k9-sak-innsyn-api:${{ github.sha }}
   GITHUB_USERNAME: x-access-token
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  READ_TOKEN: ${{ secrets.READER_TOKEN }}
+  READER_TOKEN: ${{ secrets.READER_TOKEN }}
 
 jobs:
   test:
