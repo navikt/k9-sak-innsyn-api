@@ -129,7 +129,7 @@ class OppslagsService(
     }
 
     @Recover
-    private fun recoverHentIdenter(error: ResourceAccessException): List<HentIdenter> {
+    private fun recoverHentIdenter(error: RestClientException): List<HentIdenter> {
         logger.error("{}", error.message)
         throw IllegalStateException("Timout ved henting av identer.")
     }
