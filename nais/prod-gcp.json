@@ -39,7 +39,7 @@
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "TOKENDINGS_BASE_URL": "https://tokendings.prod-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "prod-gcp:dusseldorf:k9-selvbetjening-oppslag",
-    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://d821a3c6-a571-446d-955b-9f5e843cbf84/.default",
+    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://prod-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/v2.0"
   },
