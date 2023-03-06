@@ -23,7 +23,7 @@ import java.nio.charset.Charset
 class ExceptionHandler : ResponseEntityExceptionHandler() {
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(ExceptionHandler::class.java)
+        private val log: Logger = LoggerFactory.getLogger(no.nav.sifinnsynapi.http.ExceptionHandler::class.java)
     }
 
     @ExceptionHandler(value = [Exception::class])
