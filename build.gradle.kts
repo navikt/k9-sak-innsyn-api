@@ -48,6 +48,15 @@ repositories {
     }
 
     maven {
+        name = "k9Felles"
+        url = uri("https://maven.pkg.github.com/navikt/k9-felles")
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+
+    maven {
         name = "confluent"
         url = uri("https://packages.confluent.io/maven/")
     }
