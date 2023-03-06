@@ -52,7 +52,7 @@ repositories {
         url = uri("https://maven.pkg.github.com/navikt/k9-felles")
         credentials {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
-            password = project.findProperty("gpr.key") as String? ?: System.getenv("READER_TOKEN")?: System.getenv("GITHUB_TOKEN")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("READER_TOKEN") ?: System.getenv("GITHUB_TOKEN")
         }
     }
 
