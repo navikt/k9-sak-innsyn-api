@@ -117,8 +117,26 @@ class OppslagsService(
     }
 
     @Recover
+    private fun recoverHentIdenter(error: HttpServerErrorException): List<HentIdenter> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${identerUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved henting av identer.")
+    }
+
+    @Recover
+    private fun recoverHentIdenter(error: HttpClientErrorException): List<HentIdenter> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${identerUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved henting av identer.")
+    }
+
+    @Recover
+    private fun recoverHentIdenter(error: ResourceAccessException): List<HentIdenter> {
+        logger.error("{}", error.message)
+        throw IllegalStateException("Timout ved henting av identer.")
+    }
+
+    @Recover
     private fun recoverBarn(error: HttpServerErrorException): List<BarnOppslagDTO> {
-        logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${barnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved henting av søkers barn")
     }
 
