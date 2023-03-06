@@ -35,7 +35,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             type = URI("/problem-details/internal-server-error"),
             detail = exception.message ?: ""
         )
-        log.error("{}", problemDetails)
+        log.error("{}", problemDetails, exception)
         return problemDetails
     }
 
