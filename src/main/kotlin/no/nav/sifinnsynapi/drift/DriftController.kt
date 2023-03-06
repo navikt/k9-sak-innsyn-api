@@ -11,7 +11,7 @@ import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
-import no.nav.sifinnsynapi.oppslag.HentIdenter
+import no.nav.sifinnsynapi.oppslag.HentIdenterForespørsel
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.soknad.DebugDTO
@@ -48,16 +48,16 @@ class DriftController(
         val identTilInnloggetBruker: String = tokenValidationContextHolder.tokenValidationContext.firstValidToken.get().jwtTokenClaims.getStringClaim("NAVident")
 
         val søkerAktørId = oppslagsService.hentIdenter(
-            HentIdenter(
+            HentIdenterForespørsel(
                 identer = listOf(søkerNorskIdentitetsnummer),
                 identGrupper = listOf(IdentGruppe.AKTORID)
-            )).first().identer.first()
+            )).first().identer.first().ident
 
         val pleietrengendeAktørIder = oppslagsService.hentIdenter(
-            HentIdenter(
+            HentIdenterForespørsel(
                 identer = pleietrengendeNorskIdentitetsnummer,
                 identGrupper = listOf(IdentGruppe.AKTORID)
-            )).flatMap { it.identer }
+            )).map { it.identer.first().ident }
 
         auditLogg(uri = "/debug$SØKNAD", innloggetIdent = identTilInnloggetBruker, berørtBrukerIdent = søkerAktørId)
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)

@@ -76,16 +76,16 @@ class OppslagsService(
         return exchange.body?.barn ?: listOf()
     }
 
-    fun hentIdenter(hentIdenter: HentIdenter): List<HentIdenter> {
+    fun hentIdenter(hentIdenterForespørsel: HentIdenterForespørsel): List<HentIdenterRespons> {
         return kotlin.runCatching {
             logger.info("Henter identer...")
             oppslagsKlient.exchange(
                 identerUrl.toUriString(),
                 HttpMethod.POST,
-                HttpEntity(hentIdenter),
-                object : ParameterizedTypeReference<List<HentIdenter>>() {})
+                HttpEntity(hentIdenterForespørsel),
+                object : ParameterizedTypeReference<List<HentIdenterRespons>>() {})
         }.fold(
-            onSuccess = {response: ResponseEntity<List<HentIdenter>> ->
+            onSuccess = {response: ResponseEntity<List<HentIdenterRespons>> ->
                 logger.info("Fikk response {} for oppslag av hentIdenter.", response.statusCode)
                 response.body!!
             },
@@ -117,19 +117,19 @@ class OppslagsService(
     }
 
     @Recover
-    private fun recoverHentIdenter(error: HttpServerErrorException): List<HentIdenter> {
+    private fun recoverHentIdenter(error: HttpServerErrorException): List<HentIdenterRespons> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${identerUrl.toUriString()}'")
         throw IllegalStateException("Feil ved henting av identer.")
     }
 
     @Recover
-    private fun recoverHentIdenter(error: HttpClientErrorException): List<HentIdenter> {
+    private fun recoverHentIdenter(error: HttpClientErrorException): List<HentIdenterRespons> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${identerUrl.toUriString()}'")
         throw IllegalStateException("Feil ved henting av identer.")
     }
 
     @Recover
-    private fun recoverHentIdenter(error: RestClientException): List<HentIdenter> {
+    private fun recoverHentIdenter(error: RestClientException): List<HentIdenterRespons> {
         logger.error("{}", error.message)
         throw IllegalStateException("Timout ved henting av identer.")
     }
@@ -160,15 +160,17 @@ data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
 }
 
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
-data class HentIdenter(
+data class HentIdenterForespørsel(
     val identer: List<String>,
     val identGrupper: List<IdentGruppe>,
 )
 
 data class HentIdenterRespons(
-    val identer: List<String>,
-    val identGrupper: List<IdentGruppe>,
+    val ident: String,
+    val identer: List<Ident>
 )
+
+data class Ident(val ident: String, val gruppe: IdentGruppe)
 
 enum class IdentGruppe {
     AKTORID, FOLKEREGISTERIDENT, NPID
