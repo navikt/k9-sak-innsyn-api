@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.drift
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.sifinnsynapi.Routes.SØKNAD
+import no.nav.sifinnsynapi.audit.AuditLoggerUtils
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
@@ -28,6 +29,7 @@ class DriftController(
     @ResponseStatus(OK)
     fun debugSøknader(@RequestParam søkerAktørId: String, @RequestParam pleietrengendeAktørIder: List<String>): List<DebugDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
+        AuditLoggerUtils.auditLogger.info("Bruker henter søknadsopplysninger")
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
     }
 }

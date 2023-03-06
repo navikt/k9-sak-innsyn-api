@@ -100,6 +100,7 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+    runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
