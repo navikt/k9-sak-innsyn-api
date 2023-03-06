@@ -11,6 +11,9 @@ import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
+import no.nav.sifinnsynapi.oppslag.HentIdenter
+import no.nav.sifinnsynapi.oppslag.IdentGruppe
+import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.OK
@@ -29,7 +32,8 @@ import java.time.ZoneOffset
 class DriftController(
     private val driftService: DriftService,
     private val auditlogger: Auditlogger,
-    private val tokenValidationContextHolder: TokenValidationContextHolder
+    private val tokenValidationContextHolder: TokenValidationContextHolder,
+    private val oppslagsService: OppslagsService
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
@@ -38,10 +42,23 @@ class DriftController(
     @GetMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(OK)
     fun debugSøknader(
-        @RequestParam søkerAktørId: String,
-        @RequestParam pleietrengendeAktørIder: List<String>,
+        @RequestParam søkerNorskIdentitetsnummer: String,
+        @RequestParam pleietrengendeNorskIdentitetsnummer: List<String>,
     ): List<DebugDTO> {
         val identTilInnloggetBruker: String = tokenValidationContextHolder.tokenValidationContext.firstValidToken.get().jwtTokenClaims.getStringClaim("NAVident")
+
+        val søkerAktørId = oppslagsService.hentIdenter(
+            HentIdenter(
+                identer = listOf(søkerNorskIdentitetsnummer),
+                identGrupper = listOf(IdentGruppe.AKTORID)
+            )).first().identer.first()
+
+        val pleietrengendeAktørIder = oppslagsService.hentIdenter(
+            HentIdenter(
+                identer = pleietrengendeNorskIdentitetsnummer,
+                identGrupper = listOf(IdentGruppe.AKTORID)
+            )).flatMap { it.identer }
+
         auditLogg(uri = "/debug$SØKNAD", innloggetIdent = identTilInnloggetBruker, berørtBrukerIdent = søkerAktørId)
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
     }

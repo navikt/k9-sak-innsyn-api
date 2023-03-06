@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
+import org.springframework.http.ResponseEntity
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
 import org.springframework.retry.annotation.Retryable
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDate
@@ -30,7 +32,7 @@ import java.time.LocalDate
 )
 class OppslagsService(
     @Qualifier("k9OppslagsKlient")
-    private val oppslagsKlient: RestTemplate
+    private val oppslagsKlient: RestTemplate,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(OppslagsService::class.java)
@@ -52,6 +54,10 @@ class OppslagsService(
                 "barn[].identitetsnummer"
             )
             .build()
+
+        val identerUrl = UriComponentsBuilder
+            .fromUriString("/system/hent-identer")
+            .build()
     }
 
     fun hentAktørId(): SøkerOppslagRespons? {
@@ -68,6 +74,28 @@ class OppslagsService(
         logger.info("Fikk response {} fra oppslag av barn.", exchange.statusCode)
 
         return exchange.body?.barn ?: listOf()
+    }
+
+    fun hentIdenter(hentIdenter: HentIdenter): List<HentIdenter> {
+        return kotlin.runCatching {
+            logger.info("Henter identer...")
+            oppslagsKlient.exchange(
+                identerUrl.toUriString(),
+                HttpMethod.POST,
+                HttpEntity(hentIdenter),
+                object : ParameterizedTypeReference<List<HentIdenter>>() {})
+        }.fold(
+            onSuccess = {response: ResponseEntity<List<HentIdenter>> ->
+                logger.info("Fikk response {} for oppslag av hentIdenter.", response.statusCode)
+                response.body!!
+            },
+            onFailure = { error: Throwable ->
+                if (error is RestClientException) {
+                    logger.error("Feilet ved henting av identer. Feilmelding: {}", error.message)
+                }
+                throw error
+            }
+        )
     }
 
     @Recover
@@ -114,6 +142,19 @@ data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
 }
 
 private data class BarnOppslagResponse(val barn: List<BarnOppslagDTO>)
+data class HentIdenter(
+    val identer: List<String>,
+    val identGrupper: List<IdentGruppe>,
+)
+
+data class HentIdenterRespons(
+    val identer: List<String>,
+    val identGrupper: List<IdentGruppe>,
+)
+
+enum class IdentGruppe {
+    AKTORID, FOLKEREGISTERIDENT, NPID
+}
 
 data class BarnOppslagDTO(
     val fødselsdato: LocalDate,
@@ -121,7 +162,7 @@ data class BarnOppslagDTO(
     val mellomnavn: String? = null,
     val etternavn: String,
     @JsonAlias("aktør_id") val aktørId: String,
-    val identitetsnummer: String? = null
+    val identitetsnummer: String? = null,
 ) {
     override fun toString(): String {
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
