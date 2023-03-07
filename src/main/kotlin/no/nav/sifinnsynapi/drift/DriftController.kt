@@ -56,11 +56,25 @@ class DriftController(
                 identGrupper = listOf(IdentGruppe.AKTORID)
             )).map { it.identer.first().ident }
 
-        auditLogg(uri = "/debug$SØKNAD", innloggetIdent = identTilInnloggetBruker, berørtBrukerIdent = søkerAktørId)
+        auditLogg(
+            uri = "/debug$SØKNAD",
+            innloggetIdent = identTilInnloggetBruker,
+            berørtBrukerIdent = søkerAktørId,
+            eventClassId = EventClassId.AUDIT_ACCESS
+        )
+
+        pleietrengendeAktørIder.forEach {
+            auditLogg(
+                uri = "/debug$SØKNAD",
+                innloggetIdent = identTilInnloggetBruker,
+                berørtBrukerIdent = it,
+                eventClassId = EventClassId.AUDIT_SEARCH
+            )
+        }
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
     }
 
-    private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String) {
+    private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String, eventClassId: EventClassId) {
         auditlogger.logg(
             Auditdata(
                 AuditdataHeader.Builder()
@@ -68,7 +82,7 @@ class DriftController(
                     .medProduct(auditlogger.product)
                     .medSeverity("INFO")
                     .medName("Debug sammenslåtte søknadsopplysninger")
-                    .medEventClassId(EventClassId.AUDIT_ACCESS)
+                    .medEventClassId(eventClassId)
                     .build(),
                 setOf(
                     CefField(CefFieldName.EVENT_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) * 1000L),
