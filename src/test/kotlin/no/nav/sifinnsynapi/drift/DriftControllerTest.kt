@@ -1,4 +1,4 @@
-package no.nav.sifinnsynapi.soknad
+package no.nav.sifinnsynapi.drift
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -6,11 +6,17 @@ import no.nav.k9.søknad.Søknad
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes.SØKNAD
-import no.nav.sifinnsynapi.config.Issuers.AZURE
+import no.nav.sifinnsynapi.audit.Auditlogger
+import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentIdenterRespons
+import no.nav.sifinnsynapi.oppslag.Ident
+import no.nav.sifinnsynapi.oppslag.IdentGruppe
+import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
+import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -29,10 +35,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import java.net.URI
-import java.net.URLDecoder
-import java.nio.charset.Charset
-import java.time.LocalDate
 import java.util.*
 
 
@@ -40,9 +42,9 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test.
 @Import(CallIdGenerator::class, SecurityConfiguration::class)
-@WebMvcTest(controllers = [SøknadController::class])
+@WebMvcTest(controllers = [DriftController::class])
 @ActiveProfiles("test")
-class SøknadControllerTest {
+class DriftControllerTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -52,29 +54,50 @@ class SøknadControllerTest {
     lateinit var mockOAuth2Server: MockOAuth2Server
 
     @MockkBean(relaxed = true)
-    lateinit var søknadService: SøknadService
+    lateinit var driftService: DriftService
+
+    @MockkBean(relaxed = true)
+    lateinit var auditlogger: Auditlogger
+
+    @MockkBean(relaxed = true)
+    lateinit var oppslagsService: OppslagsService
 
     @BeforeAll
     internal fun setUp() {
         assertNotNull(mockOAuth2Server)
     }
 
+    private companion object {
+        private const val debugSøknaderEndepunkt = "/debug$SØKNAD"
+
+        @Language("JSON")
+        private val payload = """
+                    {
+                      "søkerNorskIdentitetsnummer": "123",
+                      "pleietrengendeNorskIdentitetsnummer": ["456"]
+                    }
+                """.trimIndent()
+    }
+
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            søknadService.slåSammenSøknadsopplysningerPerBarn()
+            oppslagsService.hentIdenter(any())
         } throws Exception("Ooops, noe gikk galt...")
 
         //language=json
         val errorResponse =
-            """{"type":"/problem-details/internal-server-error","title":"Et uventet feil har oppstått","status":500,"detail":"Ooops, noe gikk galt...","instance":"http://localhost/soknad"}""".trimIndent()
+            """{"type":"/problem-details/internal-server-error","title":"Et uventet feil har oppstått","status":500,"detail":"Ooops, noe gikk galt...","instance":"http://localhost/debug/soknad"}""".trimIndent()
 
-        val token = mockOAuth2Server.hentToken().serialize()
+        val token = mockOAuth2Server.hentToken(issuerId = "azure", claims = mapOf("NAVident" to "Z99481")).serialize()
+
         mockMvc.perform(
             MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .content(payload)
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isInternalServerError)
@@ -84,48 +107,43 @@ class SøknadControllerTest {
     }
 
     @Test
-    fun `Gitt 200 respons, forvent korrekt format på liste av søknader med tokenx token`() {
+    fun `Gitt 200 respons, forvent korrekt format på liste av søknader`() {
         val søknadId = UUID.randomUUID().toString()
         every {
-            søknadService.slåSammenSøknadsopplysningerPerBarn()
-        } returns listOf(
-            SøknadDTO(
-                barn = BarnOppslagDTO(
-                    fødselsdato = LocalDate.parse("2022-11-01"),
-                    fornavn = "Ola",
-                    mellomnavn = null,
-                    etternavn = "Nordmann",
-                    aktørId = "123",
-                    identitetsnummer = "12020567099"
-                ),
-                søknad = Søknad()
-                    .medSøknadId(søknadId)
-            )
-        )
+            driftService.slåSammenSøknadsopplysningerPerBarn(any(), any())
+        } returns listOf(DebugDTO(pleietrengendeAktørId = "123", søknad = Søknad().medSøknadId(søknadId)))
 
-        val token = mockOAuth2Server.hentToken().serialize()
+        every {
+            oppslagsService.hentIdenter(any())
+        }
+            .returns(listOf(HentIdenterRespons(ident = "123", identer = listOf(Ident("321", IdentGruppe.AKTORID)))))
+            .andThen(listOf(HentIdenterRespons(ident = "456", identer = listOf(Ident("654", IdentGruppe.AKTORID)))))
+
+        val token = mockOAuth2Server.hentToken(issuerId = "azure", claims = mapOf("NAVident" to "Z99481")).serialize()
+
         mockMvc.perform(
             MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token}")
+                .content(payload)
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].barn").isMap)
+            .andExpect(jsonPath("$[0].pleietrengendeAktørId").isString)
             .andExpect(jsonPath("$[0].søknad").isMap)
             .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [AZURE, "ukjent"])
-    fun `gitt request med token utsedt av annen issuer enn idporten eller tokenx, forevnt 401`(issuer: String) {
-        val token = mockOAuth2Server.hentToken(issuerId = issuer, claims = mapOf()).serialize()
+    @Test
+    fun `gitt request uten token, forevnt 401`() {
         mockMvc.perform(
             MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .content(payload)
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isUnauthorized)
@@ -135,12 +153,17 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 
-    @Test
-    fun `gitt request uten token, forevnt 401`() {
+    @ParameterizedTest
+    @ValueSource(strings = [Issuers.TOKEN_X])
+    fun `gitt request med token utsedt av annen issuer enn azure, forevnt 401`(issuer: String) {
+        val token = mockOAuth2Server.hentToken(issuerId = issuer).serialize()
         mockMvc.perform(
             MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .content(payload)
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isUnauthorized)
@@ -152,12 +175,14 @@ class SøknadControllerTest {
 
     @Test
     fun `gitt request med token med ukjent audience, forevnt 401`() {
-        val token = mockOAuth2Server.hentToken(audience = "ukjent audience").serialize()
+        val token = mockOAuth2Server.hentToken(issuerId = "azure", audience = "ukjent audience").serialize()
         mockMvc.perform(
             MockMvcRequestBuilders
-                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .content(payload)
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isUnauthorized)
