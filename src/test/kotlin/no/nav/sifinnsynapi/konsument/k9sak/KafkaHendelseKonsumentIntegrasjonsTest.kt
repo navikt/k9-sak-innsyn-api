@@ -179,7 +179,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
-                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                    søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
                 }
                     .getOrNull()
             assertNotNull(faktiskPSB)
@@ -237,7 +237,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
-                    søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                    søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
                 }
                     .getOrNull()
             assertThat(faktiskPSB).isNotNull()
@@ -327,7 +327,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
         await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
             val faktiskPSB =
-                søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
 
             assertNotNull(faktiskPSB)
         }

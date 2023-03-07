@@ -10,7 +10,6 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidInfo
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.konsument.k9sak.KafkaHendelseKonsumentIntegrasjonsTest
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.*
@@ -146,7 +145,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenSlåttTilsynsordning =
-            søknadService.hentSøknadsopplysningerPerBarn()
+            søknadService.slåSammenSøknadsopplysningerPerBarn()
                 .first().søknad.getYtelse<PleiepengerSyktBarn>().tilsynsordning
 
         assertResultet(
@@ -199,7 +198,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertThat(sammenslåttArbeidstid.arbeidstakerList.size).isEqualTo(1)
         assertResultet(
             faktiskArbeidstaker = sammenslåttArbeidstid.arbeidstakerList.first(),
@@ -282,7 +281,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttYtelse =
-            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
         val resultatArbeidstakere = sortertArbeidstakere(sammenslåttYtelse)
         assertThat(resultatArbeidstakere.size).isEqualTo(4)
 
@@ -371,7 +370,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.frilanserArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -424,7 +423,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.hentSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.selvstendigNæringsdrivendeArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -445,7 +444,7 @@ internal class SøknadServiceMedMockRepoTest {
             Stream.empty()
         }
 
-        assertThat(søknadService.hentSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     private fun psbSøknadDAO(

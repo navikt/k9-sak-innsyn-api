@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Configuration
 internal class SecurityConfiguration
 
 object Issuers {
-    const val ID_PORTEN = "idporten"
     const val TOKEN_X = "tokenx"
+    const val AZURE = "azure"
 }

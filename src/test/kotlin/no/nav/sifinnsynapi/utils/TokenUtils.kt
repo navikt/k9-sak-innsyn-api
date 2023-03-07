@@ -2,13 +2,14 @@ package no.nav.sifinnsynapi.utils
 
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.sifinnsynapi.config.Issuers
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 
 fun MockOAuth2Server.hentToken(
     subject: String = "12345678910",
-    issuerId: String = "loginservice",
-    claims: Map<String, String> = mapOf("acr" to "level4"),
+    issuerId: String = Issuers.TOKEN_X,
+    claims: Map<String, String> = mapOf("acr" to "Level4"),
     audience: String = "aud-localhost",
     expiry: Long = 3600
 ): SignedJWT = issueToken(issuerId = issuerId, subject = subject, claims = claims, audience = audience, expiry = expiry)

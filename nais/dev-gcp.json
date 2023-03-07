@@ -7,8 +7,19 @@
   "minReplicas": "1",
   "maxReplicas": "2",
   "ingresses": [
-    "https://k9-sak-innsyn-api.dev.nav.no"
+    "https://k9-sak-innsyn-api.intern.dev.nav.no"
   ],
+  "azure": {
+    "replyURLs": [
+      "https://k9-sak-innsyn-api.intern.dev.nav.no/swagger-ui/oauth2-redirect.html"
+    ],
+    "groups": [
+      {
+        "name": "0000-GA-k9-drift",
+        "objectId": "0bc9661c-975c-4adb-86d1-a97172490662"
+      }
+    ]
+  },
   "externalHosts": [
     "login.microsoftonline.com"
   ],
@@ -31,8 +42,9 @@
     "NO_NAV_GATEWAYS_SAF_BASE_URL": "https://saf.dev-fss-pub.nais.io",
     "TOKENDINGS_BASE_URL": "https://tokendings.dev-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:k9-selvbetjening-oppslag",
-    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://602f69bd-4536-47a9-aa90-cfd92255b32d/.default",
-    "SWAGGER_ENABLED": "true"
+    "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://dev-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
+    "SWAGGER_ENABLED": "true",
+    "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0"
   },
   "slack-channel": "sif-alerts-dev",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | "

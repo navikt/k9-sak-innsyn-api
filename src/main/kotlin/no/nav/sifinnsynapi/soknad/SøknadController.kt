@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.ID_PORTEN, claimMap = ["acr=Level4"]),
     ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4"])
 )
 class SøknadController(
@@ -25,10 +24,9 @@ class SøknadController(
     }
 
     @GetMapping(SØKNAD, produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Protected
     @ResponseStatus(OK)
     fun hentSøknader(): List<SøknadDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
-        return søknadService.hentSøknadsopplysningerPerBarn()
+        return søknadService.slåSammenSøknadsopplysningerPerBarn()
     }
 }

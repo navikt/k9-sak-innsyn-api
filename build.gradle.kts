@@ -20,7 +20,7 @@ configurations {
 
 val springdocVersion by extra("2.0.0")
 val logstashLogbackEncoderVersion by extra("7.2")
-val tokenSupportVersion by extra("3.0.0")
+val tokenSupportVersion by extra("3.0.4")
 val k9FormatVersion by extra("8.0.4")
 val springCloudVersion by extra("2022.0.0-RC2")
 val retryVersion by extra("2.0.0")
@@ -44,6 +44,15 @@ repositories {
         credentials {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
             password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+
+    maven {
+        name = "k9Felles"
+        url = uri("https://maven.pkg.github.com/navikt/k9-felles")
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("READER_TOKEN") ?: System.getenv("GITHUB_TOKEN")
         }
     }
 
@@ -100,6 +109,8 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+    implementation("no.nav.k9.felles:k9-felles-log:1.1.0")
+    runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
