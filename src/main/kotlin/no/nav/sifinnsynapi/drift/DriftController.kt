@@ -44,17 +44,8 @@ class DriftController(
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
         val identTilInnloggetBruker: String = tokenValidationContextHolder.tokenValidationContext.firstValidToken.get().jwtTokenClaims.getStringClaim("NAVident")
 
-        val søkerAktørId = oppslagsService.hentIdenter(
-            HentIdenterForespørsel(
-                identer = listOf(debugForespørsel.søkerNorskIdentitetsnummer),
-                identGrupper = listOf(IdentGruppe.AKTORID)
-            )).first().identer.first().ident
-
-        val pleietrengendeAktørIder = oppslagsService.hentIdenter(
-            HentIdenterForespørsel(
-                identer = debugForespørsel.pleietrengendeNorskIdentitetsnummer,
-                identGrupper = listOf(IdentGruppe.AKTORID)
-            )).map { it.identer.first().ident }
+        val søkerAktørId = hentAktørId(debugForespørsel.søkerNorskIdentitetsnummer)
+        val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }
 
         auditLogg(
             uri = "/debug$SØKNAD",
@@ -72,6 +63,15 @@ class DriftController(
             )
         }
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
+    }
+
+    fun hentAktørId(norskIdentitetsnummer: String): String {
+        return oppslagsService.hentIdenter(
+            HentIdenterForespørsel(
+                identer = listOf(norskIdentitetsnummer),
+                identGrupper = listOf(IdentGruppe.AKTORID)
+            )
+        ).first().identer.first().ident
     }
 
     private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String, eventClassId: EventClassId) {
