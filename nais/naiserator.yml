@@ -70,8 +70,6 @@ spec:
    - name: {{@key}}
      value: "{{this}}"
   {{/each}}
-  envFrom:
-    - configmap: loginservice-idporten
   gcp:
     sqlInstances:
       - type: {{ database.type }}
