@@ -97,5 +97,6 @@ class DriftController(
 
 data class DebugSøknadForespørsel(
     val søkerNorskIdentitetsnummer: String,
-    val pleietrengendeNorskIdentitetsnummer: List<String>
+    val pleietrengendeNorskIdentitetsnummer: List<String>,
+    val ekskluderteSøknadIder: List<String> = emptyList()
 )

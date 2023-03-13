@@ -29,6 +29,7 @@ class DriftService(
     fun slåSammenSøknadsopplysningerPerBarn(
         søkerAktørId: String,
         pleietrengendeAktørIder: List<String>,
+        ekskluderteSøknadIder: List<String> = emptyList(),
     ): List<DebugDTO> {
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkerAktørId)
         if (pleietrengendeAktørIder.isEmpty()) return listOf()
@@ -37,9 +38,13 @@ class DriftService(
             .mapNotNull { pleietrengendeAktørId ->
                 val alleSøknader = repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
                     .map { it: PsbSøknadDAO -> it.kunPleietrengendeDataFraAndreSøkere(søkerAktørId) }
+                    .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
                     .toList()
 
-                slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId)?.somDebugDTO(pleietrengendeAktørId, alleSøknader)
+                slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId, ekskluderteSøknadIder)?.somDebugDTO(
+                    pleietrengendeAktørId,
+                    alleSøknader
+                )
             }
     }
 
@@ -47,12 +52,15 @@ class DriftService(
     fun slåSammenSøknaderFor(
         søkersAktørId: String,
         pleietrengendeAktørId: String,
+        ekskluderteSøknadIder: List<String>,
     ): Søknad? {
         return repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
-                søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
-                    psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
-                }
+                søknadStream
+                    .map { psbSøknadDAO: PsbSøknadDAO ->
+                        psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
+                    }
+                    .filter { søknad: Søknad -> !ekskluderteSøknadIder.contains(søknad.søknadId.id) }
                     .reduce(Søknadsammenslåer::slåSammen)
                     .orElse(null)
             }
