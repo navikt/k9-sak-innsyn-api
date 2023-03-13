@@ -35,10 +35,10 @@ class DriftService(
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
-                val alleSøknader =
-                    repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
-                        .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
-                        .toList()
+                val alleSøknader = repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+                    .map { it: PsbSøknadDAO -> it.kunPleietrengendeDataFraAndreSøkere(søkerAktørId) }
+                    .toList()
+
                 slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId)?.somDebugDTO(pleietrengendeAktørId, alleSøknader)
             }
     }
