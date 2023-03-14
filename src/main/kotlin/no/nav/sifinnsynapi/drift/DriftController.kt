@@ -62,7 +62,7 @@ class DriftController(
                 eventClassId = EventClassId.AUDIT_SEARCH
             )
         }
-        return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder)
+        return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder, debugForespørsel.ekskluderteSøknadIder)
     }
 
     fun hentAktørId(norskIdentitetsnummer: String): String {
@@ -97,5 +97,6 @@ class DriftController(
 
 data class DebugSøknadForespørsel(
     val søkerNorskIdentitetsnummer: String,
-    val pleietrengendeNorskIdentitetsnummer: List<String>
+    val pleietrengendeNorskIdentitetsnummer: List<String>,
+    val ekskluderteSøknadIder: List<String> = emptyList()
 )

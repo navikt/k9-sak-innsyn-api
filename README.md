@@ -130,6 +130,22 @@ Path=/; Domain=localhost; Expires=Fri, 18 Jun 2021 08:46:13 GMT;
 
 # 10. Drift og støtte
 
+## Feilsøking
+For å feilsøke data kan du bruke Swagger-UI.
+
+For å kunne bruke endepunktene under DriftController må du logge inn med en Azure AD-bruker som har rollen 0000-GA-k9-drift.
+
+Gjør følgende for å logge inn og få tilgang til API-et:
+
+1. Naviger til Swagger-UI ved å klikke på en av lenkene nedenfor.
+2. Klikk på "Authorize"-knappen øverst til høyre.
+3. Merk av i boksen for API-scopet og klikk på "Authorize".
+4. NB! Du trenger ikke å fylle inn noen hemmelig nøkkel.
+Lenker til Swagger-UI:
+
+- [Swagger-ui - dev](https://k9-sak-innsyn-api.intern.dev.nav.no/swagger-ui/index.html)
+- [Swagger-ui - prod](https://k9-sak-innsyn-api.intern.nav.no/swagger-ui/index.html)
+
 ## Logging
 
 Loggene til tjenesten kan leses på to måter:
