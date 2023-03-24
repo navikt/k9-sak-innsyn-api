@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.2"
+    id("org.springframework.boot") version "3.0.5"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version "1.8.10"
     kotlin("plugin.spring") version "1.8.10"
@@ -20,7 +20,7 @@ configurations {
 
 val springdocVersion by extra("2.0.0")
 val logstashLogbackEncoderVersion by extra("7.2")
-val tokenSupportVersion by extra("3.0.4")
+val tokenSupportVersion by extra("3.0.8")
 val k9FormatVersion by extra("8.0.8")
 val springCloudVersion by extra("2022.0.0-RC2")
 val retryVersion by extra("2.0.0")
@@ -109,7 +109,7 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
-    implementation("no.nav.k9.felles:k9-felles-log:1.1.0")
+    implementation("no.nav.k9.felles:k9-felles-log:1.1.3")
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
