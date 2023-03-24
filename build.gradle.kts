@@ -21,7 +21,7 @@ configurations {
 val springdocVersion by extra("2.0.0")
 val logstashLogbackEncoderVersion by extra("7.2")
 val tokenSupportVersion by extra("3.0.4")
-val k9FormatVersion by extra("8.0.4")
+val k9FormatVersion by extra("8.0.8")
 val springCloudVersion by extra("2022.0.0-RC2")
 val retryVersion by extra("2.0.0")
 val zalandoVersion by extra("0.27.0")
