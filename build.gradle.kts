@@ -109,7 +109,7 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
-    implementation("no.nav.k9.felles:k9-felles-log:1.1.3")
+    implementation("no.nav.k9.felles:k9-felles-log:1.1.6")
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
