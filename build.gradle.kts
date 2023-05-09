@@ -22,7 +22,7 @@ val springdocVersion by extra("2.0.0")
 val logstashLogbackEncoderVersion by extra("7.2")
 val tokenSupportVersion by extra("3.0.8")
 val k9FormatVersion by extra("8.0.8")
-val springCloudVersion by extra("2022.0.0-RC2")
+val springCloudVersion by extra("2022.0.2")
 val retryVersion by extra("2.0.0")
 val zalandoVersion by extra("0.27.0")
 val postgresqlVersion by extra("42.5.1")
@@ -34,10 +34,7 @@ val mockkVersion by extra("1.13.2")
 val guavaVersion by extra("31.1-jre")
 val orgJsonVersion by extra("20230227")
 val k9FellesVersion = "2.0.0"
-
-val testcontainersVersion by extra("1.17.6")
-
-ext["testcontainersVersion"] = testcontainersVersion
+val testcontainersVersion ="1.17.6"
 
 repositories {
     maven {
@@ -138,13 +135,9 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkJvmVersion")
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-}
 
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}")
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
 }
 
 tasks.withType<Test> {
