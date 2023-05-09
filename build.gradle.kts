@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.5"
+    id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.10"
-    kotlin("plugin.spring") version "1.8.10"
-    kotlin("plugin.jpa") version "1.8.10"
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.spring") version "1.8.21"
+    kotlin("plugin.jpa") version "1.8.21"
 }
 
 group = "no.nav"
@@ -18,26 +18,26 @@ configurations {
     }
 }
 
-val springdocVersion by extra("2.0.0")
-val logstashLogbackEncoderVersion by extra("7.2")
-val tokenSupportVersion by extra("3.0.8")
-val k9FormatVersion by extra("8.0.8")
-val springCloudVersion by extra("2022.0.0-RC2")
-val retryVersion by extra("2.0.0")
-val zalandoVersion by extra("0.27.0")
-val postgresqlVersion by extra("42.5.1")
-val hibernateTypes52Version by extra("2.20.0")
-val awailitilityKotlinVersion by extra("4.1.1")
-val assertkJvmVersion by extra("0.25")
-val springMockkVersion by extra("3.1.2")
-val mockkVersion by extra("1.13.2")
-val guavaVersion by extra("31.1-jre")
-val orgJsonVersion by extra("20220924")
-val testcontainersVersion by extra("1.17.6")
-
-ext["testcontainersVersion"] = testcontainersVersion
+val springCloudVersion = "4.0.2"
+val springdocVersion = "2.0.0"
+val logstashLogbackEncoderVersion = "7.2"
+val tokenSupportVersion = "3.0.8"
+val k9FormatVersion = "8.0.8"
+val retryVersion = "2.0.0"
+val zalandoVersion = "0.27.0"
+val postgresqlVersion = "42.5.1"
+val hibernateTypes52Version = "2.20.0"
+val awailitilityKotlinVersion = "4.1.1"
+val assertkJvmVersion = "0.25"
+val springMockkVersion = "3.1.2"
+val mockkVersion = "1.13.2"
+val guavaVersion = "31.1-jre"
+val orgJsonVersion = "20230227"
+val k9FellesVersion = "2.0.0"
+val testcontainersVersion ="1.17.6"
 
 repositories {
+    mavenCentral()
     maven {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/navikt/dusseldorf-ktor")
@@ -61,11 +61,8 @@ repositories {
         url = uri("https://packages.confluent.io/maven/")
     }
 
-    maven { url = uri("https://repo.spring.io/milestone") }
     maven("https://jitpack.io")
-    mavenCentral()
 }
-
 dependencies {
 
     // NAV
@@ -93,13 +90,11 @@ dependencies {
         exclude(module = "mockito-core")
     }
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.1")
-
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.3")
 
     // Spring Cloud
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
-    testImplementation("org.springframework.cloud:spring-cloud-starter")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
 
     // Swagger (openapi 3)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
@@ -109,7 +104,7 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
-    implementation("no.nav.k9.felles:k9-felles-log:1.1.3")
+    implementation("no.nav.k9.felles:k9-felles-log:$k9FellesVersion")
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
@@ -137,13 +132,8 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkJvmVersion")
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-}
 
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}")
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
 }
 
 tasks.withType<Test> {
