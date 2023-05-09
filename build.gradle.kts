@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.5"
+    id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.10"
-    kotlin("plugin.spring") version "1.8.10"
-    kotlin("plugin.jpa") version "1.8.10"
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.spring") version "1.8.21"
+    kotlin("plugin.jpa") version "1.8.21"
 }
 
 group = "no.nav"
@@ -32,7 +32,9 @@ val assertkJvmVersion by extra("0.25")
 val springMockkVersion by extra("3.1.2")
 val mockkVersion by extra("1.13.2")
 val guavaVersion by extra("31.1-jre")
-val orgJsonVersion by extra("20220924")
+val orgJsonVersion by extra("20230227")
+val k9FellesVersion = "2.0.0"
+
 val testcontainersVersion by extra("1.17.6")
 
 ext["testcontainersVersion"] = testcontainersVersion
@@ -65,7 +67,6 @@ repositories {
     maven("https://jitpack.io")
     mavenCentral()
 }
-
 dependencies {
 
     // NAV
@@ -93,7 +94,7 @@ dependencies {
         exclude(module = "mockito-core")
     }
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.3")
 
 
     // Spring Cloud
@@ -109,7 +110,7 @@ dependencies {
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
-    implementation("no.nav.k9.felles:k9-felles-log:1.1.3")
+    implementation("no.nav.k9.felles:k9-felles-log:$k9FellesVersion")
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
