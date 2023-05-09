@@ -37,6 +37,7 @@ val k9FellesVersion = "2.0.0"
 val testcontainersVersion ="1.17.6"
 
 repositories {
+    mavenCentral()
     maven {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/navikt/dusseldorf-ktor")
@@ -61,7 +62,6 @@ repositories {
     }
 
     maven("https://jitpack.io")
-    mavenCentral()
 }
 dependencies {
 
