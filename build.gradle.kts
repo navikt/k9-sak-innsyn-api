@@ -18,21 +18,21 @@ configurations {
     }
 }
 
-val springdocVersion by extra("2.0.0")
-val logstashLogbackEncoderVersion by extra("7.2")
-val tokenSupportVersion by extra("3.0.8")
-val k9FormatVersion by extra("8.0.8")
-val springCloudVersion by extra("2022.0.2")
-val retryVersion by extra("2.0.0")
-val zalandoVersion by extra("0.27.0")
-val postgresqlVersion by extra("42.5.1")
-val hibernateTypes52Version by extra("2.20.0")
-val awailitilityKotlinVersion by extra("4.1.1")
-val assertkJvmVersion by extra("0.25")
-val springMockkVersion by extra("3.1.2")
-val mockkVersion by extra("1.13.2")
-val guavaVersion by extra("31.1-jre")
-val orgJsonVersion by extra("20230227")
+val springCloudVersion = "4.0.2"
+val springdocVersion = "2.0.0"
+val logstashLogbackEncoderVersion = "7.2"
+val tokenSupportVersion = "3.0.8"
+val k9FormatVersion = "8.0.8"
+val retryVersion = "2.0.0"
+val zalandoVersion = "0.27.0"
+val postgresqlVersion = "42.5.1"
+val hibernateTypes52Version = "2.20.0"
+val awailitilityKotlinVersion = "4.1.1"
+val assertkJvmVersion = "0.25"
+val springMockkVersion = "3.1.2"
+val mockkVersion = "1.13.2"
+val guavaVersion = "31.1-jre"
+val orgJsonVersion = "20230227"
 val k9FellesVersion = "2.0.0"
 val testcontainersVersion ="1.17.6"
 
@@ -60,7 +60,6 @@ repositories {
         url = uri("https://packages.confluent.io/maven/")
     }
 
-    maven { url = uri("https://repo.spring.io/milestone") }
     maven("https://jitpack.io")
     mavenCentral()
 }
@@ -93,11 +92,9 @@ dependencies {
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.3")
 
-
     // Spring Cloud
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
-    testImplementation("org.springframework.cloud:spring-cloud-starter")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
 
     // Swagger (openapi 3)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
@@ -137,7 +134,6 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
 }
 
 tasks.withType<Test> {
