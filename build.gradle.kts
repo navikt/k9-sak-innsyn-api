@@ -21,7 +21,7 @@ configurations {
 val springCloudVersion = "4.0.2"
 val springdocVersion = "2.0.0"
 val logstashLogbackEncoderVersion = "7.2"
-val tokenSupportVersion = "3.0.8"
+val tokenSupportVersion = "3.0.11"
 val k9FormatVersion = "8.0.8"
 val retryVersion = "2.0.0"
 val zalandoVersion = "0.27.0"
