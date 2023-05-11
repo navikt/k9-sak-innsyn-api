@@ -34,7 +34,7 @@ val mockkVersion = "1.13.2"
 val guavaVersion = "31.1-jre"
 val orgJsonVersion = "20230227"
 val k9FellesVersion = "2.0.0"
-val testcontainersVersion ="1.17.6"
+val testcontainersVersion ="1.18.1"
 
 repositories {
     mavenCentral()
