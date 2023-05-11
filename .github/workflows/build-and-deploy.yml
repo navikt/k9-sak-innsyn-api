@@ -8,7 +8,7 @@ on:
       - 'LICENCE'
       - 'CODEOWNERS'
       - '.github/workflows/apply-alerts.yml'
-      - '.github/workflows/snyk.yml'
+      - '.github/workflows/codeql.yml'
       - 'nais/alerterator-*'
       - ".github/workflows/dependency-submission.yml"
     branches:
