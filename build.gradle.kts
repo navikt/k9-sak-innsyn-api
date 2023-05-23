@@ -122,6 +122,14 @@ dependencies {
 
     //Kafka
     implementation("org.springframework.kafka:spring-kafka")
+    constraints {
+        implementation("org.scala-lang:scala-library") {
+            because("org.apache.kafka:kafka_2.13:3.3.2 -> https://www.cve.org/CVERecord?id=CVE-2022-36944")
+            version {
+                require("2.13.9")
+            }
+        }
+    }
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     // Diverse
