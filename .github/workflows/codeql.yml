@@ -2,7 +2,7 @@ name: "CodeQL"
 
 env:
   GITHUB_USERNAME: x-access-token
-  GITHUB_TOKEN: ${{ secrets.READER_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   READER_TOKEN: ${{ secrets.READER_TOKEN }}
 
 on:
