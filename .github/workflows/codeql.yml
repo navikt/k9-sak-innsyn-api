@@ -3,6 +3,7 @@ name: "CodeQL"
 env:
   GITHUB_USERNAME: x-access-token
   GITHUB_TOKEN: ${{ secrets.READER_TOKEN }}
+  READER_TOKEN: ${{ secrets.READER_TOKEN }}
 
 on:
   workflow_dispatch:
