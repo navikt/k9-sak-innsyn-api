@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.0.6"
+    id("org.springframework.boot") version "3.1.0"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.spring") version "1.8.21"
@@ -18,22 +18,22 @@ configurations {
     }
 }
 
-val springCloudVersion = "4.0.2"
+val springCloudVersion = "4.0.3"
 val springdocVersion = "2.1.0"
 val logstashLogbackEncoderVersion = "7.3"
-val tokenSupportVersion = "3.0.12"
-val k9FormatVersion = "8.0.9"
+val tokenSupportVersion = "3.1.0"
+val k9FormatVersion = "8.1.0"
 val retryVersion = "2.0.1"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.6.0"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.2.0"
-val assertkJvmVersion = "0.26"
+val assertkJvmVersion = "0.26.1"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.5"
-val guavaVersion = "31.1-jre"
+val guavaVersion = "32.0.0-jre"
 val orgJsonVersion = "20230227"
-val k9FellesVersion = "2.0.0"
+val k9FellesVersion = "2.0.1"
 val testcontainersVersion ="1.18.1"
 
 repositories {
