@@ -18,7 +18,7 @@ configurations {
     }
 }
 
-val springCloudVersion = "4.0.3"
+val springCloudVersion = "4.0.4"
 val springdocVersion = "2.1.0"
 val logstashLogbackEncoderVersion = "7.3"
 val tokenSupportVersion = "3.1.0"
