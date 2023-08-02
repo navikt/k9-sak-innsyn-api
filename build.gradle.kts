@@ -42,27 +42,12 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/navikt/dusseldorf-ktor")
         credentials {
-            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
+            username = project.findProperty("gpr.user") as String? ?: "k9-sak-innsyn-api"
             password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
         }
     }
-
-    maven {
-        name = "k9Felles"
-        url = uri("https://maven.pkg.github.com/navikt/k9-felles")
-        credentials {
-            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
-            password = project.findProperty("gpr.key") as String? ?: System.getenv("READER_TOKEN") ?: System.getenv("GITHUB_TOKEN")
-        }
-    }
-
-    maven {
-        name = "confluent"
-        url = uri("https://packages.confluent.io/maven/")
-    }
-
-    maven("https://jitpack.io")
 }
+
 dependencies {
     implementation("org.yaml:snakeyaml:2.0") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
@@ -145,17 +130,25 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
+    }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
+    withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
+        }
+    }
+
+    getByName<Jar>("jar") {
+        enabled = false
+    }
+
+    withType<Wrapper> {
+        gradleVersion = "8.2.1"
     }
 }
 
-tasks.getByName<Jar>("jar") {
-    enabled = false
-}
+
