@@ -19,7 +19,7 @@ configurations {
 }
 
 val springCloudVersion = "4.0.4"
-val springdocVersion = "2.1.0"
+val springdocVersion = "2.2.0"
 val logstashLogbackEncoderVersion = "7.4"
 val tokenSupportVersion = "3.1.1"
 val k9FormatVersion = "9.0.0"
@@ -49,7 +49,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.yaml:snakeyaml:2.0") {
+    implementation("org.yaml:snakeyaml:2.1") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
