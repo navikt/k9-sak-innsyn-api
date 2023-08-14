@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.1.2"
-    id("io.spring.dependency-management") version "1.1.2"
+    id("io.spring.dependency-management") version "1.1.3"
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.spring") version "1.9.0"
     kotlin("plugin.jpa") version "1.9.0"
@@ -22,7 +22,7 @@ val springCloudVersion = "4.0.4"
 val springdocVersion = "2.2.0"
 val logstashLogbackEncoderVersion = "7.4"
 val tokenSupportVersion = "3.1.2"
-val k9FormatVersion = "9.0.1"
+val k9FormatVersion = "9.0.2"
 val retryVersion = "2.0.2"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.6.0"
