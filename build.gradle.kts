@@ -33,7 +33,7 @@ val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.7"
 val guavaVersion = "32.1.2-jre"
 val orgJsonVersion = "20230618"
-val k9FellesVersion = "2.0.5"
+val k9FellesVersion = "2.0.6"
 val testcontainersVersion ="1.18.3"
 
 repositories {
