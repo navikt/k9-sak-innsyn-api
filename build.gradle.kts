@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.1.2"
     id("io.spring.dependency-management") version "1.1.3"
-    kotlin("jvm") version "1.9.0"
-    kotlin("plugin.spring") version "1.9.0"
-    kotlin("plugin.jpa") version "1.9.0"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.spring") version "1.9.10"
+    kotlin("plugin.jpa") version "1.9.10"
 }
 
 group = "no.nav"
@@ -33,8 +33,8 @@ val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.7"
 val guavaVersion = "32.1.2-jre"
 val orgJsonVersion = "20230618"
-val k9FellesVersion = "2.0.5"
-val testcontainersVersion ="1.18.3"
+val k9FellesVersion = "2.0.6"
+val testcontainersVersion ="1.19.0"
 
 repositories {
     mavenCentral()
