@@ -106,7 +106,7 @@ kafka:
       client-id: ${HOSTNAME}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      transaction-id-prefix: .tx-
+      transaction-id-prefix: .tx-${HOSTNAME}-
       retries: 3
 
 springdoc:

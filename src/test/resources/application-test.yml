@@ -67,6 +67,7 @@ kafka:
       schema-registry-url: mock://localhost
     producer:
       client-id: k9-sak-innsyn-api-aiven
+      transaction-id-prefix: .tx-k9-sak-innsyn-api-
 
 wiremock:
   reset-mappings-after-each-test: true
