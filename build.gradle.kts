@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.1.2"
+    id("org.springframework.boot") version "3.1.3"
     id("io.spring.dependency-management") version "1.1.3"
-    kotlin("jvm") version "1.9.0"
-    kotlin("plugin.spring") version "1.9.0"
-    kotlin("plugin.jpa") version "1.9.0"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.spring") version "1.9.10"
+    kotlin("plugin.jpa") version "1.9.10"
 }
 
 group = "no.nav"
@@ -21,7 +21,7 @@ configurations {
 val springCloudVersion = "4.0.4"
 val springdocVersion = "2.2.0"
 val logstashLogbackEncoderVersion = "7.4"
-val tokenSupportVersion = "3.1.3"
+val tokenSupportVersion = "3.1.4"
 val k9FormatVersion = "9.0.2"
 val retryVersion = "2.0.2"
 val zalandoVersion = "0.27.0"
@@ -33,8 +33,8 @@ val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.7"
 val guavaVersion = "32.1.2-jre"
 val orgJsonVersion = "20230618"
-val k9FellesVersion = "2.0.5"
-val testcontainersVersion ="1.18.3"
+val k9FellesVersion = "2.0.7"
+val testcontainersVersion ="1.19.0"
 
 repositories {
     mavenCentral()
@@ -49,7 +49,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.yaml:snakeyaml:2.1") {
+    implementation("org.yaml:snakeyaml:2.2") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
