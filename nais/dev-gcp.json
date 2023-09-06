@@ -40,7 +40,6 @@
     "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "none",
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "NO_NAV_GATEWAYS_SAF_BASE_URL": "https://saf.dev-fss-pub.nais.io",
-    "TOKENDINGS_BASE_URL": "https://tokendings.dev-gcp.nais.io",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:k9-selvbetjening-oppslag",
     "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://dev-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
     "SWAGGER_ENABLED": "true",

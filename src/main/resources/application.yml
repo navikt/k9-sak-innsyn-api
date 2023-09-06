@@ -17,7 +17,7 @@ no.nav:
     client:
       registration:
         tokenx-k9-selvbetjening-oppslag:
-          token-endpoint-url: ${TOKENDINGS_BASE_URL}/token
+          token-endpoint-url: ${TOKEN_X_TOKEN_ENDPOINT}
           grant-type: urn:ietf:params:oauth:grant-type:token-exchange
           authentication:
             client-auth-method: private_key_jwt
