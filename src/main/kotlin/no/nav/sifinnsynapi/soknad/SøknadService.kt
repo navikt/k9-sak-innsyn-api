@@ -32,7 +32,11 @@ class SøknadService(
         val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
 
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        if (pleietrengendeAktørIder.isEmpty()) return listOf()
+        if (pleietrengendeAktørIder.isEmpty()) {
+            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
+            return listOf()
+        }
+        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeAktørIder.size)
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
