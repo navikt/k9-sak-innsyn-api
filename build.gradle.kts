@@ -21,7 +21,7 @@ configurations {
 val springCloudVersion = "4.0.4"
 val springdocVersion = "2.2.0"
 val logstashLogbackEncoderVersion = "7.4"
-val tokenSupportVersion = "3.1.5"
+val tokenSupportVersion = "3.1.7"
 val k9FormatVersion = "9.0.4"
 val retryVersion = "2.0.3"
 val zalandoVersion = "0.27.0"
@@ -31,10 +31,10 @@ val awailitilityKotlinVersion = "4.2.0"
 val assertkJvmVersion = "0.27.0"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.8"
-val guavaVersion = "32.1.2-jre"
-val orgJsonVersion = "20230618"
-val k9FellesVersion = "2.0.8"
-val testcontainersVersion ="1.19.0"
+val guavaVersion = "32.1.3-jre"
+val orgJsonVersion = "20231013"
+val k9FellesVersion = "2.0.11"
+val testcontainersVersion ="1.19.1"
 
 repositories {
     mavenCentral()
