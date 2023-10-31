@@ -53,6 +53,7 @@ internal class OppslagsServiceTest {
                 .defaultHeader(Constants.X_CORRELATION_ID, UUID.randomUUID().toString())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, anyString())
+                .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
                 .defaultMessageConverters()
                 .rootUri(oppslagsUrl)
                 .build()

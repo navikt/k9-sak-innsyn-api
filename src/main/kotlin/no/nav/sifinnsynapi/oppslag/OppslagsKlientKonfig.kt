@@ -55,6 +55,7 @@ class OppslagsKlientKonfig(
             .setReadTimeout(Duration.ofSeconds(20))
             .defaultHeader(X_CORRELATION_ID, UUID.randomUUID().toString())
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)
             .defaultMessageConverters()
             .interceptors(bearerTokenInterceptor(), mdcInterceptor)
