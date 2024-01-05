@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.0"
+    id("org.springframework.boot") version "3.2.1"
     id("io.spring.dependency-management") version "1.1.4"
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.spring") version "1.9.21"
-    kotlin("plugin.jpa") version "1.9.21"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.spring") version "1.9.22"
+    kotlin("plugin.jpa") version "1.9.22"
 }
 
 group = "no.nav"
@@ -21,7 +21,7 @@ configurations {
 val springCloudVersion = "4.1.0"
 val springdocVersion = "2.3.0"
 val logstashLogbackEncoderVersion = "7.4"
-val tokenSupportVersion = "3.2.0"
+val tokenSupportVersion = "4.0.3"
 val k9FormatVersion = "9.0.4"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
@@ -31,7 +31,7 @@ val awailitilityKotlinVersion = "4.2.0"
 val assertkJvmVersion = "0.28.0"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.8"
-val guavaVersion = "32.1.3-jre"
+val guavaVersion = "33.0.0-jre"
 val orgJsonVersion = "20231013"
 val k9FellesVersion = "2.0.8"
 val testcontainersVersion ="1.19.3"
