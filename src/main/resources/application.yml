@@ -69,9 +69,7 @@ spring:
       maxAttempts: 3
 
   flyway:
-    baselineOnMigrate: true
     enabled: true
-    clean-on-validation-error: true
   jpa:
     show-sql: true
     properties:
