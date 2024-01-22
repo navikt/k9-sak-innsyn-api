@@ -21,6 +21,40 @@
 
 Kafka konsumer og API-tjeneste for k9-sak innsynsplatform.
 
+## Sekvensdiagram
+```mermaid
+sequenceDiagram
+   participant k9s as K9 Sak
+   participant topic as Topic: privat-k9-sak-innsyn-v1
+   participant k9s-innsyn as K9 Sak Innsyn API
+   participant k9s-innsyn-db as K9 Sak Innsyn API DB
+   participant sif-innsyn-api as SIF Innsyn API
+   participant dine-pleiepenger as Dine pleiepenger
+   actor søker as søker
+   
+   k9s ->> topic: Publiserer hendelse om PsbSøknadsinnhold
+   k9s ->> topic: Publiserer hendelse om Omsorg
+   
+   k9s-innsyn --) topic: Konsumerer innsynshendelse
+   
+   alt Innsynshendelse er PsbSøknadsinnhold
+   k9s-innsyn -> k9s-innsyn: Map til PsbSøknadDAO
+   k9s-innsyn ->> k9s-innsyn-db: Lagre PsbSøknadDAO
+   
+   else  Innsynshendelse er Omsorg
+   k9s-innsyn ->> k9s-innsyn: Map til OmsorgDAO
+   k9s-innsyn ->> k9s-innsyn-db: Lagre OmsorgDAO
+   end
+   
+   søker ->> dine-pleiepenger: Hent søknadsopplysninger
+   dine-pleiepenger ->> sif-innsyn-api: Hent søknader
+   sif-innsyn-api ->> k9s-innsyn: Hent søknader
+   k9s-innsyn ->> k9s-innsyn: Hent barna søker har omsorgen for
+   k9s-innsyn ->> k9s-innsyn: Slå sammen søknadsopplysninger per barn
+   k9s-innsyn ->> dine-pleiepenger: Returner sammenslåtte søknader per barn
+```
+[Mermaid Live Editor](https://mermaid.live/edit#pako:eNqVlN9umzAUxl_F8t0kiALNSOEiUqdsWtRVjZZdTdw44CYWYHu2qZZFeZy9w-77Yj3GIX8IzVSkSMbn_L5zfPjiLc5ETnGCNf1VU57RKSMrRaqUI3gkUYZlTBJuUBFrRDS6j9GCFJdhIyTLbMIPu0iQVOyZGL-IfU0Kn3GuN9x_Dnp19-GjPJq5jbv57Brg58teBk0_XWKaPbUYkcxyi9mXq4VyxqkvS8qopHxFlWWmsIdO9hxFMiMU0i__CpflVil3UTs5fzJxI0rQvF6WTFMFqWvKc1pqikSF5nq5AIyTXEOba1Hm76EfKy3UyhEHrp2r739o8XvBdV01uAvqVqXtlpRmP5VDCEH2W-2hbq3JyVuCHohEhpUn-PTu8S1ycv5tE_QNvEi7rKObvvoaPZ3E9RLH7hzz_s46HHTRtrf3giW7NkrQV2r9uJ-mkLLcaM6ObrrwnVU5t--5Rgt2LN49bR9yZThN-pIoTtrTrIkCr9kjU46exP8lFuXLX6RJVUF-33mRhJ8t0at0Objv1NSKA-M0NcgbQ49nOuhhD4PJK8JyuNq2Vj3FZk0rmuIEljlRRYpTvoM8Uhux2PAMJ0bV1MO1zIlpr8Hzzc85g_85Tp4IeM3DcEn8FKI6fcfJFv_GiR-Ew2AQRGEUjW7Ht8MoiDy8gf1xEA2GNzcfR8NwNIJwuPPwn0YjGIyHcRiH43A8imIIe5g25R7c_dxc07tXwkDwWw)
+
 # 2. Funksjonelle Krav
 
 Denne tjenesten understøtter behovet for innsyn for bruker. Tjenesten lytter etter diverse innsynshendelser som e.g.
