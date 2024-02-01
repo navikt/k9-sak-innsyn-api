@@ -22,7 +22,7 @@ val springCloudVersion = "4.1.1"
 val springdocVersion = "2.3.0"
 val logstashLogbackEncoderVersion = "7.4"
 val tokenSupportVersion = "3.2.0"
-val k9FormatVersion = "9.0.4"
+val k9FormatVersion = "9.1.3"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.1"
@@ -56,6 +56,7 @@ dependencies {
     // NAV
     implementation("no.nav.k9:soknad:$k9FormatVersion")
     implementation("no.nav.k9:innsyn:$k9FormatVersion")
+    implementation("no.nav.k9:konstant:$k9FormatVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
