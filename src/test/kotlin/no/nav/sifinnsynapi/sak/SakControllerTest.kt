@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
+import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
@@ -99,7 +100,29 @@ class SakControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].sakbehandlingsFrist").value(LocalDate.now().plusDays(10).toString()))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$[0].sakbehandlingsFrist")
+                    .value(LocalDate.now().plusDays(10).toString())
+            )
+    }
+
+    @Test
+    fun `Ved henting av generell saksbehandlingstid uten token, forvent 8 uker`() {
+        every {
+            sakService.hentGenerellSaksbehandlingstid()
+        } returns SaksbehandlingtidDTO(saksbehandlingstid = Duration.ofDays(8 * 7))
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get(URI(URLDecoder.decode("${Routes.SAKER}/saksbehandlingstid", Charset.defaultCharset())))
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.saksbehandlingstid")
+                    .value(Duration.ofDays(8 * 7).toString())
+            )
     }
 
     @ParameterizedTest

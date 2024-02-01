@@ -39,4 +39,8 @@ class SakService(
             )
         )
     }
+
+    fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
+        return SaksbehandlingtidDTO(saksbehandlingstid = Konstant.FORVENTET_SAKSBEHANDLINGSTID)
+    }
 }

@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.sak
 
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
+import no.nav.security.token.support.core.api.Unprotected
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import org.springframework.http.HttpStatus
@@ -22,5 +23,12 @@ class SakController(
     @ResponseStatus(HttpStatus.OK)
     fun hentSaker(): List<SakDTO> {
         return sakService.hentSaker()
+    }
+
+    @GetMapping("${Routes.SAKER}/saksbehandlingstid", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.OK)
+    @Unprotected
+    fun hentSaksbehandlingstid(): SaksbehandlingtidDTO {
+        return sakService.hentGenerellSaksbehandlingstid()
     }
 }
