@@ -41,6 +41,7 @@ class SakService(
     }
 
     fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
-        return SaksbehandlingtidDTO(saksbehandlingstid = Konstant.FORVENTET_SAKSBEHANDLINGSTID)
+        val saksbehandlingstidUker = Konstant.FORVENTET_SAKSBEHANDLINGSTID.toHours().div(24* 7)
+        return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
     }
 }

@@ -139,4 +139,10 @@ class SakServiceTest {
         Assertions.assertThat(sakService.hentSaker()).isEmpty()
 
     }
+
+    @Test
+    fun `Forvent saksbehandlingstid oppgitt i uker`() {
+        val saksbehandlingstid = sakService.hentGenerellSaksbehandlingstid()
+        Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(8)
+    }
 }

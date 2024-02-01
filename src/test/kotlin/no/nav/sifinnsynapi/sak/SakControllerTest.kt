@@ -30,9 +30,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import java.time.Duration
 import java.time.LocalDate
-import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -110,7 +108,7 @@ class SakControllerTest {
     fun `Ved henting av generell saksbehandlingstid uten token, forvent 8 uker`() {
         every {
             sakService.hentGenerellSaksbehandlingstid()
-        } returns SaksbehandlingtidDTO(saksbehandlingstid = Duration.ofDays(8 * 7))
+        } returns SaksbehandlingtidDTO(saksbehandlingstidUker = 8)
 
         mockMvc.perform(
             MockMvcRequestBuilders
@@ -120,8 +118,7 @@ class SakControllerTest {
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
-                MockMvcResultMatchers.jsonPath("$.saksbehandlingstid")
-                    .value(Duration.ofDays(8 * 7).toString())
+                MockMvcResultMatchers.jsonPath("$.saksbehandlingstidUker").value(8)
             )
     }
 
