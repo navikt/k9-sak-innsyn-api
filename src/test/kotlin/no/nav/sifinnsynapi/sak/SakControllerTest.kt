@@ -85,7 +85,7 @@ class SakControllerTest {
             sakService.hentSaker()
         } returns listOf(
             SakDTO(
-                sakbehandlingsFrist = LocalDate.now().plusDays(10)
+                saksbehandlingsFrist = LocalDate.now().plusDays(10)
             )
         )
 
@@ -99,7 +99,7 @@ class SakControllerTest {
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
-                MockMvcResultMatchers.jsonPath("$[0].sakbehandlingsFrist")
+                MockMvcResultMatchers.jsonPath("$[0].saksbehandlingsFrist")
                     .value(LocalDate.now().plusDays(10).toString())
             )
     }

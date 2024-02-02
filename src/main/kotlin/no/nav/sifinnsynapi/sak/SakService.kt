@@ -35,7 +35,7 @@ class SakService(
         // TODO: Map til SakDTO
         return listOf(
             SakDTO(
-                sakbehandlingsFrist = LocalDate.now().plusDays(Konstant.FORVENTET_SAKSBEHANDLINGSTID.toDays())
+                saksbehandlingsFrist = LocalDate.now().plusDays(Konstant.FORVENTET_SAKSBEHANDLINGSTID.toDays())
             )
         )
     }
