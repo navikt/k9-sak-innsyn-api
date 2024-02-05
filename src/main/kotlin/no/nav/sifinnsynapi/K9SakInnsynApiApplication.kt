@@ -31,6 +31,6 @@ fun main(args: Array<String>) {
 @Configuration
 class FlywayRepairConfig(private val flyway: Flyway) {
     init {
-        flyway.migrate()
+        flyway.repair()
     }
 }
