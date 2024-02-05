@@ -15,6 +15,8 @@ data class BehandlingDAO(
     @Column(name = "behandling_id") @Id val behandlingId: UUID,
     @Column(name = "søker_aktør_id") val søkerAktørId: String,
     @Column(name = "pleietrengende_aktør_id") val pleietrengendeAktørId: String,
+    @Column(name = "saksnummer") val saksnummer: String,
+    @Column(name = "ytelsetype_kode") val ytelsetypeKode: String,
     @Column(name = "behandling", columnDefinition = "jsonb") @JdbcTypeCode(SqlTypes.JSON) val behandling: String,
     @Column(name = "opprettet_dato") @CreatedDate val opprettetDato: ZonedDateTime = ZonedDateTime.now(UTC),
     @Column(name = "oppdatert_dato") val oppdatertDato: ZonedDateTime = ZonedDateTime.now(UTC),
