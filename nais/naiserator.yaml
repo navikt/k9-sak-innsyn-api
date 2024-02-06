@@ -30,6 +30,7 @@ spec:
     inbound:
       rules:
         - application: sif-innsyn-api
+        - application: dine-pleiepenger
     outbound:
       external:
         {{#each externalHosts as |host|}}

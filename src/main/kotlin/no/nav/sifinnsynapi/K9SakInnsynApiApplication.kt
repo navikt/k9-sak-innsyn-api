@@ -24,3 +24,4 @@ class SifInnsynApiApplication
 fun main(args: Array<String>) {
     runApplication<SifInnsynApiApplication>(*args)
 }
+

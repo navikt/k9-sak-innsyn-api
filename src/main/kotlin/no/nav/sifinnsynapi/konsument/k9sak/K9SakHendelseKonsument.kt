@@ -24,7 +24,7 @@ import java.util.*
 class K9SakHendelseKonsument(
     private val søknadService: SøknadService,
     private val omsorgService: OmsorgService,
-    @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean
+    @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean,
 ) {
 
     companion object {
@@ -40,7 +40,7 @@ class K9SakHendelseKonsument(
         autoStartup = "#{'\${topic.listener.k9-sak.bryter}'}"
     )
     fun konsumer(
-        @Payload innsynHendelseJson: String
+        @Payload innsynHendelseJson: String,
     ) {
         when (dryRun) {
             true -> {
@@ -53,10 +53,12 @@ class K9SakHendelseKonsument(
                             innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
                             logger.info("DRY RUN - caster hendelse til InnsynHendelse<PsbSøknadsinnhold>")
                         }
+
                         is Omsorg -> {
                             innsynHendelse as InnsynHendelse<Omsorg>
                             logger.info("DRY RUN - caster hendelse til InnsynHendelse<Omsorg>")
                         }
+
                         is SøknadTrukket -> {
                             innsynHendelse as InnsynHendelse<SøknadTrukket>
                             logger.info("DRY RUN - caster hendelse til InnsynHendelse<SøknadTrukket>")
@@ -66,6 +68,7 @@ class K9SakHendelseKonsument(
                     logger.error("DRY RUN - konsumering av innsynshendelse feilet.", e)
                 }
             }
+
             else -> {
                 logger.info("Mapper om innsynhendelse...")
                 val innsynHendelse =
@@ -111,6 +114,7 @@ class K9SakHendelseKonsument(
                 )
                 logger.trace("Omsorg oppdatert.")
             }
+
             else -> {
                 logger.trace("Lagrer Omsorg...")
                 omsorgService.lagreOmsorg(innsynHendelse.somOmsorgDAO())
