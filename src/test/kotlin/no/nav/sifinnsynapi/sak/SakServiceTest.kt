@@ -145,6 +145,6 @@ class SakServiceTest {
     @Test
     fun `Forvent saksbehandlingstid oppgitt i uker`() {
         val saksbehandlingstid = sakService.hentGenerellSaksbehandlingstid()
-        Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(8)
+        Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(7)
     }
 }
