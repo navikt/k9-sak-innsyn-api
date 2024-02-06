@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.sak
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
@@ -33,6 +34,7 @@ class SakController(
                 responseCode = "200", description = "OK",
                 content = [
                     Content(
+                        schema = Schema(implementation = PleietrengendeMedSak::class),
                         examples = [
                             ExampleObject(
                                 name = "Pleietrengende med sak",
