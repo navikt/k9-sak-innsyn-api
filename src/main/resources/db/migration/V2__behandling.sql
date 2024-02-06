@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS behandling
+DROP TABLE IF EXISTS behandling;
+
+/*CREATE TABLE behandling
 (
     behandling_id           VARCHAR(50) PRIMARY KEY NOT NULL,
     søker_aktør_id          VARCHAR(20)             NOT NULL,
@@ -8,4 +10,4 @@ CREATE TABLE IF NOT EXISTS behandling
     behandling              jsonb                   NOT NULL,
     opprettet_dato          TIMESTAMP               NOT NULL,
     oppdatert_dato          TIMESTAMP               NOT NULL
-);
+);*/
