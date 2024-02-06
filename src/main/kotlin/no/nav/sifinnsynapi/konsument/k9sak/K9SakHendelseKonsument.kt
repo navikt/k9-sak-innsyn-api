@@ -4,12 +4,10 @@ import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
-import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadService
@@ -67,11 +65,6 @@ class K9SakHendelseKonsument(
                             innsynHendelse as InnsynHendelse<SøknadTrukket>
                             logger.info("DRY RUN - caster hendelse til InnsynHendelse<SøknadTrukket>")
                         }
-
-                        is Behandling -> {
-                            innsynHendelse as InnsynHendelse<Behandling>
-                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<Behandling>")
-                        }
                     }
                 } catch (e: Exception) {
                     logger.error("DRY RUN - konsumering av innsynshendelse feilet.", e)
@@ -87,19 +80,9 @@ class K9SakHendelseKonsument(
                     is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
                     is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
                     is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
-                    is Behandling -> håndterBehandling(innsynHendelse as InnsynHendelse<Behandling>)
                 }
             }
         }
-    }
-
-    private fun håndterBehandling(innsynHendelse: InnsynHendelse<Behandling>) {
-        logger.info("Innsynhendelse mappet til Behandling.")
-
-        val behandling = innsynHendelse.data
-        logger.trace("Lagrer Behandling med behandlingsId: {}...", behandling.behandlingsId)
-        behandlingService.lagreBehandling(innsynHendelse.somBehandlingDAO())
-        logger.trace("Behandling lagret.")
     }
 
     private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
@@ -141,19 +124,6 @@ class K9SakHendelseKonsument(
             }
         }
     }
-}
-
-private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
-    return BehandlingDAO(
-        behandlingId = data.behandlingsId,
-        søkerAktørId = data.fagsak.søkerAktørId.id,
-        pleietrengendeAktørId = data.fagsak.pleietrengendeAktørId.id,
-        saksnummer = data.fagsak.saksnummer.verdi,
-        ytelsetypeKode = data.fagsak.ytelseType.kode,
-        behandling = JsonUtils.toString(data),
-        opprettetDato = ZonedDateTime.now(UTC),
-        oppdatertDato = oppdateringstidspunkt
-    )
 }
 
 private fun InnsynHendelse<PsbSøknadsinnhold>.somPsbSøknadDAO() = PsbSøknadDAO(
