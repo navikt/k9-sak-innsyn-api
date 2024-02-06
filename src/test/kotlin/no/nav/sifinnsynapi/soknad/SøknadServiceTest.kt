@@ -74,7 +74,8 @@ internal class SøknadServiceTest {
                                     Duration.ofHours(4)
                                 )
                             )
-                        )
+                        ),
+                        mottattDato = ZonedDateTime.now()
                     )
                 ),
                 psbSøknadDAO(
@@ -91,7 +92,8 @@ internal class SøknadServiceTest {
                                     Duration.ofHours(2).plusMinutes(30)
                                 )
                             )
-                        )
+                        ),
+                        mottattDato = ZonedDateTime.now()
                     )
                 )
             )
@@ -184,7 +186,8 @@ internal class SøknadServiceTest {
                                     Duration.ofHours(4)
                                 )
                             )
-                        )
+                        ),
+                        mottattDato = ZonedDateTime.now()
                     )
                 ),
                 psbSøknadDAO(
@@ -211,7 +214,8 @@ internal class SøknadServiceTest {
                                     Duration.ofHours(2).plusMinutes(30)
                                 )
                             )
-                        )
+                        ),
+                        mottattDato = ZonedDateTime.now()
                     )
                 )
             )

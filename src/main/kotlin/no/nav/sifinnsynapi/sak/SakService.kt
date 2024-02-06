@@ -9,7 +9,7 @@ class SakService {
         private val logger = org.slf4j.LoggerFactory.getLogger(SakService::class.java)
     }
 
-    fun hentSaker(): List<SakDTO> {
+    fun hentSaker(): List<PleietrengendeMedSak> {
         return listOf()
     }
 

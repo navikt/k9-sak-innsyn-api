@@ -2,12 +2,18 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import no.nav.k9.innsyn.sak.Aksjonspunkt
+import no.nav.k9.innsyn.sak.BehandlingStatus
+import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.sak.typer.Saksnummer
+import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.util.CallIdGenerator
+import no.nav.sifinnsynapi.utils.defaultSøknad
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -28,9 +34,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.net.URI
+import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -81,15 +90,192 @@ class SakControllerTest {
 
     @Test
     fun `Gitt 200 respons, forvent korrekt format på liste av saker med tokenx token`() {
+        val søknadId = UUID.randomUUID()
+        val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
         every {
             sakService.hentSaker()
         } returns listOf(
-            SakDTO(
-                saksbehandlingsFrist = LocalDate.now().plusDays(10)
+            PleietrengendeMedSak(
+                pleietrengende = PleietrengendeDTO(
+                    fødselsdato = LocalDate.parse("2000-01-01"),
+                    fornavn = "Ola",
+                    mellomnavn = null,
+                    etternavn = "Nordmann",
+                    aktørId = "11111111111",
+                    identitetsnummer = "1234567890"
+                ),
+                sak = SakDTO(
+                    saksnummer = Saksnummer("ABC123"),
+                    saksbehandlingsFrist = LocalDate.parse("2024-01-01"),
+                    fagsakYtelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
+                    behandlinger = listOf(
+                        BehandlingDTO(
+                            status = BehandlingStatus.OPPRETTET,
+                            søknader = listOf(
+                                SøknaderISakDTO(
+                                    k9FormatSøknad = defaultSøknad(
+                                        søknadId = søknadId,
+                                        søknadsPeriode = Periode("2024-01-01/2024-01-31"),
+                                        søkersIdentitetsnummer = "1234567890",
+                                        arbeidstid = null,
+                                        tilsynsordning = null,
+                                        mottattDato = mottattDato
+                                    ),
+                                    dokumenter = listOf(
+                                        DokumentDTO(
+                                            journalpostId = "123456789",
+                                            dokumentInfoId = "123456789",
+                                            tittel = "Søknad om pleiepenger",
+                                            filtype = "PDFA",
+                                            harTilgang = true,
+                                            url = URL("http://localhost:8080/saker/123456789"),
+                                            relevanteDatoer = listOf(
+                                                RelevantDato(
+                                                    dato = mottattDato.toString(),
+                                                    datotype = Datotype.DATO_OPPRETTET
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            aksjonspunkter = listOf(
+                                AksjonspunktDTO(
+                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING
+                                )
+                            )
+                        )
+                    )
+                )
             )
         )
 
         val token = mockOAuth2Server.hentToken().serialize()
+
+        //language=json
+        val forventetJsonResponse = """
+                    [
+                      {
+                        "pleietrengende": {
+                          "fødselsdato": "2000-01-01",
+                          "fornavn": "Ola",
+                          "mellomnavn": null,
+                          "etternavn": "Nordmann",
+                          "aktørId": "11111111111",
+                          "identitetsnummer": "1234567890"
+                        },
+                        "sak": {
+                          "saksnummer": "ABC123",
+                          "saksbehandlingsFrist": "2024-01-01",
+                          "fagsakYtelseType": {
+                            "kode": "PSB",
+                            "kodeverk": "FAGSAK_YTELSE"
+                          },
+                          "behandlinger": [
+                            {
+                              "status": "OPPRETTET",
+                              "søknader": [
+                                {
+                                  "k9FormatSøknad": {
+                                    "søknadId": "$søknadId",
+                                    "versjon": "1.0.0",
+                                    "mottattDato": "$mottattDato",
+                                    "søker": {
+                                      "norskIdentitetsnummer": "1234567890"
+                                    },
+                                    "ytelse": {
+                                      "type": "PLEIEPENGER_SYKT_BARN",
+                                      "barn": {
+                                        "norskIdentitetsnummer": "21121879023",
+                                        "fødselsdato": null
+                                      },
+                                      "søknadsperiode": [
+                                        "2024-01-01/2024-01-31"
+                                      ],
+                                      "endringsperiode": [],
+                                      "trekkKravPerioder": [],
+                                      "opptjeningAktivitet": {},
+                                      "dataBruktTilUtledning": null,
+                                      "annetDataBruktTilUtledning": null,
+                                      "infoFraPunsj": null,
+                                      "bosteder": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "utenlandsopphold": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "beredskap": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "nattevåk": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "tilsynsordning": {
+                                        "perioder": {}
+                                      },
+                                      "lovbestemtFerie": {
+                                        "perioder": {}
+                                      },
+                                      "arbeidstid": {
+                                        "arbeidstakerList": [],
+                                        "frilanserArbeidstidInfo": null,
+                                        "selvstendigNæringsdrivendeArbeidstidInfo": null
+                                      },
+                                      "uttak": {
+                                        "perioder": {}
+                                      },
+                                      "omsorg": {
+                                        "relasjonTilBarnet": null,
+                                        "beskrivelseAvOmsorgsrollen": null
+                                      }
+                                    },
+                                    "språk": "nb",
+                                    "journalposter": [
+                                      {
+                                        "inneholderInfomasjonSomIkkeKanPunsjes": null,
+                                        "inneholderInformasjonSomIkkeKanPunsjes": null,
+                                        "inneholderMedisinskeOpplysninger": null,
+                                        "journalpostId": "123456789"
+                                      }
+                                    ],
+                                    "begrunnelseForInnsending": {
+                                      "tekst": null
+                                    },
+                                    "kildesystem": null
+                                  },
+                                  "dokumenter": [
+                                    {
+                                      "journalpostId": "123456789",
+                                      "dokumentInfoId": "123456789",
+                                      "tittel": "Søknad om pleiepenger",
+                                      "filtype": "PDFA",
+                                      "harTilgang": true,
+                                      "url": "http://localhost:8080/saker/123456789",
+                                      "relevanteDatoer": [
+                                        {
+                                          "dato": "$mottattDato",
+                                          "datotype": "DATO_OPPRETTET"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "aksjonspunkter": [
+                                {
+                                  "venteårsak": "INNTEKTSMELDING"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                """.trimIndent()
         mockMvc.perform(
             MockMvcRequestBuilders
                 .get(URI(URLDecoder.decode(Routes.SAKER, Charset.defaultCharset())))
@@ -98,10 +284,7 @@ class SakControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(
-                MockMvcResultMatchers.jsonPath("$[0].saksbehandlingsFrist")
-                    .value(LocalDate.now().plusDays(10).toString())
-            )
+            .andExpect(MockMvcResultMatchers.content().json(forventetJsonResponse, true))
     }
 
     @Test

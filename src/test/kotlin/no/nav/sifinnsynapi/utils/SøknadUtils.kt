@@ -88,13 +88,14 @@ fun defaultSøknad(
         søknadsPeriode = søknadsPeriode,
         arbeidstid = arbeidstid,
         tilsynsordning = tilsynsordning
-    )
+    ),
+    mottattDato: ZonedDateTime = ZonedDateTime.now()
 ): Søknad = Søknad()
     .medSøknadId(søknadId.toString())
     .medSøker(Søker(NorskIdentitetsnummer.of(søkersIdentitetsnummer)))
     .medJournalpost(Journalpost().medJournalpostId("123456789"))
     .medSpråk(Språk.NORSK_BOKMÅL)
-    .medMottattDato(ZonedDateTime.now())
+    .medMottattDato(mottattDato)
     .medVersjon(Versjon.of("1.0.0"))
     .medYtelse(ytelse)
 
