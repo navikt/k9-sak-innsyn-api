@@ -1,4 +1,4 @@
-CREATE TABLE behandling
+CREATE TABLE IF NOT EXISTS behandling
 (
     behandling_id           VARCHAR(50) PRIMARY KEY NOT NULL,
     søker_aktør_id          VARCHAR(20)             NOT NULL,
