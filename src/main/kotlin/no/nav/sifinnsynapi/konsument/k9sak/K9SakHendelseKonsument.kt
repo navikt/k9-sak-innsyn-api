@@ -8,7 +8,6 @@ import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
@@ -24,7 +23,6 @@ import java.util.*
 @Service
 class K9SakHendelseKonsument(
     private val søknadService: SøknadService,
-    private val behandlingService: BehandlingService,
     private val omsorgService: OmsorgService,
     @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean,
 ) {
