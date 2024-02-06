@@ -27,10 +27,3 @@ fun main(args: Array<String>) {
     runApplication<SifInnsynApiApplication>(*args)
 }
 
-// TODO: Fjern etter reparasjon av flyway
-@Configuration
-class FlywayRepairConfig(private val flyway: Flyway) {
-    init {
-        flyway.repair()
-    }
-}
