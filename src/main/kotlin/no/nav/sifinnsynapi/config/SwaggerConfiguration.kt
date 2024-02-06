@@ -63,4 +63,131 @@ class SwaggerConfiguration(
     override fun setEnvironment(env: Environment) {
         this.env = env
     }
+
+    companion object {
+        // language=json
+        const val SAKER_RESPONSE_EKSEMPEL = """
+                    [
+                      {
+                        "pleietrengende": {
+                          "fødselsdato": "2000-01-01",
+                          "fornavn": "Ola",
+                          "mellomnavn": null,
+                          "etternavn": "Nordmann",
+                          "aktørId": "11111111111",
+                          "identitetsnummer": "1234567890"
+                        },
+                        "sak": {
+                          "saksnummer": "ABC123",
+                          "saksbehandlingsFrist": "2024-01-01",
+                          "fagsakYtelseType": {
+                            "kode": "PSB",
+                            "kodeverk": "FAGSAK_YTELSE"
+                          },
+                          "behandlinger": [
+                            {
+                              "status": "OPPRETTET",
+                              "søknader": [
+                                {
+                                  "k9FormatSøknad": {
+                                    "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
+                                    "versjon": "1.0.0",
+                                    "mottattDato": "2024-02-06T14:50:24.318Z",
+                                    "søker": {
+                                      "norskIdentitetsnummer": "1234567890"
+                                    },
+                                    "ytelse": {
+                                      "type": "PLEIEPENGER_SYKT_BARN",
+                                      "barn": {
+                                        "norskIdentitetsnummer": "21121879023",
+                                        "fødselsdato": null
+                                      },
+                                      "søknadsperiode": [
+                                        "2024-01-01/2024-01-31"
+                                      ],
+                                      "endringsperiode": [],
+                                      "trekkKravPerioder": [],
+                                      "opptjeningAktivitet": {},
+                                      "dataBruktTilUtledning": null,
+                                      "annetDataBruktTilUtledning": null,
+                                      "infoFraPunsj": null,
+                                      "bosteder": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "utenlandsopphold": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "beredskap": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "nattevåk": {
+                                        "perioder": {},
+                                        "perioderSomSkalSlettes": {}
+                                      },
+                                      "tilsynsordning": {
+                                        "perioder": {}
+                                      },
+                                      "lovbestemtFerie": {
+                                        "perioder": {}
+                                      },
+                                      "arbeidstid": {
+                                        "arbeidstakerList": [],
+                                        "frilanserArbeidstidInfo": null,
+                                        "selvstendigNæringsdrivendeArbeidstidInfo": null
+                                      },
+                                      "uttak": {
+                                        "perioder": {}
+                                      },
+                                      "omsorg": {
+                                        "relasjonTilBarnet": null,
+                                        "beskrivelseAvOmsorgsrollen": null
+                                      }
+                                    },
+                                    "språk": "nb",
+                                    "journalposter": [
+                                      {
+                                        "inneholderInfomasjonSomIkkeKanPunsjes": null,
+                                        "inneholderInformasjonSomIkkeKanPunsjes": null,
+                                        "inneholderMedisinskeOpplysninger": null,
+                                        "journalpostId": "123456789"
+                                      }
+                                    ],
+                                    "begrunnelseForInnsending": {
+                                      "tekst": null
+                                    },
+                                    "kildesystem": null
+                                  },
+                                  "dokumenter": [
+                                    {
+                                      "journalpostId": "123456789",
+                                      "dokumentInfoId": "123456789",
+                                      "tittel": "Søknad om pleiepenger",
+                                      "filtype": "PDFA",
+                                      "harTilgang": true,
+                                      "url": "http://localhost:8080/saker/123456789",
+                                      "relevanteDatoer": [
+                                        {
+                                          "dato": "2024-02-06T14:50:24.318Z",
+                                          "datotype": "DATO_OPPRETTET"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "aksjonspunkter": [
+                                {
+                                  "venteårsak": "INNTEKTSMELDING"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                """
+    }
 }
