@@ -149,7 +149,7 @@ private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
         søkerAktørId = data.fagsak.søkerAktørId.id,
         pleietrengendeAktørId = data.fagsak.pleietrengendeAktørId.id,
         saksnummer = data.fagsak.saksnummer.verdi,
-        ytelsetypeKode = data.fagsak.ytelseType.kode,
+        ytelsetype = data.fagsak.ytelseType,
         behandling = JsonUtils.toString(data),
         opprettetDato = ZonedDateTime.now(UTC),
         oppdatertDato = oppdateringstidspunkt
