@@ -4,6 +4,7 @@ import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
+import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.util.MDCUtil
@@ -14,6 +15,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.header.Header
 import org.slf4j.Logger
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
@@ -106,7 +108,8 @@ class CommonKafkaConfig {
             retryInterval: Long,
             transactionManager: PlatformTransactionManager,
             kafkaTemplate: KafkaTemplate<String, String>,
-            logger: Logger
+            logger: Logger,
+            activeProfiles: Array<String>
         ): ConcurrentKafkaListenerContainerFactory<String, String> {
             val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
 
@@ -131,6 +134,11 @@ class CommonKafkaConfig {
                     is Omsorg -> {
                         // ingen info vi kan legge til i MDC.
                     }
+                    is Behandling -> {
+                        val behandling = hendelse.data as Behandling
+                        MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
+                        MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
+                    }
                     else -> {
                         throw IllegalStateException("Ukjent data type på InnsynHendelse: ${hendelse.data.javaClass}")
                     }
@@ -139,8 +147,12 @@ class CommonKafkaConfig {
                 record
             }
 
+            // VTP kafka broker støtter ikke transaksjoner
+            if (!activeProfiles.contains("vtp")) {
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#chained-transaction-manager
-            factory.containerProperties.transactionManager = transactionManager
+                factory.containerProperties.transactionManager = transactionManager
+            }
+
 
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#exactly-once
             factory.containerProperties.eosMode = ContainerProperties.EOSMode.V2
@@ -163,11 +175,8 @@ class CommonKafkaConfig {
         private fun Logger.loggAntallForsøk(
             it: ConsumerRecord<String, String>
         ) {
-            val antallForsøk = ByteBuffer.wrap(
-                it.headers()
-                    .lastHeader(KafkaHeaders.DELIVERY_ATTEMPT).value()
-            )
-                .int
+            val lastHeader: Header? = it.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT)
+            val antallForsøk = lastHeader?.let { ByteBuffer.wrap(it.value()).int } ?: 0
 
             if (antallForsøk > 1) warn("Konsumering av ${it.topic()}-${it.partition()} med offset ${it.offset()} feilet første gang. Prøver for $antallForsøk gang.")
         }
