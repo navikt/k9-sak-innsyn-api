@@ -1,0 +1,18 @@
+no.nav:
+  security.jwt:
+    issuer:
+      loginservice:
+        discoveryUrl: ${TOKEN_X_WELL_KNOWN_URL}
+        accepted_audience: ${TOKEN_X_CLIENT_ID}
+kafka:
+  aiven:
+    consumer:
+      auto-offset-reset: earliest
+    properties:
+      security:
+        protocol: SASL_SSL
+      ssl:
+        keyStorePassword: ${KAFKA_OVERRIDE_KEYSTORE_PASSWORD}
+      sasl:
+        mechanism: PLAIN
+        jaasConfig: org.apache.kafka.common.security.scram.ScramLoginModule required username="vtp" password="vtp";
