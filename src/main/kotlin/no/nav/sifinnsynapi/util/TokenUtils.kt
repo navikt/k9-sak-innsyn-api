@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.util
 
 import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
-import no.nav.sifinnsynapi.common.PersonIdentifikator
 
 object TokenClaims {
     // Brukerident ligger i pid claim på tokenet for flyten idporten -> tokenx
@@ -11,7 +10,7 @@ object TokenClaims {
     const val CLAIM_SUB = "sub"
 }
 
-fun SpringTokenValidationContextHolder.personIdent(): PersonIdentifikator {
+fun SpringTokenValidationContextHolder.personIdent(): String {
     val jwtToken = tokenValidationContext.firstValidToken
         .orElseThrow { IllegalStateException("Ingen gyldige tokens i Authorization headeren") }
 
@@ -19,8 +18,8 @@ fun SpringTokenValidationContextHolder.personIdent(): PersonIdentifikator {
     val sub = jwtToken.jwtTokenClaims.getStringClaim(TokenClaims.CLAIM_SUB)
 
     return when {
-        !pid.isNullOrBlank() -> PersonIdentifikator(pid)
-        !sub.isNullOrBlank() -> PersonIdentifikator(sub)
+        !pid.isNullOrBlank() -> pid
+        !sub.isNullOrBlank() -> sub
         else -> throw IllegalStateException("Ugyldig token. Token inneholdt verken sub eller pid claim")
     }
 }
