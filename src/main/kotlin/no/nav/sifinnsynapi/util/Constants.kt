@@ -10,4 +10,5 @@ object Constants {
     const val JOURNALPOST_ID = "journalpost_id"
     const val CALL_ID = "callId"
     const val X_CORRELATION_ID = "X-Correlation-ID"
+    const val NAV_CALL_ID = "Nav-Callid"
 }

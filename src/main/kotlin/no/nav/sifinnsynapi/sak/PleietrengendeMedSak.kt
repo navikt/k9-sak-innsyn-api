@@ -44,16 +44,17 @@ data class SøknaderISakDTO(
 data class DokumentDTO(
     val journalpostId: String,
     val dokumentInfoId: String,
+    val saksnummer: Saksnummer?,
     val tittel: String,
     val filtype: String,
     val harTilgang: Boolean,
     val url: URL,
-    val relevanteDatoer: List<RelevantDato>,
+    val relevanteDatoer: List<RelevantDatoDTO>,
 )
 
-data class RelevantDato(
+data class RelevantDatoDTO(
     val dato: String,
-    val datotype: Datotype = Datotype.__UNKNOWN_VALUE,
+    val datotype: Datotype = Datotype.UKJENT,
 )
 
 enum class Datotype {
@@ -66,7 +67,7 @@ enum class Datotype {
     DATO_DOKUMENT,
 
     @JsonEnumDefaultValue
-    __UNKNOWN_VALUE,
+    UKJENT,
 }
 
 data class AksjonspunktDTO(

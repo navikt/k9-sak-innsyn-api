@@ -1,6 +1,7 @@
 no.nav:
   gateways:
     k9-selvbetjening-oppslag: http://localhost:${wiremock.server.port}/k9-selvbetjening-oppslag-mock
+    saf-selvbetjening-base-url: http://localhost:${wiremock.server.port}/saf-selvbetjening-graphql-mock
   security:
     jwt:
       issuer:
@@ -30,8 +31,20 @@ no.nav:
               client-auth-method: private_key_jwt
               client-id: dev-gcp:dusseldorf:sif-innsyn-api
               client-jwk: src/test/resources/private_jwk.json
+
+          tokenx-safselvbetjening:
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/default/token
+            grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: "dev-gcp:dusseldorf:sif-innsyn-api"
+              client-jwk: src/test/resources/tokenx-jwk.json
+            token-exchange:
+              audience: dev-fss:teamdokumenthandtering:safselvbetjening
   metrics:
     interval: 36000
+
+application-ingress: http://localhost:9999
 
 spring:
   datasource:

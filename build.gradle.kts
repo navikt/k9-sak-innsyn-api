@@ -1,8 +1,10 @@
+import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.2.2"
     id("io.spring.dependency-management") version "1.1.4"
+    id("com.expediagroup.graphql") version "7.0.2"
     kotlin("jvm") version "1.9.22"
     kotlin("plugin.spring") version "1.9.22"
     kotlin("plugin.jpa") version "1.9.22"
@@ -18,11 +20,12 @@ configurations {
     }
 }
 
+val graphQLKotlinVersion = "7.0.2"
 val springCloudVersion = "4.1.1"
 val springdocVersion = "2.3.0"
 val logstashLogbackEncoderVersion = "7.4"
 val tokenSupportVersion = "3.2.0"
-val k9FormatVersion = "9.2.5"
+val k9FormatVersion = "9.2.6"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.1"
@@ -82,6 +85,9 @@ dependencies {
     // Spring Cloud
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
     testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
+
+    //graphql
+    implementation("com.expediagroup:graphql-kotlin-spring-client:$graphQLKotlinVersion")
 
     // Swagger (openapi 3)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
@@ -150,6 +156,12 @@ tasks {
     withType<Wrapper> {
         gradleVersion = "8.2.1"
     }
+}
+
+val graphqlGenerateOtherClient by tasks.creating(GraphQLGenerateClientTask::class) {
+    queryFileDirectory.set(file("${project.projectDir}/src/main/resources/safselvbetjening"))
+    schemaFile.set(file("${project.projectDir}/src/main/resources/safselvbetjening/saf-selvbetjening-sdl.graphqls"))
+    packageName.set("no.nav.sifinnsynapi.safselvbetjening.generated")
 }
 
 
