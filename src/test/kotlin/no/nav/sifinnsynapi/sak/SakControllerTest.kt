@@ -130,11 +130,12 @@ class SakControllerTest {
                                             harTilgang = true,
                                             url = URL("http://localhost:8080/saker/123456789"),
                                             relevanteDatoer = listOf(
-                                                RelevantDato(
+                                                RelevantDatoDTO(
                                                     dato = mottattDato.toString(),
                                                     datotype = Datotype.DATO_OPPRETTET
                                                 )
-                                            )
+                                            ),
+                                            saksnummer = Saksnummer("ABC123")
                                         )
                                     )
                                 )
@@ -251,6 +252,7 @@ class SakControllerTest {
                                     {
                                       "journalpostId": "123456789",
                                       "dokumentInfoId": "123456789",
+                                      "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
                                       "filtype": "PDFA",
                                       "harTilgang": true,

@@ -1,0 +1,28 @@
+query($ident: String!) {
+    dokumentoversiktSelvbetjening(ident: $ident, tema: [OMS]) {
+        journalposter {
+            journalpostId
+            tittel
+            journalstatus
+            relevanteDatoer {
+                dato
+                datotype
+            }
+            sak {
+                fagsakId
+                fagsaksystem
+            }
+            dokumenter {
+                dokumentInfoId
+                tittel
+                brevkode
+                dokumentvarianter {
+                    variantformat
+                    filtype
+                    brukerHarTilgang
+                    code
+                }
+            }
+        }
+    }
+}

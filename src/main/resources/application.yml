@@ -4,6 +4,7 @@ no.nav:
     product: k9-sak-innsyn-api
   gateways:
     k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
+    saf-selvbetjening-base-url: # Settes i nais/<cluster>.json
 
   security.jwt:
     issuer:
@@ -35,6 +36,16 @@ no.nav:
             client-id: ${AZURE_APP_CLIENT_ID}
             client-jwk: ${AZURE_APP_JWK}
 
+        tokenx-safselvbetjening:
+          token-endpoint-url: ${TOKEN_X_TOKEN_ENDPOINT}
+          grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+          authentication:
+            client-auth-method: private_key_jwt
+            client-id: ${TOKEN_X_CLIENT_ID}
+            client-jwk: ${TOKEN_X_PRIVATE_JWK}
+          token-exchange:
+            audience: ${SAFSELVBETJENING_TOKEN_X_AUDIENCE}
+
 topic:
   # Bryter betegner av/på funksjon for kafkalytter. True (på), False (av).
   listener:
@@ -44,6 +55,8 @@ topic:
       navn: dusseldorf.privat-k9-sak-innsyn-v1
       bryter: true
       dry-run: false
+
+application-ingress: http://sif-innsyn-api
 
 management:
   endpoint:
