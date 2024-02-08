@@ -28,7 +28,7 @@ class DokumentService(
 
         val RELEVANTE_BREVKODER = listOf(
             Brevkode.PLEIEPENGER_BARN_SOKNAD,
-            // TODO: Utvide Brevkode mwd støtte for ettersendelser.
+            Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN
         )
     }
 

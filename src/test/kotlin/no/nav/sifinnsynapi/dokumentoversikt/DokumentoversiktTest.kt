@@ -15,7 +15,7 @@ class DokumentoversiktTest {
     private companion object {
         val relevanteBrevkoder = listOf(
             Brevkode.PLEIEPENGER_BARN_SOKNAD,
-            Brevkode.LEGEERKLÆRING
+            Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN
         )
     }
 
@@ -75,7 +75,7 @@ class DokumentoversiktTest {
                 DokumentInfo(
                     dokumentInfoId = "123",
                     tittel = "tittel",
-                    brevkode = Brevkode.LEGEERKLÆRING.offisiellKode,
+                    brevkode = Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN.offisiellKode,
                     dokumentvarianter = listOf()
                 )
             )
@@ -126,7 +126,7 @@ class DokumentoversiktTest {
                 DokumentInfo(
                     dokumentInfoId = "123",
                     tittel = "tittel",
-                    brevkode = Brevkode.LEGEERKLÆRING.offisiellKode,
+                    brevkode = Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN.offisiellKode,
                     dokumentvarianter = listOf()
                 ),
                 DokumentInfo(
