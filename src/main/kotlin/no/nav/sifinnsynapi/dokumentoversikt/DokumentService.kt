@@ -26,7 +26,7 @@ class DokumentService(
     companion object {
         private val logger = LoggerFactory.getLogger(DokumentService::class.java)
 
-        val RELEVANTE_BREVKODER = listOf(
+        val RELEVANTE_BREVKODER: List<Brevkode> = listOf(
             Brevkode.PLEIEPENGER_BARN_SOKNAD,
             Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN
         )
