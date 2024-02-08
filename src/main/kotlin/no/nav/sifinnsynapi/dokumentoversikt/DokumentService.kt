@@ -1,8 +1,10 @@
 package no.nav.sifinnsynapi.dokumentoversikt
 
 import kotlinx.coroutines.runBlocking
+import no.nav.k9.kodeverk.dokument.Brevkode
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.Routes
+import no.nav.sifinnsynapi.dokumentoversikt.DokumentOversiktUtils.medRelevanteBrevkoder
 import no.nav.sifinnsynapi.safselvbetjening.generated.enums.Datotype
 import no.nav.sifinnsynapi.safselvbetjening.generated.enums.Variantformat
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.DokumentInfo
@@ -23,10 +25,17 @@ class DokumentService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(DokumentService::class.java)
+
+        val RELEVANTE_BREVKODER = listOf(
+            Brevkode.PLEIEPENGER_BARN_SOKNAD,
+            // TODO: Utvide Brevkode mwd støtte for ettersendelser.
+        )
     }
 
     fun hentDokumentOversikt(): List<DokumentDTO> = runBlocking {
-        safSelvbetjeningService.hentDokumentoversikt().somDokumentDTO(applicationIngress)
+        safSelvbetjeningService.hentDokumentoversikt()
+            .medRelevanteBrevkoder(RELEVANTE_BREVKODER)
+            .somDokumentDTO(applicationIngress)
     }
 
     fun hentDokument(journalpostId: String, dokumentInfoId: String, varianFormat: String): ArkivertDokument {
