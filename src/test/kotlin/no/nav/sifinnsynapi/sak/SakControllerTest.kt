@@ -6,6 +6,7 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
+import no.nav.k9.søknad.felles.Kildesystem
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -67,7 +68,7 @@ class SakControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            sakService.hentSaker()
+            sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } throws Exception("Ooops, noe gikk galt...")
 
         //language=json
@@ -93,7 +94,7 @@ class SakControllerTest {
         val søknadId = UUID.randomUUID()
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
         every {
-            sakService.hentSaker()
+            sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } returns listOf(
             PleietrengendeMedSak(
                 pleietrengende = PleietrengendeDTO(
@@ -113,6 +114,7 @@ class SakControllerTest {
                             status = BehandlingStatus.OPPRETTET,
                             søknader = listOf(
                                 SøknaderISakDTO(
+                                    kildesystem = Kildesystem.SØKNADSDIALOG,
                                     k9FormatSøknad = defaultSøknad(
                                         søknadId = søknadId,
                                         søknadsPeriode = Periode("2024-01-01/2024-01-31"),
@@ -177,6 +179,7 @@ class SakControllerTest {
                               "status": "OPPRETTET",
                               "søknader": [
                                 {
+                                  "kildesystem": "søknadsdialog",
                                   "k9FormatSøknad": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",

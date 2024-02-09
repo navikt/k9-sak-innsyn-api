@@ -6,6 +6,7 @@ import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.Kildesystem
 import java.net.URL
 import java.time.LocalDate
 
@@ -37,6 +38,8 @@ data class BehandlingDTO(
 )
 
 data class SøknaderISakDTO(
+    // Kan være null for eldre søknader
+    val kildesystem: Kildesystem?,
     val k9FormatSøknad: Søknad,
     val dokumenter: List<DokumentDTO>,
 )

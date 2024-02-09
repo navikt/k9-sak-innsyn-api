@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
@@ -109,7 +110,7 @@ class SakServiceTest {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
-        val hentSaker = sakService.hentSaker()
+        val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         Assertions.assertThat(hentSaker).isNotEmpty
         Assertions.assertThat(hentSaker).size().isEqualTo(1)
     }
@@ -117,7 +118,7 @@ class SakServiceTest {
     @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
         every { oppslagsService.hentBarn() } answers { listOf() }
-        Assertions.assertThat(sakService.hentSaker()).isEmpty()
+        Assertions.assertThat(sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)).isEmpty()
     }
 
     @Test
@@ -138,7 +139,7 @@ class SakServiceTest {
             )!!.harOmsorgen
         )
 
-        Assertions.assertThat(sakService.hentSaker()).isEmpty()
+        Assertions.assertThat(sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)).isEmpty()
 
     }
 
