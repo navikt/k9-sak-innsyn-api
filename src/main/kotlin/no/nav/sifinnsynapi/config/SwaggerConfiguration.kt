@@ -40,8 +40,8 @@ class SwaggerConfiguration(
             )
             .components(
                 Components()
-                    .addSecuritySchemes("oauth2", azureLogin())
                     .addSecuritySchemes("tokenx", tokenXApiToken())
+                    .addSecuritySchemes("oauth2", azureLogin())
             )
             .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
     }
@@ -64,7 +64,7 @@ class SwaggerConfiguration(
 
     private fun tokenXApiToken(): SecurityScheme {
         return SecurityScheme()
-            .name("tokenx")
+            .name("bearerAuth")
             .type(SecurityScheme.Type.HTTP)
             .bearerFormat("JWT")
             .scheme("bearer")
