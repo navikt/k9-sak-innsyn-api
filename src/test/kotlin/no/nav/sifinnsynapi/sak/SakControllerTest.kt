@@ -112,6 +112,7 @@ class SakControllerTest {
                     behandlinger = listOf(
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
+                            opprettetDato = LocalDate.parse("2024-02-06"),
                             søknader = listOf(
                                 SøknaderISakDTO(
                                     kildesystem = Kildesystem.SØKNADSDIALOG,
@@ -177,6 +178,8 @@ class SakControllerTest {
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
+                                "opprettetDato": "2024-02-06",
+                                "avsluttetDato": null,
                               "søknader": [
                                 {
                                   "kildesystem": "søknadsdialog",

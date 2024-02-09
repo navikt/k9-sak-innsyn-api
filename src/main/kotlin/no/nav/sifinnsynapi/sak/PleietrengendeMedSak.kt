@@ -33,6 +33,8 @@ data class SakDTO(
 
 data class BehandlingDTO(
     val status: BehandlingStatus,
+    val opprettetDato: LocalDate? = null,
+    val avsluttetDato: LocalDate? = null,
     val søknader: List<SøknaderISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
 )

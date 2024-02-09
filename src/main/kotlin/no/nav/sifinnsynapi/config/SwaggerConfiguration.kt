@@ -87,6 +87,8 @@ class SwaggerConfiguration(
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
+                              "opprettetDato": "2024-02-06",
+                              "avsluttetDato": null,
                               "søknader": [
                                 {
                                   "kildesystem": "søknadsdialog",
