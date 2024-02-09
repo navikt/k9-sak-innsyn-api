@@ -75,7 +75,7 @@ class SwaggerConfiguration(
             .bearerFormat("JWT")
             .`in`(SecurityScheme.In.HEADER)
             .description(
-                """Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså ikke å oppgis): 'eyAidH...'.\n
+                """Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså ikke å oppgis): 'eyAidH...'
                 For nytt token -> https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api.
             """.trimMargin()
             )
