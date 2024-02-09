@@ -22,6 +22,18 @@
   "externalHosts": [
     "login.microsoftonline.com"
   ],
+  "inboundRules": [
+    {
+      "app": "dine-pleiepenger",
+      "namespace": "dusseldorf",
+      "cluster": "prod-gcp"
+    },
+    {
+      "app": "sif-innsyn-api",
+      "namespace": "dusseldorf",
+      "cluster": "prod-gcp"
+    }
+  ],
   "database": {
     "name": "k9-sak-innsyn-api-db",
     "type": "POSTGRES_14",
