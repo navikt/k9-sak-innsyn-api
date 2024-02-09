@@ -38,9 +38,10 @@ class SwaggerConfiguration(
                     .description("K9 Sak Innsyn Api GitHub repository")
                     .url("https://github.com/navikt/k9-sak-innsyn-api")
             )
-            .components(Components()
-                .addSecuritySchemes("oauth2", azureLogin())
-                .addSecuritySchemes("tokenx", tokenXApiToken())
+            .components(
+                Components()
+                    .addSecuritySchemes("oauth2", azureLogin())
+                    .addSecuritySchemes("tokenx", tokenXApiToken())
             )
             .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
     }
@@ -68,7 +69,11 @@ class SwaggerConfiguration(
             .bearerFormat("JWT")
             .scheme("bearer")
             .`in`(SecurityScheme.In.HEADER)
-            .description("TokenX API Token")
+            .description(
+                """TokenX API Token.
+                Naviger til https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api for å generere et API token.
+            """.trimMargin()
+            )
     }
 
     override fun setEnvironment(env: Environment) {
