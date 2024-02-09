@@ -14,6 +14,7 @@ import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpHeaders
 
 
 @Configuration
@@ -40,10 +41,14 @@ class SwaggerConfiguration(
             )
             .components(
                 Components()
-                    .addSecuritySchemes("tokenx", tokenXApiToken())
+                    .addSecuritySchemes("Authorization", tokenXApiToken())
                     .addSecuritySchemes("oauth2", azureLogin())
             )
-            .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
+            .addSecurityItem(
+                SecurityRequirement()
+                    .addList("oauth2", listOf("read", "write"))
+                    .addList("Authorization", listOf("read", "write"))
+            )
     }
 
     private fun azureLogin(): SecurityScheme {
@@ -64,14 +69,14 @@ class SwaggerConfiguration(
 
     private fun tokenXApiToken(): SecurityScheme {
         return SecurityScheme()
-            .name("bearerAuth")
             .type(SecurityScheme.Type.HTTP)
-            .bearerFormat("JWT")
+            .name(HttpHeaders.AUTHORIZATION)
             .scheme("bearer")
+            .bearerFormat("JWT")
             .`in`(SecurityScheme.In.HEADER)
             .description(
-                """TokenX API Token.
-                Naviger til https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api for å generere et API token.
+                """Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså ikke å oppgis): 'eyAidH...'.\n
+                For nytt token -> https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api.
             """.trimMargin()
             )
     }
