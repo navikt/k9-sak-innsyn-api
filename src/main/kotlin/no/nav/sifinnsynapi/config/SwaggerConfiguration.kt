@@ -47,7 +47,7 @@ class SwaggerConfiguration(
             .addSecurityItem(
                 SecurityRequirement()
                     .addList("oauth2", listOf("read", "write"))
-                    .addList("Authorization", listOf("read", "write"))
+                    .addList("Authorization")
             )
     }
 
