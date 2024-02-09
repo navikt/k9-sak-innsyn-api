@@ -9,13 +9,11 @@ import io.swagger.v3.oas.models.security.OAuthFlows
 import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
-import io.swagger.v3.oas.models.servers.Server
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
-import java.net.URI
 
 
 @Configuration
@@ -40,11 +38,14 @@ class SwaggerConfiguration(
                     .description("K9 Sak Innsyn Api GitHub repository")
                     .url("https://github.com/navikt/k9-sak-innsyn-api")
             )
-            .components(Components().addSecuritySchemes("oauth2", securitySchemes()))
+            .components(Components()
+                .addSecuritySchemes("oauth2", azureLogin())
+                .addSecuritySchemes("tokenx", tokenXApiToken())
+            )
             .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
     }
 
-    private fun securitySchemes(): SecurityScheme {
+    private fun azureLogin(): SecurityScheme {
         return SecurityScheme()
             .name("oauth2")
             .type(SecurityScheme.Type.OAUTH2)
@@ -58,6 +59,14 @@ class SwaggerConfiguration(
                             .scopes(Scopes().addString(apiScope, "read,write"))
                     )
             )
+    }
+
+    private fun tokenXApiToken(): SecurityScheme {
+        return SecurityScheme()
+            .name("tokenx")
+            .type(SecurityScheme.Type.APIKEY)
+            .`in`(SecurityScheme.In.HEADER)
+            .description("TokenX API Token")
     }
 
     override fun setEnvironment(env: Environment) {
