@@ -64,7 +64,9 @@ class SwaggerConfiguration(
     private fun tokenXApiToken(): SecurityScheme {
         return SecurityScheme()
             .name("tokenx")
-            .type(SecurityScheme.Type.APIKEY)
+            .type(SecurityScheme.Type.HTTP)
+            .bearerFormat("JWT")
+            .scheme("bearer")
             .`in`(SecurityScheme.In.HEADER)
             .description("TokenX API Token")
     }
