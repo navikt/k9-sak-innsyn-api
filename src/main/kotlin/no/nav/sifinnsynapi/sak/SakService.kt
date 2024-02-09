@@ -86,9 +86,11 @@ class SakService(
     }
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(fagsakYtelseType: FagsakYtelseType) = associateWith { pleietrengendeDTO ->
-        behandlingService.hentBehandlinger(pleietrengendeDTO.aktørId, fagsakYtelseType)
+        val behandlinger = behandlingService.hentBehandlinger(pleietrengendeDTO.aktørId, fagsakYtelseType)
             .somBehandling()
             .toList()
+        logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
+        behandlinger
     }
 
     private fun Set<SøknadInfo>.hentOgMapTilK9FormatSøknad(): List<Søknad> =
