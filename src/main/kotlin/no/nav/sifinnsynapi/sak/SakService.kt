@@ -46,7 +46,10 @@ class SakService(
         logger.info("Fant ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende søker har omsorgen for.")
 
         // Slå sammen pleietrengende og behandlinger
-        val pleietrengendesBehandlinger = oppslagsService.hentBarn()
+        val oppslagsbarn = oppslagsService.hentBarn()
+        logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
+
+        val pleietrengendesBehandlinger = oppslagsbarn
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(fagsakYtelseType)
 
