@@ -29,7 +29,8 @@ import java.time.ZoneOffset
 
 @RestController
 @RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.AZURE)
+    ProtectedWithClaims(issuer = Issuers.AZURE),
+    ProtectedWithClaims(issuer = Issuers.TOKEN_X), // TODO fjern før prodsetting.
 )
 class DriftController(
     private val driftService: DriftService,
