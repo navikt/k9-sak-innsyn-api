@@ -11,7 +11,6 @@ import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.HentIdenterForespørsel
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
@@ -19,7 +18,6 @@ import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -39,12 +37,6 @@ class DriftController(
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
-    }
-
-    @GetMapping("/barn", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseStatus(OK)
-    fun hentMineBarn(): List<BarnOppslagDTO> {
-        return oppslagsService.hentBarn()
     }
 
     @PostMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
