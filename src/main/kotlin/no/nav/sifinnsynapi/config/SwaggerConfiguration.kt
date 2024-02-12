@@ -21,7 +21,7 @@ import org.springframework.http.HttpHeaders
 class SwaggerConfiguration(
     @Value("\${springdoc.oAuthFlow.authorizationUrl}") val authorizationUrl: String,
     @Value("\${springdoc.oAuthFlow.tokenUrl}") val tokenUrl: String,
-    @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String
+    @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String,
 ) : EnvironmentAware {
     private var env: Environment? = null
 
@@ -68,7 +68,26 @@ class SwaggerConfiguration(
     }
 
     private fun tokenXApiToken(): SecurityScheme {
+        val authorization_endpoint = "https://tokenx.dev-gcp.nav.cloud.nais.io/authorization"
+        val token_endpoint = "https://tokenx.dev-gcp.nav.cloud.nais.io/token"
+        val audience = "dev-gcp:dusseldorf:k9-sak-innsyn-api"
+
         return SecurityScheme()
+            .name("tokenx")
+            .type(SecurityScheme.Type.OAUTH2)
+            .scheme("oauth2")
+            .`in`(SecurityScheme.In.HEADER)
+            .flows(
+                OAuthFlows()
+                    .authorizationCode(
+                        OAuthFlow()
+                            .authorizationUrl(authorization_endpoint)
+                            .tokenUrl(token_endpoint)
+                            .scopes(Scopes().addString(audience, "read,write"))
+                    )
+            )
+
+        /*return SecurityScheme()
             .type(SecurityScheme.Type.HTTP)
             .name(HttpHeaders.AUTHORIZATION)
             .scheme("bearer")
@@ -78,7 +97,7 @@ class SwaggerConfiguration(
                 """Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså ikke å oppgis): 'eyAidH...'
                 For nytt token -> https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api
             """.trimMargin()
-            )
+            )*/
     }
 
     override fun setEnvironment(env: Environment) {
