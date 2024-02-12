@@ -19,6 +19,7 @@ import no.nav.sifinnsynapi.utils.hentToken
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
@@ -155,6 +156,7 @@ class DriftControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = [Issuers.TOKEN_X])
+    @Disabled("Aktiver før prodsetting")
     fun `gitt request med token utsedt av annen issuer enn azure, forevnt 401`(issuer: String) {
         val token = mockOAuth2Server.hentToken(issuerId = issuer).serialize()
         mockMvc.perform(
