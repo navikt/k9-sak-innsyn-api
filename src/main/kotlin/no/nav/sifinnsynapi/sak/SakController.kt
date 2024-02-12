@@ -25,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController
     ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4"])
 )
 class SakController(
-    private val sakService: SakService
+    private val sakService: SakService,
+    private val oppslagsService: OppslagsService
 ) {
     @GetMapping(Routes.SAKER, produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.OK)
