@@ -12,7 +12,6 @@ import no.nav.security.token.support.core.api.Unprotected
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SwaggerConfiguration.Companion.SAKER_RESPONSE_EKSEMPEL
-import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -50,11 +49,6 @@ class SakController(
     )
     fun hentMineSaker(): List<PleietrengendeMedSak> {
         return sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
-    }
-    @GetMapping("/barn", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseStatus(HttpStatus.OK)
-    fun hentMineBarn(): List<BarnOppslagDTO> {
-       return oppslagsService.hentBarn()
     }
 
     @GetMapping("${Routes.SAKER}/saksbehandlingstid", produces = [MediaType.APPLICATION_JSON_VALUE])
