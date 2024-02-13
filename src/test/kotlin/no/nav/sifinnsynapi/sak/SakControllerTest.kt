@@ -115,7 +115,8 @@ class SakControllerTest {
                             opprettetDato = LocalDate.parse("2024-02-06"),
                             søknader = listOf(
                                 SøknaderISakDTO(
-                                    kildesystem = Kildesystem.SØKNADSDIALOG,
+                                    søknadId = søknadId,
+                                    søknadstype = Søknadstype.SØKNAD,
                                     k9FormatSøknad = defaultSøknad(
                                         søknadId = søknadId,
                                         søknadsPeriode = Periode("2024-01-01/2024-01-31"),
@@ -182,7 +183,8 @@ class SakControllerTest {
                                 "avsluttetDato": null,
                               "søknader": [
                                 {
-                                  "kildesystem": "søknadsdialog",
+                                  "søknadId": "$søknadId",
+                                  "søknadstype": "SØKNAD",
                                   "k9FormatSøknad": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",

@@ -8,7 +8,10 @@ import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.Kildesystem
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
@@ -17,6 +20,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.*
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
 
@@ -27,6 +31,7 @@ class SakService(
     private val oppslagsService: OppslagsService,
     private val omsorgService: OmsorgService,
     private val søknadService: SøknadService,
+    private val legacyInnsynApiService: LegacyInnsynApiService,
 ) {
     private companion object {
         private val logger = LoggerFactory.getLogger(SakService::class.java)
@@ -74,17 +79,23 @@ class SakService(
 
                             behandlinger = behandlinger.map { behandling ->
 
-                                val søknaderISak =
-                                    behandling.søknader
-                                        .medTilhørendeDokumenter(søkersDokmentoversikt)
-                                        .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
-                                        .map { (søknad, dokumenter) ->
-                                            SøknaderISakDTO(
-                                                k9FormatSøknad = søknad.hentOgMapTilK9FormatSøknad()!!, // verifisert at søknad finnes ovenfor
-                                                kildesystem = søknad.kildesystem,
-                                                dokumenter = dokumenter
-                                            )
-                                        }
+                                val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
+                                    .medTilhørendeDokumenter(søkersDokmentoversikt)
+                                    .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
+                                    .map { (søknad, dokumenter) ->
+                                        val k9FormatSøknad =
+                                            søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+
+                                        val søknadId = k9FormatSøknad.søknadId.id
+                                        val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
+
+                                        SøknaderISakDTO(
+                                            søknadId = UUID.fromString(søknadId),
+                                            søknadstype = søknadsType,
+                                            k9FormatSøknad = k9FormatSøknad,
+                                            dokumenter = dokumenter
+                                        )
+                                    }
 
                                 BehandlingDTO(
                                     status = behandling.status,
@@ -100,6 +111,30 @@ class SakService(
         }
     }
 
+    private fun utledSøknadsType(
+        k9FormatSøknad: Søknad,
+        søknadId: String,
+    ) = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
+        null -> {
+            logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
+            val legacySøknad = legacyInnsynApiService.hentLegacySøknad(søknadId)
+            when (legacySøknad.søknadstype) {
+                LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
+                LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.OMS_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Søknadstype.ENDRINGSMELDING
+            }
+        }
+
+        Kildesystem.ENDRINGSDIALOG -> Søknadstype.ENDRINGSMELDING
+        Kildesystem.SØKNADSDIALOG -> Søknadstype.SØKNAD
+        Kildesystem.PUNSJ -> Søknadstype.SØKNAD // TODO: Blir dette riktig?
+        Kildesystem.UTLEDET -> Søknadstype.SØKNAD // // TODO: Blir dette riktig?
+
+        else -> throw error("Ukjent kildesystem $ks")
+    }
+
     fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
         val saksbehandlingstidUker = Konstant.FORVENTET_SAKSBEHANDLINGSTID.toHours().div(24 * 7)
         return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
@@ -107,7 +142,8 @@ class SakService(
 
     private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>) =
         associateWith { søknadInfo: SøknadInfo ->
-            val dokumenterTilknyttetSøknad = søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
+            val dokumenterTilknyttetSøknad =
+                søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
             logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
             dokumenterTilknyttetSøknad
         }

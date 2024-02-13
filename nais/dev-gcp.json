@@ -56,11 +56,17 @@
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
     "SPRING_PROFILES_ACTIVE": "dev-gcp",
     "KAFKA_AIVEN_CONSUMER_AUTO_OFFSET_RESET": "none",
+
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:k9-selvbetjening-oppslag",
     "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://dev-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
+
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening-q1.dev-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "dev-fss:teamdokumenthandtering:safselvbetjening-q1",
+
+    "NO_NAV_GATEWAYS_SIF_INNSYN_API_BASE_URL": "http://sif-innsyn-api",
+    "SIF_INNSYN_API_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:sif-innsyn-api",
+
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0"
   },

@@ -57,6 +57,9 @@
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening.prod-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "prod-fss:teamdokumenthandtering:safselvbetjening",
 
+    "NO_NAV_GATEWAYS_SIF_INNSYN_API_BASE_URL": "http://sif-innsyn-api",
+    "SIF_INNSYN_API_TOKEN_X_AUDIENCE": "prod-gcp:dusseldorf:sif-innsyn-api",
+
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/v2.0"
   },

@@ -112,7 +112,8 @@ class SwaggerConfiguration(
                               "avsluttetDato": null,
                               "søknader": [
                                 {
-                                  "kildesystem": "søknadsdialog",
+                                  "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
+                                  "søknadstype": "SØKNAD",
                                   "k9FormatSøknad": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",
