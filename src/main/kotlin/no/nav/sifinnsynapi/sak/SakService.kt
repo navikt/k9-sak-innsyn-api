@@ -74,7 +74,7 @@ class SakService(
 
                             behandlinger = behandlinger.map { behandling ->
 
-                                val søknaderISakDTOS =
+                                val søknaderISak =
                                     behandling.søknader
                                         .medTilhørendeDokumenter(søkersDokmentoversikt)
                                         .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
@@ -88,7 +88,7 @@ class SakService(
 
                                 BehandlingDTO(
                                     status = behandling.status,
-                                    søknader = søknaderISakDTOS,
+                                    søknader = søknaderISak,
                                     aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
                                 )
                             }
