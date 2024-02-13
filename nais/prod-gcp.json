@@ -20,7 +20,8 @@
     ]
   },
   "externalHosts": [
-    "login.microsoftonline.com"
+    "login.microsoftonline.com",
+    "safselvbetjening.prod-fss-pub.nais.io"
   ],
   "inboundRules": [
     {

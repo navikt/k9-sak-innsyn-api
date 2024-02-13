@@ -21,7 +21,8 @@
     ]
   },
   "externalHosts": [
-    "login.microsoftonline.com"
+    "login.microsoftonline.com",
+    "safselvbetjening-q1.dev-fss-pub.nais.io"
   ],
   "inboundRules": [
     {
