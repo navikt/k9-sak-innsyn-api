@@ -1,9 +1,6 @@
 package no.nav.sifinnsynapi.konsument.k9sak
 
-import no.nav.k9.innsyn.InnsynHendelse
-import no.nav.k9.innsyn.Omsorg
-import no.nav.k9.innsyn.PsbSøknadsinnhold
-import no.nav.k9.innsyn.SøknadTrukket
+import no.nav.k9.innsyn.*
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
@@ -150,7 +147,7 @@ private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
         pleietrengendeAktørId = data.fagsak.pleietrengendeAktørId.id,
         saksnummer = data.fagsak.saksnummer.verdi,
         ytelsetype = data.fagsak.ytelseType,
-        behandling = JsonUtils.toString(data),
+        behandling = JsonUtils.toString(data, TempObjectMapperKodeverdi.getObjectmapper()),
         opprettetDato = ZonedDateTime.now(UTC),
         oppdatertDato = oppdateringstidspunkt
     )
