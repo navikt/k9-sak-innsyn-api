@@ -55,6 +55,7 @@ class SakService(
             .assosierPleietrengendeMedBehandlinger(fagsakYtelseType)
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
+        logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
         // Returnerer pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter
         return pleietrengendesBehandlinger.mapNotNull { (pleietrengendeDTO, behandlinger) ->
@@ -108,10 +109,12 @@ class SakService(
 
     private fun List<Søknad>.hentDokumenterOgMapTilSøknaderISakDTO(søkersDokmenter: List<DokumentDTO>): List<SøknaderISakDTO> =
         map { søknad ->
+            val dokumenterKnyttetSøknaden = søkersDokmenter.medRelevantJournalpostId(søknad.journalposter)
+            logger.info("Fant ${dokumenterKnyttetSøknaden.size} dokumenter knyttet til søknaden.")
             SøknaderISakDTO(
                 k9FormatSøknad = søknad,
                 kildesystem = søknad.kildesystem.getOrNull(),
-                dokumenter = søkersDokmenter.medRelevantJournalpostId(søknad.journalposter)
+                dokumenter = dokumenterKnyttetSøknaden
             )
         }
 
