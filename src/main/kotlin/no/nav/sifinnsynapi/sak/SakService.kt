@@ -8,6 +8,7 @@ import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.type.Journalpost
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
@@ -53,6 +54,8 @@ class SakService(
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(fagsakYtelseType)
 
+        val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
+
         // Returnerer pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter
         return pleietrengendesBehandlinger.mapNotNull { (pleietrengendeDTO, behandlinger) ->
             behandlinger.firstOrNull()
@@ -73,7 +76,7 @@ class SakService(
                                     status = behandling.status,
                                     søknader = behandling.søknader
                                         .hentOgMapTilK9FormatSøknad()
-                                        .hentDokumenterOgMapTilSøknaderISakDTO(),
+                                        .hentDokumenterOgMapTilSøknaderISakDTO(søkersDokmentoversikt),
                                     aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
                                 )
                             }
@@ -88,13 +91,14 @@ class SakService(
         return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
     }
 
-    private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(fagsakYtelseType: FagsakYtelseType) = associateWith { pleietrengendeDTO ->
-        val behandlinger = behandlingService.hentBehandlinger(pleietrengendeDTO.aktørId, fagsakYtelseType)
-            .somBehandling()
-            .toList()
-        logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
-        behandlinger
-    }
+    private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(fagsakYtelseType: FagsakYtelseType) =
+        associateWith { pleietrengendeDTO ->
+            val behandlinger = behandlingService.hentBehandlinger(pleietrengendeDTO.aktørId, fagsakYtelseType)
+                .somBehandling()
+                .toList()
+            logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
+            behandlinger
+        }
 
     private fun Set<SøknadInfo>.hentOgMapTilK9FormatSøknad(): List<Søknad> =
         mapNotNull { søknad -> // Filtrer bort søknader som ikke finnes
@@ -102,14 +106,17 @@ class SakService(
                 ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
         }
 
-    private fun List<Søknad>.hentDokumenterOgMapTilSøknaderISakDTO(): List<SøknaderISakDTO> =
+    private fun List<Søknad>.hentDokumenterOgMapTilSøknaderISakDTO(søkersDokmenter: List<DokumentDTO>): List<SøknaderISakDTO> =
         map { søknad ->
             SøknaderISakDTO(
                 k9FormatSøknad = søknad,
                 kildesystem = søknad.kildesystem.getOrNull(),
-                dokumenter = emptyList() // TODO: Hent dokumenter
+                dokumenter = søkersDokmenter.medRelevantJournalpostId(søknad.journalposter)
             )
         }
+
+    private fun List<DokumentDTO>.medRelevantJournalpostId(journalposter: MutableList<Journalpost>): List<DokumentDTO> =
+        filter { dokument -> dokument.journalpostId in journalposter.map { it.journalpostId } }
 
     private fun BarnOppslagDTO.somPleietrengendeDTO() = PleietrengendeDTO(
         identitetsnummer = this.identitetsnummer!!,
