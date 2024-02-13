@@ -8,7 +8,6 @@ import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
-import no.nav.k9.søknad.felles.type.Journalpost
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
@@ -16,6 +15,7 @@ import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.SøknadService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
@@ -29,7 +29,7 @@ class SakService(
     private val søknadService: SøknadService,
 ) {
     private companion object {
-        private val logger = org.slf4j.LoggerFactory.getLogger(SakService::class.java)
+        private val logger = LoggerFactory.getLogger(SakService::class.java)
     }
 
     @Transactional
@@ -73,11 +73,22 @@ class SakService(
                             fagsakYtelseType = førsteBehandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
                             behandlinger = behandlinger.map { behandling ->
+
+                                val søknaderISakDTOS =
+                                    behandling.søknader
+                                        .medTilhørendeDokumenter(søkersDokmentoversikt)
+                                        .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
+                                        .map { (søknad, dokumenter) ->
+                                            SøknaderISakDTO(
+                                                k9FormatSøknad = søknad.hentOgMapTilK9FormatSøknad()!!, // verifisert at søknad finnes ovenfor
+                                                kildesystem = søknad.kildesystem,
+                                                dokumenter = dokumenter
+                                            )
+                                        }
+
                                 BehandlingDTO(
                                     status = behandling.status,
-                                    søknader = behandling.søknader
-                                        .hentOgMapTilK9FormatSøknad()
-                                        .hentDokumenterOgMapTilSøknaderISakDTO(søkersDokmentoversikt),
+                                    søknader = søknaderISakDTOS,
                                     aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
                                 )
                             }
@@ -86,6 +97,13 @@ class SakService(
                 }
         }
     }
+
+    private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>) =
+        associateWith { søknadInfo: SøknadInfo ->
+            val dokumenterTilknyttetSøknad = søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
+            logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
+            dokumenterTilknyttetSøknad
+        }
 
     fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
         val saksbehandlingstidUker = Konstant.FORVENTET_SAKSBEHANDLINGSTID.toHours().div(24 * 7)
@@ -101,25 +119,8 @@ class SakService(
             behandlinger
         }
 
-    private fun Set<SøknadInfo>.hentOgMapTilK9FormatSøknad(): List<Søknad> =
-        mapNotNull { søknad -> // Filtrer bort søknader som ikke finnes
-            søknadService.hentSøknad(søknad.journalpostId)
-                ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
-        }
-
-    private fun List<Søknad>.hentDokumenterOgMapTilSøknaderISakDTO(søkersDokmenter: List<DokumentDTO>): List<SøknaderISakDTO> =
-        map { søknad ->
-            val dokumenterKnyttetSøknaden = søkersDokmenter.medRelevantJournalpostId(søknad.journalposter)
-            logger.info("Fant ${dokumenterKnyttetSøknaden.size} dokumenter knyttet til søknaden.")
-            SøknaderISakDTO(
-                k9FormatSøknad = søknad,
-                kildesystem = søknad.kildesystem.getOrNull(),
-                dokumenter = dokumenterKnyttetSøknaden
-            )
-        }
-
-    private fun List<DokumentDTO>.medRelevantJournalpostId(journalposter: MutableList<Journalpost>): List<DokumentDTO> =
-        filter { dokument -> dokument.journalpostId in journalposter.map { it.journalpostId } }
+    private fun SøknadInfo.hentOgMapTilK9FormatSøknad(): Søknad? = søknadService.hentSøknad(journalpostId)
+        ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
     private fun BarnOppslagDTO.somPleietrengendeDTO() = PleietrengendeDTO(
         identitetsnummer = this.identitetsnummer!!,
