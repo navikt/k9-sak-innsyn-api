@@ -88,6 +88,8 @@ class SakService(
 
                                 BehandlingDTO(
                                     status = behandling.status,
+                                    //opprettetDato = behandling.opprettetDato, // TODO
+                                    //avsluttetDato = behandling.avsluttetDato, // TODO
                                     søknader = søknaderISak,
                                     aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
                                 )
@@ -98,17 +100,17 @@ class SakService(
         }
     }
 
+    fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
+        val saksbehandlingstidUker = Konstant.FORVENTET_SAKSBEHANDLINGSTID.toHours().div(24 * 7)
+        return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
+    }
+
     private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>) =
         associateWith { søknadInfo: SøknadInfo ->
             val dokumenterTilknyttetSøknad = søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
             logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
             dokumenterTilknyttetSøknad
         }
-
-    fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
-        val saksbehandlingstidUker = Konstant.FORVENTET_SAKSBEHANDLINGSTID.toHours().div(24 * 7)
-        return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
-    }
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(fagsakYtelseType: FagsakYtelseType) =
         associateWith { pleietrengendeDTO ->
