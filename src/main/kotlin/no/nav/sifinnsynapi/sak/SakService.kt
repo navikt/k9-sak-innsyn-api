@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.sak
 import jakarta.transaction.Transactional
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
+import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.SøknadInfo
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.konstant.Konstant
@@ -20,6 +21,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.util.*
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
@@ -31,7 +33,7 @@ class SakService(
     private val oppslagsService: OppslagsService,
     private val omsorgService: OmsorgService,
     private val søknadService: SøknadService,
-    private val legacyInnsynApiService: LegacyInnsynApiService
+    private val legacyInnsynApiService: LegacyInnsynApiService,
 ) {
     private companion object {
         private val logger = LoggerFactory.getLogger(SakService::class.java)
@@ -55,38 +57,39 @@ class SakService(
         val oppslagsbarn = oppslagsService.hentBarn()
         logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
 
-        val pleietrengendesBehandlinger = oppslagsbarn
+        val pleietrengendeMedBehandlinger = oppslagsbarn
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(fagsakYtelseType)
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
-        // Returnerer pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter
-        return pleietrengendesBehandlinger
+        // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
+        return pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
 
-                behandlinger
-                    .sortedBy { it.opprettetTidspunkt }
-                    .firstOrNull()
-                    ?.let { førsteBehandling: Behandling -> // Alle behandlinger har samme saksnummer og fagsakYtelseType
+                // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
+                behandlinger.firstOrNull()?.let { behandling: Behandling ->
+                    PleietrengendeMedSak(
+                        pleietrengende = pleietrengendeDTO,
+                        sak = SakDTO(
+                            saksnummer = behandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
 
-                        PleietrengendeMedSak(
-                            pleietrengende = pleietrengendeDTO,
-                            sak = SakDTO(
-                                saksnummer = førsteBehandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+                            // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
+                            saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
 
-                                saksbehandlingsFrist = førsteBehandling.utledSaksbehandlingsfrist(null)
-                                    .getOrNull()
-                                    ?.toLocalDate(),
+                            fagsakYtelseType = behandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
-                                fagsakYtelseType = førsteBehandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
-
-                                behandlinger = behandlinger.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt)
-                            )
+                            behandlinger = behandlinger.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt)
                         )
-                    }
+                    )
+                }
             }
+    }
+
+    private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
+        val åpenBehandling = firstOrNull { it.status != BehandlingStatus.AVSLUTTET }
+        return åpenBehandling?.utledSaksbehandlingsfrist(null)?.getOrNull()?.toLocalDate()
     }
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
