@@ -7,6 +7,7 @@ import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.DtoKonstanter
 import java.net.URL
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -35,8 +36,8 @@ data class SakDTO(
 
 data class BehandlingDTO(
     val status: BehandlingStatus,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC") val opprettetTidspunkt: ZonedDateTime,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")val avsluttetTidspunkt: ZonedDateTime? = null,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE) val opprettetTidspunkt: ZonedDateTime,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE)val avsluttetTidspunkt: ZonedDateTime? = null,
     val søknader: List<SøknaderISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
 )
