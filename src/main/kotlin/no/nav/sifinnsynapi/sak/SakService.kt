@@ -66,7 +66,9 @@ class SakService(
         return pleietrengendesBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
 
-                behandlinger.firstOrNull()
+                behandlinger
+                    .sortedBy { it.opprettetTidspunkt }
+                    .firstOrNull()
                     ?.let { førsteBehandling: Behandling -> // Alle behandlinger har samme saksnummer og fagsakYtelseType
 
                         PleietrengendeMedSak(
