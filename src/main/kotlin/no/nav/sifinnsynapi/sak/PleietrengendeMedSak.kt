@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.sak
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue
+import com.fasterxml.jackson.annotation.JsonFormat
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
@@ -8,6 +9,7 @@ import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.Søknad
 import java.net.URL
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.*
 
 data class PleietrengendeMedSak(
@@ -33,8 +35,8 @@ data class SakDTO(
 
 data class BehandlingDTO(
     val status: BehandlingStatus,
-    val opprettetDato: LocalDate? = null,
-    val avsluttetDato: LocalDate? = null,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC") val opprettetTidspunkt: ZonedDateTime,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")val avsluttetTidspunkt: ZonedDateTime? = null,
     val søknader: List<SøknaderISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
 )
@@ -80,7 +82,7 @@ enum class Datotype {
 }
 
 data class AksjonspunktDTO(
-    val venteårsak: Aksjonspunkt.Venteårsak
+    val venteårsak: Aksjonspunkt.Venteårsak,
 )
 
 

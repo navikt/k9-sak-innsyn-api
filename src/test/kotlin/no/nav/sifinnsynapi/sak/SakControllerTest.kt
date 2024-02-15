@@ -6,7 +6,6 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
-import no.nav.k9.søknad.felles.Kildesystem
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -39,6 +38,7 @@ import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -112,7 +112,7 @@ class SakControllerTest {
                     behandlinger = listOf(
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
-                            opprettetDato = LocalDate.parse("2024-02-06"),
+                            opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
                             søknader = listOf(
                                 SøknaderISakDTO(
                                     søknadId = søknadId,
@@ -179,8 +179,8 @@ class SakControllerTest {
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
-                                "opprettetDato": "2024-02-06",
-                                "avsluttetDato": null,
+                                "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                                "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
                                   "søknadId": "$søknadId",

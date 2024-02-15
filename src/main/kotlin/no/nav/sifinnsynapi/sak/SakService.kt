@@ -99,8 +99,8 @@ class SakService(
 
                                 BehandlingDTO(
                                     status = behandling.status,
-                                    //opprettetDato = behandling.opprettetDato, // TODO
-                                    //avsluttetDato = behandling.avsluttetDato, // TODO
+                                    opprettetTidspunkt = behandling.opprettetTidspunkt,
+                                    avsluttetTidspunkt = behandling.avsluttetTidspunkt,
                                     søknader = søknaderISak,
                                     aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
                                 )

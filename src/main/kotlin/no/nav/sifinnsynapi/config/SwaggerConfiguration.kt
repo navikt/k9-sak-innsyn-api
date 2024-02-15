@@ -108,8 +108,8 @@ class SwaggerConfiguration(
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
-                              "opprettetDato": "2024-02-06",
-                              "avsluttetDato": null,
+                              "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                              "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
                                   "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
