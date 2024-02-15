@@ -31,7 +31,7 @@ class SakService(
     private val oppslagsService: OppslagsService,
     private val omsorgService: OmsorgService,
     private val søknadService: SøknadService,
-    private val legacyInnsynApiService: LegacyInnsynApiService,
+    private val legacyInnsynApiService: LegacyInnsynApiService
 ) {
     private companion object {
         private val logger = LoggerFactory.getLogger(SakService::class.java)
@@ -63,53 +63,59 @@ class SakService(
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
         // Returnerer pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter
-        return pleietrengendesBehandlinger.mapNotNull { (pleietrengendeDTO, behandlinger) ->
-            behandlinger.firstOrNull()
-                ?.let { førsteBehandling: Behandling -> // Alle behandlinger har samme saksnummer og fagsakYtelseType
-                    PleietrengendeMedSak(
-                        pleietrengende = pleietrengendeDTO,
-                        sak = SakDTO(
-                            saksnummer = førsteBehandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+        return pleietrengendesBehandlinger
+            .mapNotNull { (pleietrengendeDTO, behandlinger) ->
 
-                            saksbehandlingsFrist = førsteBehandling.utledSaksbehandlingsfrist(null)
-                                .getOrNull()
-                                ?.toLocalDate(),
+                behandlinger.firstOrNull()
+                    ?.let { førsteBehandling: Behandling -> // Alle behandlinger har samme saksnummer og fagsakYtelseType
 
-                            fagsakYtelseType = førsteBehandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                        PleietrengendeMedSak(
+                            pleietrengende = pleietrengendeDTO,
+                            sak = SakDTO(
+                                saksnummer = førsteBehandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
 
-                            behandlinger = behandlinger.map { behandling ->
+                                saksbehandlingsFrist = førsteBehandling.utledSaksbehandlingsfrist(null)
+                                    .getOrNull()
+                                    ?.toLocalDate(),
 
-                                val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
-                                    .medTilhørendeDokumenter(søkersDokmentoversikt)
-                                    .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
-                                    .map { (søknad, dokumenter) ->
-                                        val k9FormatSøknad =
-                                            søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+                                fagsakYtelseType = førsteBehandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
-                                        val søknadId = k9FormatSøknad.søknadId.id
-                                        val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
-
-                                        SøknaderISakDTO(
-                                            søknadId = UUID.fromString(søknadId),
-                                            søknadstype = søknadsType,
-                                            k9FormatSøknad = k9FormatSøknad,
-                                            dokumenter = dokumenter
-                                        )
-                                    }
-
-                                BehandlingDTO(
-                                    status = behandling.status,
-                                    opprettetTidspunkt = behandling.opprettetTidspunkt,
-                                    avsluttetTidspunkt = behandling.avsluttetTidspunkt,
-                                    søknader = søknaderISak,
-                                    aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
-                                )
-                            }
+                                behandlinger = behandlinger.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt)
+                            )
                         )
+                    }
+            }
+    }
+
+    private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
+        map { behandling ->
+
+            val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
+                .medTilhørendeDokumenter(søkersDokmentoversikt)
+                .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
+                .map { (søknad, dokumenter) ->
+                    val k9FormatSøknad =
+                        søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+
+                    val søknadId = k9FormatSøknad.søknadId.id
+                    val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
+
+                    SøknaderISakDTO(
+                        søknadId = UUID.fromString(søknadId),
+                        søknadstype = søknadsType,
+                        k9FormatSøknad = k9FormatSøknad,
+                        dokumenter = dokumenter
                     )
                 }
+
+            BehandlingDTO(
+                status = behandling.status,
+                opprettetTidspunkt = behandling.opprettetTidspunkt,
+                avsluttetTidspunkt = behandling.avsluttetTidspunkt,
+                søknader = søknaderISak,
+                aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
+            )
         }
-    }
 
     private fun utledSøknadsType(
         k9FormatSøknad: Søknad,
