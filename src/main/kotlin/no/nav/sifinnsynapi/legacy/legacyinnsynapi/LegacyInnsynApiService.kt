@@ -46,7 +46,7 @@ class LegacyInnsynApiService(
             null,
             LegacySøknadDTO::class.java
         )
-        logger.info("Fikk response {} for oppslag av søknadsdata fra k9-sak-innsyn-api", exchange.statusCode)
+        logger.info("Fikk response {} for oppslag av søknadsdata fra sif-innsyn-api", exchange.statusCode)
 
         return if (exchange.statusCode.is2xxSuccessful) {
             exchange.body!!
