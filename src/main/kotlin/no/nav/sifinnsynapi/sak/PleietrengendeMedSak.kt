@@ -50,7 +50,7 @@ data class SøknaderISakDTO(
 )
 
 enum class Søknadstype {
-    SØKNAD, ETTERSENDELSE, ENDRINGSMELDING
+    SØKNAD, ETTERSENDELSE, ENDRINGSMELDING, UKJENT,
 }
 
 data class DokumentDTO(

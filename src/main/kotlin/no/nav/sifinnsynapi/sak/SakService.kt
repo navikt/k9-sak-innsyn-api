@@ -124,11 +124,14 @@ class SakService(
     private fun utledSøknadsType(
         k9FormatSøknad: Søknad,
         søknadId: String,
-    ) = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
+    ): Søknadstype = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
         null -> {
             logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
-            val legacySøknad = legacyInnsynApiService.hentLegacySøknad(søknadId)
-            when (legacySøknad.søknadstype) {
+            val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+            if (legacySøknad == null) {
+                logger.warn("Fant ingen legacy søknad for søknad med søknadId $søknadId og kunne ikke utlede søknadstype. Returnerer ukjent.")
+                Søknadstype.UKJENT
+            } else when (legacySøknad.søknadstype) {
                 LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
                 LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
                 LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
