@@ -59,7 +59,7 @@ class SakService(
 
         val pleietrengendeMedBehandlinger = oppslagsbarn
             .map { it.somPleietrengendeDTO() }
-            .assosierPleietrengendeMedBehandlinger(fagsakYtelseType)
+            .assosierPleietrengendeMedBehandlinger(søkersAktørId, fagsakYtelseType)
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
@@ -161,9 +161,9 @@ class SakService(
             dokumenterTilknyttetSøknad
         }
 
-    private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(fagsakYtelseType: FagsakYtelseType) =
+    private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(søkerAktørId: String, fagsakYtelseType: FagsakYtelseType) =
         associateWith { pleietrengendeDTO ->
-            val behandlinger = behandlingService.hentBehandlinger(pleietrengendeDTO.aktørId, fagsakYtelseType)
+            val behandlinger = behandlingService.hentBehandlinger(søkerAktørId, pleietrengendeDTO.aktørId, fagsakYtelseType)
                 .somBehandling()
                 .toList()
             logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
