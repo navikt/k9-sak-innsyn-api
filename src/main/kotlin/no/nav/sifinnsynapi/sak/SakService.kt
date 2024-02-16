@@ -18,6 +18,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -88,7 +89,7 @@ class SakService(
 
     private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
         val åpenBehandling = firstOrNull { it.status != BehandlingStatus.AVSLUTTET }
-        return åpenBehandling?.utledSaksbehandlingsfrist(null)?.getOrNull()?.toLocalDate()
+        return åpenBehandling?.let { SaksbehandlingstidUtleder.utled(it) }?.toLocalDate()
     }
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
