@@ -10,6 +10,7 @@ import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
+import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadDTO
@@ -17,6 +18,7 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
@@ -104,7 +106,8 @@ class SakService(
                         søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
 
                     val søknadId = k9FormatSøknad.søknadId.id
-                    val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+                    val legacySøknad =
+                        kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
 
                     val søknadsType = utledSøknadsType(
                         k9FormatSøknad = k9FormatSøknad,
@@ -112,10 +115,12 @@ class SakService(
                         legacySøknad = legacySøknad
                     )
 
+                    val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
+
                     SøknadISakDTO(
                         søknadId = UUID.fromString(søknadId),
                         søknadstype = søknadsType,
-                        arbeidsgivere = legacySøknad?.arbeidsgivere(),
+                        arbeidsgivere = arbeidsgivere,
                         k9FormatSøknad = k9FormatSøknad,
                         dokumenter = dokumenter
                     )
@@ -129,6 +134,25 @@ class SakService(
                 aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
             )
         }
+
+    private fun utledArbeidsgivere(
+        legacySøknad: LegacySøknadDTO?,
+        k9FormatSøknad: Søknad,
+    ): List<Organisasjon> {
+        val arbeidsgivereFraK9Format = k9FormatSøknad.getYtelse<PleiepengerSyktBarn>().arbeidstid.arbeidstakerList
+            .map { Organisasjon(it.organisasjonsnummer.verdi, it.organisasjonsnavn) }
+
+        val arbeidsgivereFraLegacySøknad = legacySøknad?.arbeidsgivere() ?: emptyList()
+
+        // Kombinerer begge listene med arbeidsgivere basert på organisasjonsnummer, prioriterer den som har navn.
+        return (arbeidsgivereFraLegacySøknad + arbeidsgivereFraK9Format)
+            .groupBy { it.organisasjonsnummer }
+            .mapValues { (_, orgs) ->
+                orgs.maxByOrNull { it.navn.isNullOrBlank() } ?: orgs.first() // Velger den med navn
+            }
+            .values
+            .toList()
+    }
 
     private fun utledSøknadsType(
         k9FormatSøknad: Søknad,
