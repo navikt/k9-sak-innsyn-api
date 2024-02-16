@@ -18,6 +18,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -86,6 +87,66 @@ class SakService(
             }
     }
 
+    private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
+        val åpenBehandling = firstOrNull { it.status != BehandlingStatus.AVSLUTTET }
+        return åpenBehandling?.let { SaksbehandlingstidUtleder.utled(it) }?.toLocalDate()
+    }
+
+    private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
+        map { behandling ->
+
+            val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
+                .medTilhørendeDokumenter(søkersDokmentoversikt)
+                .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
+                .map { (søknad, dokumenter) ->
+                    val k9FormatSøknad =
+                        søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+
+                    val søknadId = k9FormatSøknad.søknadId.id
+                    val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
+
+                    SøknaderISakDTO(
+                        søknadId = UUID.fromString(søknadId),
+                        søknadstype = søknadsType,
+                        k9FormatSøknad = k9FormatSøknad,
+                        dokumenter = dokumenter
+                    )
+                }
+
+            BehandlingDTO(
+                status = behandling.status,
+                opprettetTidspunkt = behandling.opprettetTidspunkt,
+                avsluttetTidspunkt = behandling.avsluttetTidspunkt,
+                søknader = søknaderISak,
+                aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
+            )
+        }
+
+    private fun utledSøknadsType(
+        k9FormatSøknad: Søknad,
+        søknadId: String,
+    ): Søknadstype = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
+        null -> {
+            logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
+            val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+            if (legacySøknad == null) {
+                logger.warn("Fant ingen legacy søknad for søknad med søknadId $søknadId og kunne ikke utlede søknadstype. Returnerer ukjent.")
+                Søknadstype.UKJENT
+            } else when (legacySøknad.søknadstype) {
+                LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
+                LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.OMS_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Søknadstype.ENDRINGSMELDING
+            }
+        }
+
+        Kildesystem.ENDRINGSDIALOG -> Søknadstype.ENDRINGSMELDING
+        Kildesystem.SØKNADSDIALOG -> Søknadstype.SØKNAD
+        Kildesystem.PUNSJ -> Søknadstype.SØKNAD // TODO: Blir dette riktig?
+        Kildesystem.UTLEDET -> Søknadstype.SØKNAD // // TODO: Blir dette riktig?
+
+        else -> throw error("Ukjent kildesystem $ks")
     private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
         val åpenBehandling = firstOrNull { it.status != BehandlingStatus.AVSLUTTET }
         return åpenBehandling?.utledSaksbehandlingsfrist(null)?.getOrNull()?.toLocalDate()
