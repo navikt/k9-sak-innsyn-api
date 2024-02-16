@@ -16,9 +16,9 @@ object SaksbehandlingstidUtleder {
             return null
         }
 
-        val kildesystemer = behandling.søknader.map { it.kildesystem }
-        if (kildesystemer.isEmpty() || !kildesystemer.all { it === Kildesystem.SØKNADSDIALOG || it === Kildesystem.ENDRINGSDIALOG }) {
-            log.info("beregner ikke frist for behandlinger som har dokumenter med kildesystemer={}",kildesystemer)
+        val kildesystemer = behandling.søknader.map { it.kildesystem?.kode }
+        if (kildesystemer.isEmpty() || !kildesystemer.all { it == Kildesystem.SØKNADSDIALOG.kode || it == Kildesystem.ENDRINGSDIALOG.kode }) {
+            log.info("beregner ikke frist for behandlinger som har dokumenter med kildesystemer={}", kildesystemer)
             return null
         }
 
