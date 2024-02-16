@@ -114,6 +114,12 @@ class SwaggerConfiguration(
                                 {
                                   "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                   "søknadstype": "SØKNAD",
+                                  "arbeidsgivere": [
+                                    {
+                                      "organisasjonsnummer": "123456789",
+                                      "navn": "Arbeidsgiver AS"
+                                    }
+                                  ],
                                   "k9FormatSøknad": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",

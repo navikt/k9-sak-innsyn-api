@@ -104,7 +104,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     internal fun beforeEach() {
         logger.info("Tømmer databasen...")
         søknadRepository.deleteAll()
-        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
+        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
             BarnOppslagDTO(
                 aktørId = barn1AktørId,

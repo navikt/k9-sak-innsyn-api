@@ -12,6 +12,7 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.defaultSøknad
 import no.nav.sifinnsynapi.utils.hentToken
@@ -114,7 +115,7 @@ class SakControllerTest {
                             status = BehandlingStatus.OPPRETTET,
                             opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
                             søknader = listOf(
-                                SøknaderISakDTO(
+                                SøknadISakDTO(
                                     søknadId = søknadId,
                                     søknadstype = Søknadstype.SØKNAD,
                                     k9FormatSøknad = defaultSøknad(
@@ -140,6 +141,12 @@ class SakControllerTest {
                                                 )
                                             ),
                                             saksnummer = Saksnummer("ABC123")
+                                        )
+                                    ),
+                                    arbeidsgivere = listOf(
+                                        Organisasjon(
+                                            organisasjonsnummer = "123456789",
+                                            navn = "Arbeidsgiver AS"
                                         )
                                     )
                                 )
@@ -185,6 +192,12 @@ class SakControllerTest {
                                 {
                                   "søknadId": "$søknadId",
                                   "søknadstype": "SØKNAD",
+                                  "arbeidsgivere": [
+                                    {
+                                      "organisasjonsnummer": "123456789",
+                                      "navn": "Arbeidsgiver AS"
+                                    }
+                                  ],
                                   "k9FormatSøknad": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",

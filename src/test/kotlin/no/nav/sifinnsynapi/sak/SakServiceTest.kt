@@ -52,7 +52,7 @@ class SakServiceTest {
 
     @BeforeEach
     fun setUp() {
-        every { oppslagsService.hentAktørId() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
+        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
         every { oppslagsService.hentBarn() } returns listOf(
             BarnOppslagDTO(
                 aktørId = barn1AktørId,

@@ -30,7 +30,7 @@ class SøknadService(
     @Transactional(readOnly = true)
     fun slåSammenSøknadsopplysningerPerBarn(): List<SøknadDTO> {
         val søkersAktørId =
-            (oppslagsService.hentAktørId()
+            (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
         val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()

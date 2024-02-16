@@ -65,7 +65,7 @@ internal class OppslagsServiceTest {
 
     @Test
     fun hentAktørId() {
-        val hentAktørId = oppslagsService.hentAktørId()
+        val hentAktørId = oppslagsService.hentSøker()
         assertThat(hentAktørId).isNotNull()
     }
 

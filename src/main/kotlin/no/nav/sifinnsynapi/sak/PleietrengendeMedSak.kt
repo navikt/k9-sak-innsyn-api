@@ -8,6 +8,7 @@ import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.DtoKonstanter
+import no.nav.sifinnsynapi.oppslag.Organisasjon
 import java.net.URL
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -38,15 +39,16 @@ data class BehandlingDTO(
     val status: BehandlingStatus,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE) val opprettetTidspunkt: ZonedDateTime,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE)val avsluttetTidspunkt: ZonedDateTime? = null,
-    val søknader: List<SøknaderISakDTO>,
+    val søknader: List<SøknadISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
 )
 
-data class SøknaderISakDTO(
-   val søknadId: UUID,
-   val søknadstype: Søknadstype,
+data class SøknadISakDTO(
+    val søknadId: UUID,
+    val søknadstype: Søknadstype,
     val k9FormatSøknad: Søknad,
     val dokumenter: List<DokumentDTO>,
+    val arbeidsgivere: List<Organisasjon>? = null,
 )
 
 enum class Søknadstype {
