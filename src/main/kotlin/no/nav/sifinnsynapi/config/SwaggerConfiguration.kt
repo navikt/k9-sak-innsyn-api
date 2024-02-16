@@ -9,13 +9,12 @@ import io.swagger.v3.oas.models.security.OAuthFlows
 import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
-import io.swagger.v3.oas.models.servers.Server
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
-import java.net.URI
+import org.springframework.http.HttpHeaders
 
 
 @Configuration
@@ -40,11 +39,19 @@ class SwaggerConfiguration(
                     .description("K9 Sak Innsyn Api GitHub repository")
                     .url("https://github.com/navikt/k9-sak-innsyn-api")
             )
-            .components(Components().addSecuritySchemes("oauth2", securitySchemes()))
-            .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
+            .components(
+                Components()
+                    .addSecuritySchemes("Authorization", tokenXApiToken())
+                    .addSecuritySchemes("oauth2", azureLogin())
+            )
+            .addSecurityItem(
+                SecurityRequirement()
+                    .addList("oauth2", listOf("read", "write"))
+                    .addList("Authorization")
+            )
     }
 
-    private fun securitySchemes(): SecurityScheme {
+    private fun azureLogin(): SecurityScheme {
         return SecurityScheme()
             .name("oauth2")
             .type(SecurityScheme.Type.OAUTH2)
@@ -57,6 +64,20 @@ class SwaggerConfiguration(
                             .tokenUrl(tokenUrl)
                             .scopes(Scopes().addString(apiScope, "read,write"))
                     )
+            )
+    }
+
+    private fun tokenXApiToken(): SecurityScheme {
+        return SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .name(HttpHeaders.AUTHORIZATION)
+            .scheme("bearer")
+            .bearerFormat("JWT")
+            .`in`(SecurityScheme.In.HEADER)
+            .description(
+                """Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså ikke å oppgis): 'eyAidH...'
+                For nytt token -> https://tokenx-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:dusseldorf:k9-sak-innsyn-api
+            """.trimMargin()
             )
     }
 
@@ -87,8 +108,12 @@ class SwaggerConfiguration(
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
+                              "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                              "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
+                                  "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
+                                  "søknadstype": "SØKNAD",
                                   "k9FormatSøknad": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",

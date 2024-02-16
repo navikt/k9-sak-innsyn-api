@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.api.Unprotected
@@ -45,7 +46,7 @@ class SakController(
         ]
     )
     fun hentMineSaker(): List<PleietrengendeMedSak> {
-        return sakService.hentSaker()
+        return sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
     }
 
     @GetMapping("${Routes.SAKER}/saksbehandlingstid", produces = [MediaType.APPLICATION_JSON_VALUE])

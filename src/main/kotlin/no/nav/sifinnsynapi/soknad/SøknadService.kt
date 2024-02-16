@@ -23,6 +23,10 @@ class SøknadService(
         private val logger = LoggerFactory.getLogger(SøknadService::class.java)
     }
 
+    fun hentSøknad(journalpostId: String): PsbSøknadDAO? {
+        return repo.findById(journalpostId).orElse(null)
+    }
+
     @Transactional(readOnly = true)
     fun slåSammenSøknadsopplysningerPerBarn(): List<SøknadDTO> {
         val søkersAktørId =

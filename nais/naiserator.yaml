@@ -29,8 +29,11 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: sif-innsyn-api
-        - application: dine-pleiepenger
+      {{#each inboundRules}}
+        - application: {{app}}
+          namespace: {{namespace}}
+          cluster: {{cluster}}
+      {{/each}}
     outbound:
       external:
         {{#each externalHosts as |host|}}

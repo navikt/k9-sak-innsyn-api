@@ -1,13 +1,17 @@
 package no.nav.sifinnsynapi.sak
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue
+import com.fasterxml.jackson.annotation.JsonFormat
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.DtoKonstanter
 import java.net.URL
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.util.*
 
 data class PleietrengendeMedSak(
     val pleietrengende: PleietrengendeDTO,
@@ -32,14 +36,22 @@ data class SakDTO(
 
 data class BehandlingDTO(
     val status: BehandlingStatus,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE) val opprettetTidspunkt: ZonedDateTime,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE)val avsluttetTidspunkt: ZonedDateTime? = null,
     val søknader: List<SøknaderISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
 )
 
 data class SøknaderISakDTO(
+   val søknadId: UUID,
+   val søknadstype: Søknadstype,
     val k9FormatSøknad: Søknad,
     val dokumenter: List<DokumentDTO>,
 )
+
+enum class Søknadstype {
+    SØKNAD, ETTERSENDELSE, ENDRINGSMELDING, UKJENT,
+}
 
 data class DokumentDTO(
     val journalpostId: String,
@@ -71,7 +83,7 @@ enum class Datotype {
 }
 
 data class AksjonspunktDTO(
-    val venteårsak: Aksjonspunkt.Venteårsak
+    val venteårsak: Aksjonspunkt.Venteårsak,
 )
 
 

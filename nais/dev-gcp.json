@@ -21,7 +21,25 @@
     ]
   },
   "externalHosts": [
-    "login.microsoftonline.com"
+    "login.microsoftonline.com",
+    "safselvbetjening-q1.dev-fss-pub.nais.io"
+  ],
+  "inboundRules": [
+    {
+      "app": "dine-pleiepenger",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
+    },
+    {
+      "app": "sif-innsyn-api",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
+    },
+    {
+      "app": "tokenx-token-generator",
+      "namespace": "aura",
+      "cluster": "dev-gcp"
+    }
   ],
   "database": {
     "name": "k9-sak-innsyn-api-db",
@@ -45,6 +63,9 @@
 
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening-q1.dev-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "dev-fss:teamdokumenthandtering:safselvbetjening-q1",
+
+    "NO_NAV_GATEWAYS_SIF_INNSYN_API_BASE_URL": "http://sif-innsyn-api",
+    "SIF_INNSYN_API_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:sif-innsyn-api",
 
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0"

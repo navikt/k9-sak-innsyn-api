@@ -38,6 +38,7 @@ import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -67,7 +68,7 @@ class SakControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            sakService.hentSaker()
+            sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } throws Exception("Ooops, noe gikk galt...")
 
         //language=json
@@ -93,7 +94,7 @@ class SakControllerTest {
         val søknadId = UUID.randomUUID()
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
         every {
-            sakService.hentSaker()
+            sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } returns listOf(
             PleietrengendeMedSak(
                 pleietrengende = PleietrengendeDTO(
@@ -111,8 +112,11 @@ class SakControllerTest {
                     behandlinger = listOf(
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
+                            opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
                             søknader = listOf(
                                 SøknaderISakDTO(
+                                    søknadId = søknadId,
+                                    søknadstype = Søknadstype.SØKNAD,
                                     k9FormatSøknad = defaultSøknad(
                                         søknadId = søknadId,
                                         søknadsPeriode = Periode("2024-01-01/2024-01-31"),
@@ -175,8 +179,12 @@ class SakControllerTest {
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
+                                "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                                "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
+                                  "søknadId": "$søknadId",
+                                  "søknadstype": "SØKNAD",
                                   "k9FormatSøknad": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",

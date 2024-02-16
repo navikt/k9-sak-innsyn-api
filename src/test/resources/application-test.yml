@@ -41,6 +41,16 @@ no.nav:
               client-jwk: src/test/resources/tokenx-jwk.json
             token-exchange:
               audience: dev-fss:teamdokumenthandtering:safselvbetjening
+
+          tokenx-sif-innsyn-api:
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/default/token
+            grant-type: urn:ietf:params:oauth:grant-type:token-exchange
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: "dev-gcp:dusseldorf:k9-sak-innsyn-api"
+              client-jwk: src/test/resources/tokenx-jwk.json
+            token-exchange:
+              audience: dev-gcp:dusseldorf:sif-innsyn-api
   metrics:
     interval: 36000
 
