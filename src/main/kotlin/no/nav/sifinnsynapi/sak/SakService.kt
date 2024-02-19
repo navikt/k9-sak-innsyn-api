@@ -1,5 +1,4 @@
 package no.nav.sifinnsynapi.sak
-
 import jakarta.transaction.Transactional
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
@@ -73,11 +72,14 @@ class SakService(
 
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
+                    val fagsak = behandling.fagsak
+                    MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
+
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
-                            saksnummer = behandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            fagsakYtelseType = behandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                            saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+                            fagsakYtelseType = fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
@@ -98,7 +100,7 @@ class SakService(
         map { behandling ->
 
             MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
-            MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
+            logger.info("Henter og mapper søknader i behandling")
 
             val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
                 .medTilhørendeDokumenter(søkersDokmentoversikt)
@@ -108,6 +110,7 @@ class SakService(
                         søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
 
                     val søknadId = k9FormatSøknad.søknadId.id
+                    MDCUtil.toMDC(Constants.SØKNAD_ID, søknadId)
                     val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
 
                     SøknaderISakDTO(
