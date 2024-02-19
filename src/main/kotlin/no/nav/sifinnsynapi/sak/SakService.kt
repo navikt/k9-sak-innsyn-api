@@ -20,6 +20,8 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
 import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.util.Constants
+import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -94,6 +96,9 @@ class SakService(
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         map { behandling ->
+
+            MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
+            MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
 
             val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
                 .medTilhørendeDokumenter(søkersDokmentoversikt)
