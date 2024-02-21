@@ -59,7 +59,13 @@ class SakService(
         val oppslagsbarn = oppslagsService.hentBarn()
         logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
 
-        val pleietrengendeMedBehandlinger = oppslagsbarn
+        val ikkeSkjermetOmsorgsbarn = oppslagsbarn
+            // Dersom pleietrengende er skjermet, vil ikke hen returneres fra oppslagstjenesten.
+            // Vi sjekker derfor opp mot pleietrengende søker har omsorgen for, og returnerer kun de som ikke er skjermet.
+            .filter { pleietrengendeSøkerHarOmsorgFor.contains(it.aktørId) }
+        logger.info("Fant ${ikkeSkjermetOmsorgsbarn.size} pleietrengende som vi kan hente saker for.")
+
+        val pleietrengendeMedBehandlinger = ikkeSkjermetOmsorgsbarn
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(søkersAktørId, fagsakYtelseType)
 
