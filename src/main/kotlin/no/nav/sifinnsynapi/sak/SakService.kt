@@ -19,8 +19,6 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
 import no.nav.sifinnsynapi.soknad.SøknadService
-import no.nav.sifinnsynapi.util.Constants
-import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -75,17 +73,17 @@ class SakService(
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
         return pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
-
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
                     val fagsak = behandling.fagsak
-                    MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
+                    val ytelseType = fagsak.ytelseType
+                    logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            fagsakYtelseType = fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                            fagsakYtelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
@@ -104,9 +102,7 @@ class SakService(
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         map { behandling ->
-
-            MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
-            logger.info("Henter og mapper søknader i behandling")
+            logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
 
             val søknaderISak: List<SøknaderISakDTO> = behandling.søknader
                 .medTilhørendeDokumenter(søkersDokmentoversikt)
@@ -116,7 +112,6 @@ class SakService(
                         søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
 
                     val søknadId = k9FormatSøknad.søknadId.id
-                    MDCUtil.toMDC(Constants.SØKNAD_ID, søknadId)
                     val søknadsType = utledSøknadsType(k9FormatSøknad, søknadId)
 
                     SøknaderISakDTO(
