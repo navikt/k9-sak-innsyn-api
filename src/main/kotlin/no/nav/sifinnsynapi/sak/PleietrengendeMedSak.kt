@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.sak
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
@@ -63,7 +64,7 @@ data class DokumentDTO(
     val filtype: String,
     val harTilgang: Boolean,
     val url: URL,
-    val journalposttype: Journalposttype,
+    @JsonIgnore val journalposttype: Journalposttype,
     val relevanteDatoer: List<RelevantDatoDTO>,
 )
 

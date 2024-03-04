@@ -277,7 +277,6 @@ class SakControllerTest {
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
                                       "filtype": "PDFA",
-                                      "journalposttype": "INNGÅENDE",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
                                       "relevanteDatoer": [
