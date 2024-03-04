@@ -129,6 +129,7 @@ class SakControllerTest {
                                     dokumenter = listOf(
                                         DokumentDTO(
                                             journalpostId = "123456789",
+                                            journalposttype = Journalposttype.INNGÅENDE,
                                             dokumentInfoId = "123456789",
                                             tittel = "Søknad om pleiepenger",
                                             filtype = "PDFA",
@@ -276,6 +277,7 @@ class SakControllerTest {
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
                                       "filtype": "PDFA",
+                                      "journalposttype": "INNGÅENDE",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
                                       "relevanteDatoer": [

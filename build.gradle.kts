@@ -37,6 +37,8 @@ val mockkVersion = "1.13.9"
 val guavaVersion = "33.0.0-jre"
 val orgJsonVersion = "20231013"
 val k9FellesVersion = "2.0.8"
+val k9FormidlingVersion = "1.0.7"
+
 val testcontainersVersion ="1.19.4"
 
 repositories {
@@ -50,7 +52,6 @@ repositories {
         }
     }
 }
-
 dependencies {
     implementation("org.yaml:snakeyaml:2.2") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
@@ -60,6 +61,8 @@ dependencies {
     implementation("no.nav.k9:soknad:$k9FormatVersion")
     implementation("no.nav.k9:innsyn:$k9FormatVersion")
     implementation("no.nav.k9:konstant:$k9FormatVersion")
+
+    implementation("no.nav.k9.formidling:eksterne-kontrakter:$k9FormidlingVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")

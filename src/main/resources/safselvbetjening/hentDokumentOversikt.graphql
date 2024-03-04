@@ -4,6 +4,7 @@ query($ident: String!) {
             journalpostId
             tittel
             journalstatus
+            journalposttype
             relevanteDatoer {
                 dato
                 datotype

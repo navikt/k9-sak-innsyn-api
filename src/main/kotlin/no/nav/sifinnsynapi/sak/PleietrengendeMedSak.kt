@@ -63,8 +63,15 @@ data class DokumentDTO(
     val filtype: String,
     val harTilgang: Boolean,
     val url: URL,
+    val journalposttype: Journalposttype,
     val relevanteDatoer: List<RelevantDatoDTO>,
 )
+
+enum class Journalposttype {
+    INNGÅENDE,
+    UTGÅENDE,
+    NOTAT
+}
 
 data class RelevantDatoDTO(
     val dato: String,
