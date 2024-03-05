@@ -16,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @Service
 @Retryable(
-    exclude = [
+    noRetryFor = [
         HttpClientErrorException.Unauthorized::class,
         HttpClientErrorException.Forbidden::class,
         HttpClientErrorException.NotFound::class,
