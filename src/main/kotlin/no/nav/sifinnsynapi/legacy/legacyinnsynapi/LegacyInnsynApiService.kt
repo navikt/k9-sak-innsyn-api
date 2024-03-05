@@ -65,19 +65,19 @@ class LegacyInnsynApiService(
     }
 
     @Recover
-    private fun recover(error: HttpServerErrorException): List<LegacySøknadDTO> {
+    private fun recover(error: HttpServerErrorException, søknadId: String): List<LegacySøknadDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: HttpClientErrorException): List<LegacySøknadDTO> {
+    private fun recover(error: HttpClientErrorException, søknadId: String): List<LegacySøknadDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: ResourceAccessException): List<LegacySøknadDTO> {
+    private fun recover(error: ResourceAccessException, søknadId: String): List<LegacySøknadDTO> {
         logger.error("{}", error.message)
         throw søknadOpplysningerOppslafFeil
     }
