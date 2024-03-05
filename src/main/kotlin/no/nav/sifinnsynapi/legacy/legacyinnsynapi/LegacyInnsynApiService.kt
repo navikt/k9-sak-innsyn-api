@@ -16,7 +16,11 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @Service
 @Retryable(
-    exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class, ResourceAccessException::class],
+    exclude = [
+        HttpClientErrorException.Unauthorized::class,
+        HttpClientErrorException.Forbidden::class,
+        HttpClientErrorException.NotFound::class,
+        ResourceAccessException::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
