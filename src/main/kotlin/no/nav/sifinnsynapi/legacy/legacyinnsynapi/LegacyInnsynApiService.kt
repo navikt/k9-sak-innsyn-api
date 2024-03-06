@@ -30,7 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder
 )
 class LegacyInnsynApiService(
     @Qualifier("sifInnsynApiClient")
-    private val sifInnsynClient: RestTemplate
+    private val sifInnsynClient: RestTemplate,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(LegacyInnsynApiService::class.java)
@@ -65,19 +65,19 @@ class LegacyInnsynApiService(
     }
 
     @Recover
-    private fun recover(error: HttpServerErrorException, søknadId: String): List<LegacySøknadDTO> {
+    private fun recover(error: HttpServerErrorException, søknadId: String): LegacySøknadDTO {
         logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: HttpClientErrorException, søknadId: String): List<LegacySøknadDTO> {
+    private fun recover(error: HttpClientErrorException, søknadId: String): LegacySøknadDTO {
         logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: ResourceAccessException, søknadId: String): List<LegacySøknadDTO> {
+    private fun recover(error: ResourceAccessException, søknadId: String): LegacySøknadDTO {
         logger.error("{}", error.message)
         throw søknadOpplysningerOppslafFeil
     }
