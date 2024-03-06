@@ -210,6 +210,23 @@ class SwaggerConfiguration(
                                   ]
                                 }
                               ],
+                               "utgåendeDokumenter": [
+                                {
+                                  "journalpostId": "123456789",
+                                  "dokumentInfoId": "123456789",
+                                  "saksnummer": "ABC123",
+                                  "tittel": "Etterlysning av inntektsmelding",
+                                  "filtype": "PDFA",
+                                  "harTilgang": true,
+                                  "url": "http://localhost:8080/saker/123456789",
+                                  "relevanteDatoer": [
+                                    {
+                                      "dato": "2024-02-06T14:50:24.318Z",
+                                      "datotype": "DATO_OPPRETTET"
+                                    }
+                                  ]
+                                }
+                              ],
                               "aksjonspunkter": [
                                 {
                                   "venteårsak": "INNTEKTSMELDING"

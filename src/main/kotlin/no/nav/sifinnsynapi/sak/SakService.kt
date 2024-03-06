@@ -126,11 +126,16 @@ class SakService(
                     )
                 }
 
+            val utgåendeDokumenterISaken = søkersDokmentoversikt
+                // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
+                .filter { it.journalposttype == Journalposttype.UTGÅENDE }
+
             BehandlingDTO(
                 status = behandling.status,
                 opprettetTidspunkt = behandling.opprettetTidspunkt,
                 avsluttetTidspunkt = behandling.avsluttetTidspunkt,
                 søknader = søknaderISak,
+                utgåendeDokumenter = utgåendeDokumenterISaken,
                 aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
             )
         }
@@ -187,8 +192,7 @@ class SakService(
     private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>): Map<SøknadInfo, List<DokumentDTO>> =
         associateWith { søknadInfo: SøknadInfo ->
             val dokumenterTilknyttetSøknad =
-                // TODO: Husk å fjerne UTGÅENDE når vi har støtte for å legge til utgående dokumenter i behandlingen.
-                søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId || dokument.journalposttype == Journalposttype.UTGÅENDE }
+                søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
             logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
             dokumenterTilknyttetSøknad
         }

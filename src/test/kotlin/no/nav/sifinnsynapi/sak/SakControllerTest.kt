@@ -156,7 +156,25 @@ class SakControllerTest {
                                 AksjonspunktDTO(
                                     venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING
                                 )
-                            )
+                            ),
+                            utgåendeDokumenter = listOf(
+                                DokumentDTO(
+                                    journalpostId = "123456789",
+                                    journalposttype = Journalposttype.UTGÅENDE,
+                                    dokumentInfoId = "123456789",
+                                    tittel = "Etterlysning av inntektsmelding",
+                                    filtype = "PDFA",
+                                    harTilgang = true,
+                                    url = URL("http://localhost:8080/saker/123456789"),
+                                    relevanteDatoer = listOf(
+                                        RelevantDatoDTO(
+                                            dato = mottattDato.toString(),
+                                            datotype = Datotype.DATO_OPPRETTET
+                                        )
+                                    ),
+                                    saksnummer = Saksnummer("ABC123")
+                                )
+                            ),
                         )
                     )
                 )
@@ -187,8 +205,8 @@ class SakControllerTest {
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
-                                "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
-                                "avsluttetTidspunkt": null,
+                              "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                              "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
                                   "søknadId": "$søknadId",
@@ -285,6 +303,23 @@ class SakControllerTest {
                                           "datotype": "DATO_OPPRETTET"
                                         }
                                       ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "utgåendeDokumenter": [
+                                {
+                                  "journalpostId": "123456789",
+                                  "dokumentInfoId": "123456789",
+                                  "saksnummer": "ABC123",
+                                  "tittel": "Etterlysning av inntektsmelding",
+                                  "filtype": "PDFA",
+                                  "harTilgang": true,
+                                  "url": "http://localhost:8080/saker/123456789",
+                                  "relevanteDatoer": [
+                                    {
+                                      "dato": "$mottattDato",
+                                      "datotype": "DATO_OPPRETTET"
                                     }
                                   ]
                                 }

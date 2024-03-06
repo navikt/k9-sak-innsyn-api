@@ -38,10 +38,19 @@ data class SakDTO(
 
 data class BehandlingDTO(
     val status: BehandlingStatus,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE) val opprettetTidspunkt: ZonedDateTime,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DtoKonstanter.DATO_TID_FORMAT, timezone = DtoKonstanter.TIDSSONE)val avsluttetTidspunkt: ZonedDateTime? = null,
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DtoKonstanter.DATO_TID_FORMAT,
+        timezone = DtoKonstanter.TIDSSONE
+    ) val opprettetTidspunkt: ZonedDateTime,
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DtoKonstanter.DATO_TID_FORMAT,
+        timezone = DtoKonstanter.TIDSSONE
+    ) val avsluttetTidspunkt: ZonedDateTime? = null,
     val søknader: List<SøknadISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
+    val utgåendeDokumenter: List<DokumentDTO>,
 )
 
 data class SøknadISakDTO(
