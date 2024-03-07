@@ -70,6 +70,7 @@ data class DokumentDTO(
     val dokumentInfoId: String,
     val saksnummer: Saksnummer?,
     val tittel: String,
+    val brevkode: String?,
     val filtype: String,
     val harTilgang: Boolean,
     val url: URL,

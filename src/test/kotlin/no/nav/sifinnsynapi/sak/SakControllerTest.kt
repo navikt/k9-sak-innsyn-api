@@ -2,9 +2,11 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import no.nav.k9.formidling.kontrakt.kodeverk.DokumentMalType
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.kodeverk.dokument.Brevkode
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -129,19 +131,20 @@ class SakControllerTest {
                                     dokumenter = listOf(
                                         DokumentDTO(
                                             journalpostId = "123456789",
-                                            journalposttype = Journalposttype.INNGÅENDE,
                                             dokumentInfoId = "123456789",
+                                            saksnummer = Saksnummer("ABC123"),
                                             tittel = "Søknad om pleiepenger",
                                             filtype = "PDFA",
                                             harTilgang = true,
                                             url = URL("http://localhost:8080/saker/123456789"),
+                                            journalposttype = Journalposttype.INNGÅENDE,
                                             relevanteDatoer = listOf(
                                                 RelevantDatoDTO(
                                                     dato = mottattDato.toString(),
                                                     datotype = Datotype.DATO_OPPRETTET
                                                 )
                                             ),
-                                            saksnummer = Saksnummer("ABC123")
+                                            brevkode = Brevkode.PLEIEPENGER_BARN_SOKNAD.offisiellKode
                                         )
                                     ),
                                     arbeidsgivere = listOf(
@@ -160,19 +163,20 @@ class SakControllerTest {
                             utgåendeDokumenter = listOf(
                                 DokumentDTO(
                                     journalpostId = "123456789",
-                                    journalposttype = Journalposttype.UTGÅENDE,
                                     dokumentInfoId = "123456789",
+                                    saksnummer = Saksnummer("ABC123"),
                                     tittel = "Etterlysning av inntektsmelding",
                                     filtype = "PDFA",
                                     harTilgang = true,
                                     url = URL("http://localhost:8080/saker/123456789"),
+                                    journalposttype = Journalposttype.UTGÅENDE,
                                     relevanteDatoer = listOf(
                                         RelevantDatoDTO(
                                             dato = mottattDato.toString(),
                                             datotype = Datotype.DATO_OPPRETTET
                                         )
                                     ),
-                                    saksnummer = Saksnummer("ABC123")
+                                    brevkode = DokumentMalType.ETTERLYS_INNTEKTSMELDING_DOK.kode
                                 )
                             ),
                         )
@@ -294,6 +298,7 @@ class SakControllerTest {
                                       "dokumentInfoId": "123456789",
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
+                                      "brevkode": "NAV 09-11.05",
                                       "filtype": "PDFA",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
@@ -313,6 +318,7 @@ class SakControllerTest {
                                   "dokumentInfoId": "123456789",
                                   "saksnummer": "ABC123",
                                   "tittel": "Etterlysning av inntektsmelding",
+                                  "brevkode": "INNLYS",
                                   "filtype": "PDFA",
                                   "harTilgang": true,
                                   "url": "http://localhost:8080/saker/123456789",

@@ -77,6 +77,7 @@ class DokumentService(
                     dokumentInfoId = dokumentInfoId,
                     filtype = dokumentvariant.filtype,
                     tittel = tittel,
+                    brevkode = dokumentInfo.brevkode,
                     harTilgang = brukerHarTilgang,
                     journalposttype = when(val jpt = journalpost.journalposttype) {
                         no.nav.sifinnsynapi.safselvbetjening.generated.enums.Journalposttype.I -> Journalposttype.INNGÅENDE
