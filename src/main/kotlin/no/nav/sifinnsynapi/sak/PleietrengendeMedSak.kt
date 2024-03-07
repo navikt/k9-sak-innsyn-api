@@ -70,13 +70,27 @@ data class DokumentDTO(
     val dokumentInfoId: String,
     val saksnummer: Saksnummer?,
     val tittel: String,
-    val brevkode: String?,
+    val dokumentType: DokumentBrevkode?,
     val filtype: String,
     val harTilgang: Boolean,
     val url: URL,
     @JsonIgnore val journalposttype: Journalposttype,
     val relevanteDatoer: List<RelevantDatoDTO>,
 )
+
+enum class DokumentBrevkode {
+    PLEIEPENGER_SYKT_BARN_SOKNAD,
+    PLEIEPENGER_SYKT_BARN_ETTERSENDELSE,
+    ETTERLYST_INNTEKTSMELDING,
+    ETTERLYST_INNTEKTSMELDING_PURRING,
+    VEDTAK_INNVILGELSE,
+    VEDTAK_AVSLAG,
+    VEDTAK_FRITEKST,
+    VEDTAK_ENDRING,
+    VEDTAK_MANUELT,
+    VEDTAK_UENDRETUTFALL,
+    UKJENT,
+}
 
 enum class Journalposttype {
     INNGÅENDE,

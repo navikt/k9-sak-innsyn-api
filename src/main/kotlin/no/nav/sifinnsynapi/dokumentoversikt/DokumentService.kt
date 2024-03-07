@@ -11,6 +11,7 @@ import no.nav.sifinnsynapi.safselvbetjening.generated.enums.Variantformat
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.DokumentInfo
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.Dokumentoversikt
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.RelevantDato
+import no.nav.sifinnsynapi.sak.DokumentBrevkode
 import no.nav.sifinnsynapi.sak.DokumentDTO
 import no.nav.sifinnsynapi.sak.Journalposttype
 import no.nav.sifinnsynapi.sak.RelevantDatoDTO
@@ -71,13 +72,15 @@ class DokumentService(
                 val brukerHarTilgang = dokumentvariant.brukerHarTilgang
                 val tittel = dokumentInfo.tittel!!
 
+                val dokumentType = utledDokumentType(dokumentInfo)
+
                 DokumentDTO(
                     journalpostId = journalpostId,
                     saksnummer = sakId?.let { Saksnummer(it) },
                     dokumentInfoId = dokumentInfoId,
                     filtype = dokumentvariant.filtype,
                     tittel = tittel,
-                    brevkode = dokumentInfo.brevkode,
+                    dokumentType = dokumentType,
                     harTilgang = brukerHarTilgang,
                     journalposttype = when(val jpt = journalpost.journalposttype) {
                         no.nav.sifinnsynapi.safselvbetjening.generated.enums.Journalposttype.I -> Journalposttype.INNGÅENDE
@@ -88,6 +91,30 @@ class DokumentService(
                     url = URL("$applicationIngress${Routes.DOKUMENT}/$journalpostId/$dokumentInfoId/${dokumentvariant.variantformat.name}"),
                     relevanteDatoer = relevanteDatoer.someRelevanteDatoer()
                 )
+            }
+        }
+
+    private fun utledDokumentType(dokumentInfo: DokumentInfo) =
+        when (val brevkode = dokumentInfo.brevkode) {
+            null -> null
+            Brevkode.PLEIEPENGER_BARN_SOKNAD.offisiellKode -> DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD
+            Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN.offisiellKode -> DokumentBrevkode.PLEIEPENGER_SYKT_BARN_ETTERSENDELSE
+
+            // Inntektsmelding
+            DokumentMalType.ETTERLYS_INNTEKTSMELDING_DOK.kode -> DokumentBrevkode.ETTERLYST_INNTEKTSMELDING
+            DokumentMalType.ETTERLYS_INNTEKTSMELDING_PURRING.kode -> DokumentBrevkode.ETTERLYST_INNTEKTSMELDING_PURRING
+
+            // Vedtak
+            DokumentMalType.INNVILGELSE_DOK.kode -> DokumentBrevkode.VEDTAK_INNVILGELSE
+            DokumentMalType.AVSLAG__DOK.kode -> DokumentBrevkode.VEDTAK_AVSLAG
+            DokumentMalType.FRITEKST_DOK.kode -> DokumentBrevkode.VEDTAK_FRITEKST
+            DokumentMalType.ENDRING_DOK.kode -> DokumentBrevkode.VEDTAK_ENDRING
+            DokumentMalType.MANUELT_VEDTAK_DOK.kode -> DokumentBrevkode.VEDTAK_MANUELT
+            DokumentMalType.UENDRETUTFALL_DOK.kode -> DokumentBrevkode.VEDTAK_UENDRETUTFALL
+
+            else -> {
+                logger.warn("Ukjent brevkode: $brevkode")
+                DokumentBrevkode.UKJENT
             }
         }
 

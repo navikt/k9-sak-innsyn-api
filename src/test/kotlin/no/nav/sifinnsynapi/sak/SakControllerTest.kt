@@ -2,11 +2,9 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import no.nav.k9.formidling.kontrakt.kodeverk.DokumentMalType
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.kodeverk.dokument.Brevkode
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -134,6 +132,7 @@ class SakControllerTest {
                                             dokumentInfoId = "123456789",
                                             saksnummer = Saksnummer("ABC123"),
                                             tittel = "Søknad om pleiepenger",
+                                            dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
                                             filtype = "PDFA",
                                             harTilgang = true,
                                             url = URL("http://localhost:8080/saker/123456789"),
@@ -143,8 +142,7 @@ class SakControllerTest {
                                                     dato = mottattDato.toString(),
                                                     datotype = Datotype.DATO_OPPRETTET
                                                 )
-                                            ),
-                                            brevkode = Brevkode.PLEIEPENGER_BARN_SOKNAD.offisiellKode
+                                            )
                                         )
                                     ),
                                     arbeidsgivere = listOf(
@@ -166,6 +164,7 @@ class SakControllerTest {
                                     dokumentInfoId = "123456789",
                                     saksnummer = Saksnummer("ABC123"),
                                     tittel = "Etterlysning av inntektsmelding",
+                                    dokumentType = DokumentBrevkode.ETTERLYST_INNTEKTSMELDING,
                                     filtype = "PDFA",
                                     harTilgang = true,
                                     url = URL("http://localhost:8080/saker/123456789"),
@@ -175,8 +174,7 @@ class SakControllerTest {
                                             dato = mottattDato.toString(),
                                             datotype = Datotype.DATO_OPPRETTET
                                         )
-                                    ),
-                                    brevkode = DokumentMalType.ETTERLYS_INNTEKTSMELDING_DOK.kode
+                                    )
                                 )
                             ),
                         )
@@ -298,7 +296,7 @@ class SakControllerTest {
                                       "dokumentInfoId": "123456789",
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
-                                      "brevkode": "NAV 09-11.05",
+                                      "dokumentType": "PLEIEPENGER_SYKT_BARN_SOKNAD",
                                       "filtype": "PDFA",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
@@ -318,7 +316,7 @@ class SakControllerTest {
                                   "dokumentInfoId": "123456789",
                                   "saksnummer": "ABC123",
                                   "tittel": "Etterlysning av inntektsmelding",
-                                  "brevkode": "INNLYS",
+                                  "dokumentType": "ETTERLYST_INNTEKTSMELDING",
                                   "filtype": "PDFA",
                                   "harTilgang": true,
                                   "url": "http://localhost:8080/saker/123456789",
