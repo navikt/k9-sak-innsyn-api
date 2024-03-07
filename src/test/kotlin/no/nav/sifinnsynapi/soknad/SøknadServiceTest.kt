@@ -1,19 +1,31 @@
 package no.nav.sifinnsynapi.soknad
 
+import assertk.assertions.isGreaterThan
+import assertk.assertions.isNotEmpty
+import assertk.assertions.isNotEqualTo
+import assertk.assertions.size
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sifinnsynapi.common.AktørId
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadDTO
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.*
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.json.JSONObject
 import org.junit.Assert
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -25,8 +37,10 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.Duration
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
+import java.util.*
 
 
 @ExtendWith(SpringExtension::class)
@@ -48,6 +62,9 @@ internal class SøknadServiceTest {
 
     @MockkBean(relaxed = true)
     private lateinit var oppslagsService: OppslagsService
+
+    @MockkBean
+    private lateinit var legacyInnsynApiService: LegacyInnsynApiService
 
     private companion object {
         private val annenSøkerAktørId = "00000000000"
@@ -290,6 +307,108 @@ internal class SøknadServiceTest {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
         assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).size().isEqualTo(1)
+    }
+
+    @Test
+    fun hentArbeidsgiverMeldingFil() {
+        val organisasjonsnummer = "917755645"
+
+        val søknadId = UUID.randomUUID()
+        every { legacyInnsynApiService.hentLegacySøknad(any()) } returns LegacySøknadDTO(
+            søknadId = søknadId,
+            journalpostId = "123456789",
+            saksId = "abc123",
+            søknadstype = LegacySøknadstype.PP_SYKT_BARN,
+            søknad = JSONObject(
+                // language=json
+                """
+                {
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-01",
+                    "søker": {
+                      "mellomnavn": "Mellomnavn",
+                      "etternavn": "Nordmann",
+                      "aktørId": "123456",
+                      "fødselsnummer": "02119970078",
+                      "fornavn": "Ola"
+                    },
+                    "arbeidsgivere": {
+                      "organisasjoner": [
+                        {
+                          "navn": "Stolt Hane",
+                          "organisasjonsnummer": "917755736"
+                        },
+                        {
+                          "navn": "Snill Torpedo",
+                          "organisasjonsnummer": "$organisasjonsnummer"
+                        },
+                        {
+                          "navn": "Something Fishy",
+                          "organisasjonsnummer": "917755645"
+                        }
+                      ]
+                    }
+                }
+                """.trimIndent()
+            ).toMap()
+        )
+
+        await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
+            val bytes = søknadService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
+            Assertions.assertNotNull(bytes)
+            assertk.assertThat(bytes).isNotEmpty()
+            assertk.assertThat(bytes).size().isGreaterThan(1000)
+        }
+    }
+
+    @Test
+    fun `Finner organisasjon selvom arbeidsgivere ligger som JSONArray`() {
+        val organisasjonsnummer = "917755645"
+
+        val søknadId = UUID.randomUUID()
+        every { legacyInnsynApiService.hentLegacySøknad(any()) } returns LegacySøknadDTO(
+            søknadId = søknadId,
+            journalpostId = "123456789",
+            saksId = "abc123",
+            søknadstype = LegacySøknadstype.PP_SYKT_BARN,
+            søknad = JSONObject(
+                // language=json
+                """
+                {
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-01",
+                    "søker": {
+                      "mellomnavn": "Mellomnavn",
+                      "etternavn": "Nordmann",
+                      "aktørId": "123456",
+                      "fødselsnummer": "02119970078",
+                      "fornavn": "Ola"
+                    },
+                    "arbeidsgivere": [
+                    {
+                      "erAnsatt": true,
+                      "navn": "Peppes",
+                      "arbeidsforhold": null,
+                      "organisasjonsnummer": "917755645"
+                    },
+                    {
+                      "erAnsatt": true,
+                      "navn": "Mix",
+                      "arbeidsforhold": null,
+                      "organisasjonsnummer": "896967762"
+                    }
+                  ]
+                }
+                """.trimIndent()
+            ).toMap()
+        )
+
+        await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
+            val bytes = søknadService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
+            Assertions.assertNotNull(bytes)
+            assertk.assertThat(bytes).isNotEmpty()
+            assertk.assertThat(bytes).size().isGreaterThan(1000)
+        }
     }
 
     private fun psbSøknadDAO(

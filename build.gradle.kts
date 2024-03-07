@@ -38,6 +38,8 @@ val guavaVersion = "33.0.0-jre"
 val orgJsonVersion = "20231013"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
+val openhtmltopdfVersion = "1.0.10"
+val handlebarsVersion = "4.3.1"
 
 val testcontainersVersion ="1.19.4"
 
@@ -127,6 +129,11 @@ dependencies {
         }
     }
     testImplementation("org.springframework.kafka:spring-kafka-test")
+
+    // PDF
+    implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:$openhtmltopdfVersion")
+    implementation("com.openhtmltopdf:openhtmltopdf-slf4j:$openhtmltopdfVersion")
+    implementation("com.github.jknack:handlebars:$handlebarsVersion")
 
     // Diverse
     implementation("org.json:json:$orgJsonVersion")

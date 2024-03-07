@@ -60,7 +60,7 @@ class LegacyInnsynApiService(
                 exchange.statusCode,
                 exchange.body
             )
-            throw IllegalStateException("Feilet med henting av søknadsdata fra sif-innsyn-api")
+            throw LegacySøknadNotFoundException(søknadId)
         }
     }
 

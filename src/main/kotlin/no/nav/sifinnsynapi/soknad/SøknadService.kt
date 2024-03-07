@@ -3,12 +3,26 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.NotSupportedArbeidsgiverMeldingException
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.finnOrganisasjon
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.tilArbeidstakernavn
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingPDFGenerator
+import no.nav.sifinnsynapi.pdf.PleiepengerArbeidsgiverMelding
+import no.nav.sifinnsynapi.pdf.SøknadsPeriode
+import no.nav.sifinnsynapi.sak.Søknadstype
+import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.util.*
 import java.util.stream.Stream
 
 
@@ -17,6 +31,8 @@ class SøknadService(
     private val repo: SøknadRepository,
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService,
+    private val legacyInnsynApiService: LegacyInnsynApiService,
+    private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator
 ) {
 
     private companion object {
@@ -92,5 +108,35 @@ class SøknadService(
             else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
         }
     }
+
+
+    fun hentArbeidsgiverMeldingFil(søknadId: UUID, organisasjonsnummer: String): ByteArray {
+
+        val søknad = legacyInnsynApiService.hentLegacySøknad(søknadId.toString())
+
+        return when (søknad.søknadstype) {
+            LegacySøknadstype.PP_SYKT_BARN -> {
+                val pleiepengesøknadJson = JSONObject(søknad.søknad)
+                val funnetOrg: JSONObject = pleiepengesøknadJson.finnOrganisasjon(søknadId.toString(), organisasjonsnummer)
+
+                arbeidsgiverMeldingPDFGenerator.genererPDF(
+                    pleiepengesøknadJson.tilPleiepengerAreidsgivermelding(
+                        funnetOrg
+                    )
+                )
+            }
+
+            else -> throw NotSupportedArbeidsgiverMeldingException(søknadId.toString(), søknad.søknadstype)
+        }
+    }
+
+    fun JSONObject.tilPleiepengerAreidsgivermelding(funnetOrg: JSONObject) = PleiepengerArbeidsgiverMelding(
+        søknadsperiode = SøknadsPeriode(
+            fraOgMed = LocalDate.parse(getString(PSBJsonUtils.FRA_OG_MED)),
+            tilOgMed = LocalDate.parse(getString(PSBJsonUtils.TIL_OG_MED)),
+        ),
+        arbeidsgivernavn = funnetOrg.optString(PSBJsonUtils.ORGANISASJONSNAVN, null),
+        arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
+    )
 }
 
