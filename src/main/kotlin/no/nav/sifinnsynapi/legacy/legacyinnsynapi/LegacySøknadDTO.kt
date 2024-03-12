@@ -20,7 +20,7 @@ data class LegacySøknadDTO @JsonCreator constructor(
 
     fun arbeidsgivere(): List<Organisasjon> = when (søknadstype) {
         LegacySøknadstype.PP_SYKT_BARN -> JSONObject(søknad).arbeidsgivere()
-        else -> throw NotSupportedArbeidsgiverMeldingException(søknadId.toString(), søknadstype)
+        else -> emptyList()
     }
 }
 
