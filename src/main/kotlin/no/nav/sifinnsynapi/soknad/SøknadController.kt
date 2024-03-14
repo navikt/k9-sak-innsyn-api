@@ -34,7 +34,11 @@ class SøknadController(
     @ResponseStatus(OK)
     fun hentSøknader(): List<SøknadDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
-        return søknadService.slåSammenSøknadsopplysningerPerBarn()
+        val slåSammenSøknadsopplysningerPerBarn = søknadService.slåSammenSøknadsopplysningerPerBarn()
+        if (slåSammenSøknadsopplysningerPerBarn.isEmpty()) {
+            logger.info("Tomt resultat fra søknadsammenslåing")
+        }
+        return slåSammenSøknadsopplysningerPerBarn
     }
 
     @GetMapping("$SØKNAD/{søknadId}/arbeidsgivermelding", produces = [MediaType.APPLICATION_PDF_VALUE])

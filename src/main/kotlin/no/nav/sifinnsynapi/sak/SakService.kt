@@ -1,5 +1,4 @@
 package no.nav.sifinnsynapi.sak
-
 import jakarta.transaction.Transactional
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
@@ -61,7 +60,13 @@ class SakService(
         val oppslagsbarn = oppslagsService.hentBarn()
         logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
 
-        val pleietrengendeMedBehandlinger = oppslagsbarn
+        val ikkeSkjermetOmsorgsbarn = oppslagsbarn
+            // Dersom pleietrengende er skjermet, vil ikke hen returneres fra oppslagstjenesten.
+            // Vi sjekker derfor opp mot pleietrengende søker har omsorgen for, og returnerer kun de som ikke er skjermet.
+            .filter { pleietrengendeSøkerHarOmsorgFor.contains(it.aktørId) }
+        logger.info("Fant ${ikkeSkjermetOmsorgsbarn.size} pleietrengende som vi kan hente saker for.")
+
+        val pleietrengendeMedBehandlinger = ikkeSkjermetOmsorgsbarn
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(søker.aktørId, fagsakYtelseType)
 
@@ -71,14 +76,17 @@ class SakService(
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
         return pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
-
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
+                    val fagsak = behandling.fagsak
+                    val ytelseType = fagsak.ytelseType
+                    logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
+
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
-                            saksnummer = behandling.fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            fagsakYtelseType = behandling.fagsak.ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                            saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+                            fagsakYtelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
 
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
@@ -97,6 +105,7 @@ class SakService(
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         map { behandling ->
+            logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
 
             val søknaderISak: List<SøknadISakDTO> = behandling.søknader
                 .medTilhørendeDokumenter(søkersDokmentoversikt)
