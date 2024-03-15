@@ -50,6 +50,10 @@ class SøknadService(
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
         val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
+        if (barnOppslagDTOS.isEmpty()) {
+            logger.info("Fant ingen barn på søker")
+            return listOf( )
+        }
 
         val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
         if (pleietrengendeAktørIder.isEmpty()) {
