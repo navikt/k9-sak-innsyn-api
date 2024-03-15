@@ -2,12 +2,12 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.2"
+    id("org.springframework.boot") version "3.2.3"
     id("io.spring.dependency-management") version "1.1.4"
     id("com.expediagroup.graphql") version "7.0.2"
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.spring") version "1.9.22"
-    kotlin("plugin.jpa") version "1.9.22"
+    kotlin("jvm") version "1.9.23"
+    kotlin("plugin.spring") version "1.9.23"
+    kotlin("plugin.jpa") version "1.9.23"
 }
 
 group = "no.nav"
@@ -22,22 +22,22 @@ configurations {
 
 val graphQLKotlinVersion = "7.0.2"
 val springCloudVersion = "4.1.1"
-val springdocVersion = "2.3.0"
+val springdocVersion = "2.4.0"
 val logstashLogbackEncoderVersion = "7.4"
-val tokenSupportVersion = "3.2.0"
+val tokenSupportVersion = "4.1.3"
 val k9FormatVersion = "9.2.12"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.1"
+val postgresqlVersion = "42.7.3"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.2.0"
 val assertkJvmVersion = "0.28.0"
 val springMockkVersion = "4.0.2"
-val mockkVersion = "1.13.9"
-val guavaVersion = "33.0.0-jre"
-val orgJsonVersion = "20231013"
+val mockkVersion = "1.13.10"
+val guavaVersion = "33.1.0-jre"
+val orgJsonVersion = "20240303"
 val k9FellesVersion = "2.0.8"
-val testcontainersVersion ="1.19.4"
+val testcontainersVersion ="1.19.7"
 
 repositories {
     mavenCentral()
