@@ -118,6 +118,12 @@ enum class Datotype {
 
 data class AksjonspunktDTO(
     val venteårsak: Aksjonspunkt.Venteårsak,
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DtoKonstanter.DATO_TID_FORMAT,
+        timezone = DtoKonstanter.TIDSSONE
+    )
+    val tidsfrist: ZonedDateTime,
 )
 
 

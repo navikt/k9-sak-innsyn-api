@@ -232,7 +232,7 @@ class SakService(
     )
 
     private fun Set<Aksjonspunkt>.somAksjonspunktDTO(): List<AksjonspunktDTO> =
-        map { AksjonspunktDTO(venteårsak = it.venteårsak) }
+        map { AksjonspunktDTO(venteårsak = it.venteårsak, tidsfrist = it.tidsfrist) }
 
     private fun Stream<BehandlingDAO>.somBehandling(): Stream<Behandling> =
         map { JsonUtils.fromString(it.behandling, Behandling::class.java) }

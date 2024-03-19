@@ -94,6 +94,7 @@ class SakControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av saker med tokenx token`() {
         val søknadId = UUID.randomUUID()
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
+        val tidsfrist = ZonedDateTime.parse("2024-02-05T14:50:24.318Z")
         every {
             sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } returns listOf(
@@ -155,7 +156,8 @@ class SakControllerTest {
                             ),
                             aksjonspunkter = listOf(
                                 AksjonspunktDTO(
-                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING
+                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING,
+                                    tidsfrist = tidsfrist
                                 )
                             ),
                             utgåendeDokumenter = listOf(
@@ -330,7 +332,8 @@ class SakControllerTest {
                               ],
                               "aksjonspunkter": [
                                 {
-                                  "venteårsak": "INNTEKTSMELDING"
+                                  "venteårsak": "INNTEKTSMELDING",
+                                  "tidsfrist": "$tidsfrist"
                                 }
                               ]
                             }
