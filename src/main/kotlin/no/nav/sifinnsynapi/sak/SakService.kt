@@ -104,50 +104,62 @@ class SakService(
     }
 
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
-        map { behandling ->
+        mapNotNull { behandling ->
             logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
-
-            val søknaderISak: List<SøknadISakDTO> = behandling.søknader
-                .medTilhørendeDokumenter(søkersDokmentoversikt)
-                .filterNot { (søknad, _) -> søknad.hentOgMapTilK9FormatSøknad() == null } // Filtrer bort søknader som ikke finnes
-                .map { (søknad, dokumenter) ->
-                    val k9FormatSøknad =
-                        søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
-
-                    val søknadId = k9FormatSøknad.søknadId.id
-                    val legacySøknad =
-                        kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
-
-                    val søknadsType = utledSøknadsType(
-                        k9FormatSøknad = k9FormatSøknad,
-                        søknadId = søknadId,
-                        legacySøknad = legacySøknad
-                    )
-
-                    val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
-
-                    SøknadISakDTO(
-                        søknadId = UUID.fromString(søknadId),
-                        søknadstype = søknadsType,
-                        arbeidsgivere = arbeidsgivere,
-                        k9FormatSøknad = k9FormatSøknad,
-                        dokumenter = dokumenter
-                    )
-                }
-
-            val utgåendeDokumenterISaken = søkersDokmentoversikt
-                // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
-                .filter { it.journalposttype == Journalposttype.UTGÅENDE }
-
-            BehandlingDTO(
-                status = behandling.status,
-                opprettetTidspunkt = behandling.opprettetTidspunkt,
-                avsluttetTidspunkt = behandling.avsluttetTidspunkt,
-                søknader = søknaderISak,
-                utgåendeDokumenter = utgåendeDokumenterISaken,
-                aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
-            )
+            if (behandling.status != BehandlingStatus.AVSLUTTET
+                && (behandling.søknader.isEmpty() || behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ })) {
+                logger.info("Ignorerer behandling={} for sak={} med søknader={} " +
+                        "fordi den mangler søknad eller fordi den innholder bare punsjsøknader", behandling.behandlingsId, behandling.fagsak.saksnummer, behandling.søknader.size)
+                return@mapNotNull null
+            }
+            mapBehandling(behandling, søkersDokmentoversikt)
         }
+
+    private fun mapBehandling(
+        behandling: Behandling,
+        søkersDokmentoversikt: List<DokumentDTO>
+    ): BehandlingDTO {
+        val søknaderISak: List<SøknadISakDTO> = behandling.søknader
+            .medTilhørendeDokumenter(søkersDokmentoversikt)
+            .filterKeys { søknad -> søknadService.hentSøknad(søknad.journalpostId) != null } // Filtrer bort søknader som ikke finnes
+            .map { (søknad, dokumenter) ->
+                val k9FormatSøknad =
+                    søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+
+                val søknadId = k9FormatSøknad.søknadId.id
+                val legacySøknad =
+                    kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+
+                val søknadsType = utledSøknadsType(
+                    k9FormatSøknad = k9FormatSøknad,
+                    søknadId = søknadId,
+                    legacySøknad = legacySøknad
+                )
+
+                val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
+
+                SøknadISakDTO(
+                    søknadId = UUID.fromString(søknadId),
+                    søknadstype = søknadsType,
+                    arbeidsgivere = arbeidsgivere,
+                    k9FormatSøknad = k9FormatSøknad,
+                    dokumenter = dokumenter
+                )
+            }
+
+        val utgåendeDokumenterISaken = søkersDokmentoversikt
+            // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
+            .filter { it.journalposttype == Journalposttype.UTGÅENDE }
+
+        return BehandlingDTO(
+            status = behandling.status,
+            opprettetTidspunkt = behandling.opprettetTidspunkt,
+            avsluttetTidspunkt = behandling.avsluttetTidspunkt,
+            søknader = søknaderISak,
+            utgåendeDokumenter = utgåendeDokumenterISaken,
+            aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
+        )
+    }
 
     private fun utledArbeidsgivere(
         legacySøknad: LegacySøknadDTO?,
