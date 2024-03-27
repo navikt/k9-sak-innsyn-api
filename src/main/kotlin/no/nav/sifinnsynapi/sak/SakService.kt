@@ -28,6 +28,7 @@ import java.time.LocalDate
 import java.util.*
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.log
 
 @Service
 class SakService(
@@ -106,14 +107,43 @@ class SakService(
     private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         mapNotNull { behandling ->
             logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
-            if (behandling.status != BehandlingStatus.AVSLUTTET
-                && (behandling.søknader.isEmpty() || behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ })) {
-                logger.info("Ignorerer behandling={} for sak={} med søknader={} " +
-                        "fordi den mangler søknad eller fordi den innholder bare punsjsøknader", behandling.behandlingsId, behandling.fagsak.saksnummer, behandling.søknader.size)
+            if (skalIgnorereBehandling(behandling, søkersDokmentoversikt)) {
                 return@mapNotNull null
             }
             mapBehandling(behandling, søkersDokmentoversikt)
         }
+
+    private fun skalIgnorereBehandling(
+        behandling: Behandling,
+        søkersDokmentoversikt: List<DokumentDTO>
+    ): Boolean {
+        if (behandling.status == BehandlingStatus.AVSLUTTET) {
+            return false
+        }
+        val behandlingsId = behandling.behandlingsId
+        val saksnummer = behandling.fagsak.saksnummer
+
+        if (behandling.søknader.isEmpty()) {
+            logger.info("Ignorerer behandling={} for sak={} fordi søknader er tom", behandlingsId, saksnummer)
+            return true
+        }
+        if (behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ }) {
+            logger.info("Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj", behandlingsId, saksnummer)
+            return true
+        }
+
+        if (søkersDokmentoversikt.none { dok -> behandling.søknader.any { s -> dok.journalpostId == s.journalpostId } }) {
+            logger.info(
+                "Ignorerer behandling={} for sak={} fordi søknader innholder ingen støttet dokument fra dokumentoversikt. " +
+                        "Sannsynligvis skyldes det at søknad innholder kun punsj, men før kildesystem ble innført ",
+                behandlingsId,
+                saksnummer
+            )
+            return true
+        }
+
+        return false
+    }
 
     private fun mapBehandling(
         behandling: Behandling,
