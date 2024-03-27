@@ -10,11 +10,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -104,7 +100,7 @@ class SakServiceITest {
     }
 
     @Test
-//    @Disabled("Aktiver igjen når hentSaker returnerer data")
+    @Disabled("Aktiver igjen når hentSaker returnerer data")
     fun `gitt søker har omsorgen for barnet, forvent saker`() {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
