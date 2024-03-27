@@ -4,7 +4,7 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.SøknadInfo
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -87,8 +87,8 @@ class SakService(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            fagsakYtelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
-
+                            fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                            ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
 

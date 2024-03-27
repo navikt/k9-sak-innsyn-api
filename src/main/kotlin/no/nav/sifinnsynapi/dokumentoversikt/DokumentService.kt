@@ -2,8 +2,8 @@ package no.nav.sifinnsynapi.dokumentoversikt
 
 import kotlinx.coroutines.runBlocking
 import no.nav.k9.formidling.kontrakt.kodeverk.DokumentMalType
+import no.nav.k9.innsyn.sak.Saksnummer
 import no.nav.k9.kodeverk.dokument.Brevkode
-import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentOversiktUtils.medRelevanteBrevkoder
 import no.nav.sifinnsynapi.safselvbetjening.generated.enums.Datotype

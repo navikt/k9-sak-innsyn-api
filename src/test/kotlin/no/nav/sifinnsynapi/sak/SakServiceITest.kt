@@ -2,7 +2,7 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository

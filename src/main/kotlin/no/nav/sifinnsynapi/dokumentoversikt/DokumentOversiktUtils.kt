@@ -1,6 +1,5 @@
 package no.nav.sifinnsynapi.dokumentoversikt
 
-import no.nav.k9.kodeverk.dokument.Brevkode
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.Dokumentoversikt
 
 object DokumentOversiktUtils {

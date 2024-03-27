@@ -4,11 +4,7 @@ import assertk.assertThat
 import assertk.assertions.hasSize
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.k9.innsyn.TempObjectMapperKodeverdi
 import no.nav.k9.innsyn.sak.*
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.sak.typer.AktørId
-import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
@@ -174,9 +170,7 @@ class SakServiceTest {
         journalpostId = journalpostId,
         søkerAktørId = "sak1234",
         pleietrengendeAktørId = "søknadId",
-        søknad = JsonUtils.toString(
-            lagSøknad(), TempObjectMapperKodeverdi.getObjectMapper()
-        )
+        søknad = JsonUtils.toString(lagSøknad())
     )
 
     private fun lagSøknad() = Søknad(
@@ -193,7 +187,7 @@ class SakServiceTest {
             hovedSøkerAktørId,
             barn1AktørId,
             "sak1234",
-            JsonUtils.toString(lagBehandling(søknadInfos), TempObjectMapperKodeverdi.getObjectMapper()),
+            JsonUtils.toString(lagBehandling(søknadInfos)),
             FagsakYtelseType.PLEIEPENGER_SYKT_BARN
             )
         }

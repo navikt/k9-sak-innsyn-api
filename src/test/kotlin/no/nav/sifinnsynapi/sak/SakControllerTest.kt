@@ -4,8 +4,8 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.sak.typer.Saksnummer
+import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.Saksnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -110,7 +110,8 @@ class SakControllerTest {
                 sak = SakDTO(
                     saksnummer = Saksnummer("ABC123"),
                     saksbehandlingsFrist = LocalDate.parse("2024-01-01"),
-                    fagsakYtelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
+                    fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(FagsakYtelseType.PLEIEPENGER_SYKT_BARN.kode),
+                    ytelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
                     behandlinger = listOf(
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
@@ -206,6 +207,7 @@ class SakControllerTest {
                             "kode": "PSB",
                             "kodeverk": "FAGSAK_YTELSE"
                           },
+                          "ytelseType": "PSB",
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",

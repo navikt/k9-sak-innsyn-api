@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.sak.typer.Saksnummer
+import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.Saksnummer
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.DtoKonstanter
 import no.nav.sifinnsynapi.oppslag.Organisasjon
@@ -32,7 +32,9 @@ data class PleietrengendeDTO(
 data class SakDTO(
     val saksnummer: Saksnummer,
     val saksbehandlingsFrist: LocalDate? = null,
-    val fagsakYtelseType: FagsakYtelseType,
+    @Deprecated("bruk ytelseType")
+    val fagsakYtelseType: no.nav.k9.kodeverk.behandling.FagsakYtelseType,
+    val ytelseType: FagsakYtelseType,
     val behandlinger: List<BehandlingDTO>,
 )
 

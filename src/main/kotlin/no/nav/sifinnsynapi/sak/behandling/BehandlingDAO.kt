@@ -4,14 +4,14 @@ import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.sifinnsynapi.sak.behandling.converters.FagsakYtelseTypeConverter
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import org.springframework.data.annotation.CreatedDate
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
-import java.util.UUID
+import java.util.*
 
 @Entity(name = "behandling")
 data class BehandlingDAO(

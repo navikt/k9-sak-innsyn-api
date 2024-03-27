@@ -25,7 +25,7 @@ val springCloudVersion = "4.1.1"
 val springdocVersion = "2.3.0"
 val logstashLogbackEncoderVersion = "7.4"
 val tokenSupportVersion = "3.2.0"
-val k9FormatVersion = "9.2.12"
+val k9FormatVersion = "9.2.14"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.1"
@@ -38,6 +38,7 @@ val guavaVersion = "33.0.0-jre"
 val orgJsonVersion = "20231013"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
+val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.3.1"
 
@@ -65,6 +66,7 @@ dependencies {
     implementation("no.nav.k9:konstant:$k9FormatVersion")
 
     implementation("no.nav.k9.formidling:eksterne-kontrakter:$k9FormidlingVersion")
+    implementation("no.nav.k9.sak:kodeverk:$k9SakVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
