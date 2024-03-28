@@ -15,9 +15,6 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
-import org.springframework.retry.RetryCallback
-import org.springframework.retry.RetryContext
-import org.springframework.retry.RetryListener
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
 import java.util.*
@@ -25,10 +22,9 @@ import java.util.*
 @Configuration
 class OppslagsKlientKonfig(
     @Value("\${no.nav.gateways.k9-selvbetjening-oppslag}") private val oppslagsUrl: String,
-    @Value("\${spring.rest.retry.maxAttempts}") private val maxAttempts: Int,
     oauth2Config: ClientConfigurationProperties,
-    private val oAuth2AccessTokenService: OAuth2AccessTokenService
-) : RetryListener {
+    private val oAuth2AccessTokenService: OAuth2AccessTokenService,
+) {
 
     private companion object {
         val logger: Logger = LoggerFactory.getLogger(OppslagsKlientKonfig::class.java)
@@ -48,7 +44,7 @@ class OppslagsKlientKonfig(
     @Bean(name = ["k9OppslagsKlient"])
     fun restTemplate(
         builder: RestTemplateBuilder,
-        mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor
+        mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor,
     ): RestTemplate {
         return builder
             .setConnectTimeout(Duration.ofSeconds(20))
@@ -62,41 +58,6 @@ class OppslagsKlientKonfig(
             .build()
     }
 
-    override fun <T : Any, E : Throwable> open(context: RetryContext, callback: RetryCallback<T, E>): Boolean {
-        if (context.retryCount > 0) logger.warn("Feiler ved utgående rest-kall, kjører retry")
-        return true
-    }
-
-    override fun <T : Any, E : Throwable?> close(
-        context: RetryContext,
-        callback: RetryCallback<T, E>,
-        throwable: Throwable?
-    ) {
-        val backoff = context.getAttribute("backOffContext")!!
-
-        if (context.retryCount > 0) logger.info(
-            "Gir opp etter {} av {} forsøk og {} ms",
-            context.retryCount,
-            maxAttempts,
-            backoff.nextInterval() - 1000
-        )
-    }
-
-    override fun <T : Any, E : Throwable> onError(
-        context: RetryContext,
-        callback: RetryCallback<T, E>,
-        throwable: Throwable
-    ) {
-        val currentTry = context.retryCount
-        val contextString = context.getAttribute("context.name") as String
-        val backoff = context.getAttribute("backOffContext")!!
-        val nextInterval = backoff.nextInterval()
-
-        logger.warn("Forsøk {} av {}, {}", currentTry, maxAttempts, contextString.split(" ")[2])
-
-        if (currentTry < maxAttempts) logger.info("Forsøker om: {} ms", nextInterval)
-    }
-
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
             when {
@@ -105,6 +66,7 @@ class OppslagsKlientKonfig(
                     val response = oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties)
                     request.headers.setBearerAuth(response.accessToken)
                 }
+
                 else -> {
                     val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
                     request.headers.setBearerAuth(response.accessToken)
@@ -115,12 +77,4 @@ class OppslagsKlientKonfig(
     }
 
 }
-
-private fun Any.nextInterval(): Long {
-    val getInterval = javaClass.getMethod("getInterval")
-    getInterval.trySetAccessible()
-
-    return getInterval.invoke(this) as Long
-}
-
 

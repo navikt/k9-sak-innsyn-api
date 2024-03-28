@@ -41,6 +41,7 @@ spec:
         {{/each}}
       rules:
         - application: k9-selvbetjening-oppslag
+        - application: sif-innsyn-api
   liveness:
     path: /health/liveness
     initialDelay: 60

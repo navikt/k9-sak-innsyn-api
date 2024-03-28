@@ -60,7 +60,7 @@ class OppslagsService(
             .build()
     }
 
-    fun hentAktørId(): SøkerOppslagRespons? {
+    fun hentSøker(): SøkerOppslagRespons? {
         logger.info("Slår opp søker...")
         val exchange = oppslagsKlient.getForEntity(søkerUrl.toUriString(), SøkerOppslagRespons::class.java)
         logger.info("Fikk response {} for oppslag av søker.", exchange.statusCode)
@@ -153,7 +153,10 @@ class OppslagsService(
     }
 }
 
-data class SøkerOppslagRespons(@JsonAlias("aktør_id") val aktørId: String) {
+data class SøkerOppslagRespons(
+    @JsonAlias("aktør_id") val aktørId: String,
+
+) {
     override fun toString(): String {
         return "SøkerOppslagRespons(aktør_id='******')"
     }
@@ -188,3 +191,8 @@ data class BarnOppslagDTO(
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
 }
+
+class Organisasjon (
+    val organisasjonsnummer: String,
+    val navn: String?
+)

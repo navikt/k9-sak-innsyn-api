@@ -1,6 +1,6 @@
 package no.nav.sifinnsynapi.sak.behandling
 
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import org.springframework.stereotype.Service
 import java.util.stream.Stream
 

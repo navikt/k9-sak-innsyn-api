@@ -10,9 +10,11 @@ import org.springframework.retry.annotation.EnableRetry
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.transaction.annotation.EnableTransactionManagement
 
-@SpringBootApplication(exclude = [
-    ErrorMvcAutoConfiguration::class
-])
+@SpringBootApplication(
+    exclude = [
+        ErrorMvcAutoConfiguration::class
+    ]
+)
 @EnableRetry
 @EnableKafka
 @EnableTransactionManagement

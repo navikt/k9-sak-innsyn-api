@@ -95,9 +95,25 @@ class K9SakHendelseKonsument(
 
         val behandling = innsynHendelse.data
         logger.trace("Lagrer Behandling med behandlingsId: {}...", behandling.behandlingsId)
+
+        val resultat = gyldigBehandling(innsynHendelse)
+        if (!resultat.ok) {
+            logger.warn("Behandling={} med saksnummer={} opprettet={} fra k9-sak er ugyldig og vil bli ignorert: {} ",
+                behandling.behandlingsId, behandling.fagsak.saksnummer, behandling.opprettetTidspunkt, resultat.forklaring)
+            return
+        }
         behandlingService.lagreBehandling(innsynHendelse.somBehandlingDAO())
         logger.trace("Behandling lagret.")
     }
+
+    private fun gyldigBehandling(innsynHendelse: InnsynHendelse<Behandling>): Validering {
+        if (innsynHendelse.data.fagsak.pleietrengendeAktørId == null) {
+            return Validering(false, "Pleietrengende er tom")
+        }
+        return Validering(true)
+    }
+
+    private data class Validering(val ok: Boolean, val forklaring: String? = null)
 
     private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
         logger.info("Innsynhendelse mappet til SøknadTrukket.")
@@ -147,7 +163,7 @@ private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
         pleietrengendeAktørId = data.fagsak.pleietrengendeAktørId.id,
         saksnummer = data.fagsak.saksnummer.verdi,
         ytelsetype = data.fagsak.ytelseType,
-        behandling = JsonUtils.toString(data, TempObjectMapperKodeverdi.getObjectMapper()),
+        behandling = JsonUtils.toString(data),
         opprettetDato = ZonedDateTime.now(UTC),
         oppdatertDato = oppdateringstidspunkt
     )

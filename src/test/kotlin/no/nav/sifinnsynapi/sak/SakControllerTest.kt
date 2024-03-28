@@ -4,14 +4,15 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.sak.typer.Saksnummer
+import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.Saksnummer
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.defaultSøknad
 import no.nav.sifinnsynapi.utils.hentToken
@@ -93,6 +94,7 @@ class SakControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av saker med tokenx token`() {
         val søknadId = UUID.randomUUID()
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
+        val tidsfrist = ZonedDateTime.parse("2024-02-05T14:50:24.318Z")
         every {
             sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } returns listOf(
@@ -108,13 +110,14 @@ class SakControllerTest {
                 sak = SakDTO(
                     saksnummer = Saksnummer("ABC123"),
                     saksbehandlingsFrist = LocalDate.parse("2024-01-01"),
-                    fagsakYtelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
+                    fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(FagsakYtelseType.PLEIEPENGER_SYKT_BARN.kode),
+                    ytelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
                     behandlinger = listOf(
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
                             opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
                             søknader = listOf(
-                                SøknaderISakDTO(
+                                SøknadISakDTO(
                                     søknadId = søknadId,
                                     søknadstype = Søknadstype.SØKNAD,
                                     k9FormatSøknad = defaultSøknad(
@@ -129,26 +132,54 @@ class SakControllerTest {
                                         DokumentDTO(
                                             journalpostId = "123456789",
                                             dokumentInfoId = "123456789",
+                                            saksnummer = Saksnummer("ABC123"),
                                             tittel = "Søknad om pleiepenger",
+                                            dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
                                             filtype = "PDFA",
                                             harTilgang = true,
                                             url = URL("http://localhost:8080/saker/123456789"),
+                                            journalposttype = Journalposttype.INNGÅENDE,
                                             relevanteDatoer = listOf(
                                                 RelevantDatoDTO(
                                                     dato = mottattDato.toString(),
                                                     datotype = Datotype.DATO_OPPRETTET
                                                 )
-                                            ),
-                                            saksnummer = Saksnummer("ABC123")
+                                            )
+                                        )
+                                    ),
+                                    arbeidsgivere = listOf(
+                                        Organisasjon(
+                                            organisasjonsnummer = "123456789",
+                                            navn = "Arbeidsgiver AS"
                                         )
                                     )
                                 )
                             ),
                             aksjonspunkter = listOf(
                                 AksjonspunktDTO(
-                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING
+                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING,
+                                    tidsfrist = tidsfrist
                                 )
-                            )
+                            ),
+                            utgåendeDokumenter = listOf(
+                                DokumentDTO(
+                                    journalpostId = "123456789",
+                                    dokumentInfoId = "123456789",
+                                    saksnummer = Saksnummer("ABC123"),
+                                    tittel = "Etterlysning av inntektsmelding",
+                                    dokumentType = DokumentBrevkode.ETTERLYST_INNTEKTSMELDING,
+                                    filtype = "PDFA",
+                                    harTilgang = true,
+                                    url = URL("http://localhost:8080/saker/123456789"),
+                                    journalposttype = Journalposttype.UTGÅENDE,
+                                    relevanteDatoer = listOf(
+                                        RelevantDatoDTO(
+                                            dato = mottattDato.toString(),
+                                            datotype = Datotype.DATO_OPPRETTET
+                                        )
+                                    )
+                                )
+                            ),
                         )
                     )
                 )
@@ -176,15 +207,22 @@ class SakControllerTest {
                             "kode": "PSB",
                             "kodeverk": "FAGSAK_YTELSE"
                           },
+                          "ytelseType": "PSB",
                           "behandlinger": [
                             {
                               "status": "OPPRETTET",
-                                "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
-                                "avsluttetTidspunkt": null,
+                              "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
+                              "avsluttetTidspunkt": null,
                               "søknader": [
                                 {
                                   "søknadId": "$søknadId",
                                   "søknadstype": "SØKNAD",
+                                  "arbeidsgivere": [
+                                    {
+                                      "organisasjonsnummer": "123456789",
+                                      "navn": "Arbeidsgiver AS"
+                                    }
+                                  ],
                                   "k9FormatSøknad": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",
@@ -262,6 +300,7 @@ class SakControllerTest {
                                       "dokumentInfoId": "123456789",
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
+                                      "dokumentType": "PLEIEPENGER_SYKT_BARN_SOKNAD",
                                       "filtype": "PDFA",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
@@ -275,9 +314,28 @@ class SakControllerTest {
                                   ]
                                 }
                               ],
+                              "utgåendeDokumenter": [
+                                {
+                                  "journalpostId": "123456789",
+                                  "dokumentInfoId": "123456789",
+                                  "saksnummer": "ABC123",
+                                  "tittel": "Etterlysning av inntektsmelding",
+                                  "dokumentType": "ETTERLYST_INNTEKTSMELDING",
+                                  "filtype": "PDFA",
+                                  "harTilgang": true,
+                                  "url": "http://localhost:8080/saker/123456789",
+                                  "relevanteDatoer": [
+                                    {
+                                      "dato": "$mottattDato",
+                                      "datotype": "DATO_OPPRETTET"
+                                    }
+                                  ]
+                                }
+                              ],
                               "aksjonspunkter": [
                                 {
-                                  "venteårsak": "INNTEKTSMELDING"
+                                  "venteårsak": "INNTEKTSMELDING",
+                                  "tidsfrist": "$tidsfrist"
                                 }
                               ]
                             }

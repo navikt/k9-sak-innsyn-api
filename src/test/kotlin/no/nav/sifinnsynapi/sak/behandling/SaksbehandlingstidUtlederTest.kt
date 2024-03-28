@@ -1,9 +1,6 @@
 package no.nav.sifinnsynapi.sak.behandling
 
 import no.nav.k9.innsyn.sak.*
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
-import no.nav.k9.sak.typer.AktørId
-import no.nav.k9.sak.typer.Saksnummer
 import no.nav.k9.søknad.felles.Kildesystem
 import org.junit.Test
 import org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat
