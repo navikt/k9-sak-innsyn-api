@@ -87,7 +87,7 @@ class SakService(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+                            fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
