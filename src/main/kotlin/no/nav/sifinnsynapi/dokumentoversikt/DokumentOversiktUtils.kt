@@ -1,10 +1,9 @@
 package no.nav.sifinnsynapi.dokumentoversikt
 
-import no.nav.k9.kodeverk.dokument.Brevkode
 import no.nav.sifinnsynapi.safselvbetjening.generated.hentdokumentoversikt.Dokumentoversikt
 
 object DokumentOversiktUtils {
-    fun Dokumentoversikt.medRelevanteBrevkoder(relevanteBrevkoder: List<Brevkode>): Dokumentoversikt {
+    fun Dokumentoversikt.medRelevanteBrevkoder(relevanteBrevkoder: List<String>): Dokumentoversikt {
         val journalposterMedRelevanteDokumenter = journalposter
             .filterNot { it.dokumenter.isNullOrEmpty() }
             .map { journalpost ->
@@ -13,7 +12,7 @@ object DokumentOversiktUtils {
                     .filterNotNull()
                     .filter { dokumentInfo ->
                         dokumentInfo.brevkode?.lowercase()
-                            ?.trim() in relevanteBrevkoder.map { it.offisiellKode.lowercase().trim() }
+                            ?.trim() in relevanteBrevkoder.map { it.lowercase().trim() }
                     }
 
                 // Returner en ny journalpost med kun de relevante dokumentene

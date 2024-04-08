@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test
 class DokumentoversiktTest {
 
     private companion object {
-        val relevanteBrevkoder: List<Brevkode> = listOf(
-            Brevkode.PLEIEPENGER_BARN_SOKNAD,
-            Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN
+        val relevanteBrevkoder: List<String> = listOf(
+            Brevkode.PLEIEPENGER_BARN_SOKNAD.offisiellKode,
+            Brevkode.ETTERSENDELSE_PLEIEPENGER_SYKT_BARN.offisiellKode
         )
     }
 

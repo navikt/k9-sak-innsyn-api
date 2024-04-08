@@ -166,4 +166,24 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.status").value(401))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
+
+    @Test
+    fun `forvent generert filnavn med mellomrom`() {
+        every {
+            søknadService.hentArbeidsgiverMeldingFil(any(), any())
+        } returns "some byteArray".toByteArray()
+
+        val forventetFilnavn = "Bekreftelse_til_arbeidsgiver_12345678.pdf"
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get(URI(URLDecoder.decode("$SØKNAD/${UUID.randomUUID()}/arbeidsgivermelding", Charset.defaultCharset())))
+                .queryParam("organisasjonsnummer", "12345678")
+                .accept(MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
+            .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$forventetFilnavn"))
+    }
 }

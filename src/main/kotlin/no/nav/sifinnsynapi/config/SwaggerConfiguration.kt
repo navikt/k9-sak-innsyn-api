@@ -114,6 +114,12 @@ class SwaggerConfiguration(
                                 {
                                   "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                   "søknadstype": "SØKNAD",
+                                  "arbeidsgivere": [
+                                    {
+                                      "organisasjonsnummer": "123456789",
+                                      "navn": "Arbeidsgiver AS"
+                                    }
+                                  ],
                                   "k9FormatSøknad": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",
@@ -191,6 +197,7 @@ class SwaggerConfiguration(
                                       "dokumentInfoId": "123456789",
                                       "saksnummer": "ABC123",
                                       "tittel": "Søknad om pleiepenger",
+                                      "dokumentType": "PLEIEPENGER_SYKT_BARN_SOKNAD",
                                       "filtype": "PDFA",
                                       "harTilgang": true,
                                       "url": "http://localhost:8080/saker/123456789",
@@ -200,6 +207,24 @@ class SwaggerConfiguration(
                                           "datotype": "DATO_OPPRETTET"
                                         }
                                       ]
+                                    }
+                                  ]
+                                }
+                              ],
+                               "utgåendeDokumenter": [
+                                {
+                                  "journalpostId": "123456789",
+                                  "dokumentInfoId": "123456789",
+                                  "saksnummer": "ABC123",
+                                  "tittel": "Etterlysning av inntektsmelding",
+                                  "dokumentType": "ETTERLYST_INNTEKTSMELDING",
+                                  "filtype": "PDFA",
+                                  "harTilgang": true,
+                                  "url": "http://localhost:8080/saker/123456789",
+                                  "relevanteDatoer": [
+                                    {
+                                      "dato": "2024-02-06T14:50:24.318Z",
+                                      "datotype": "DATO_OPPRETTET"
                                     }
                                   ]
                                 }

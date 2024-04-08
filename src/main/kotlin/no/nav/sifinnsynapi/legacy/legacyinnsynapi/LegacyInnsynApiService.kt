@@ -16,7 +16,11 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @Service
 @Retryable(
-    exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class, ResourceAccessException::class],
+    noRetryFor = [
+        HttpClientErrorException.Unauthorized::class,
+        HttpClientErrorException.Forbidden::class,
+        HttpClientErrorException.NotFound::class,
+        ResourceAccessException::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
@@ -26,7 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder
 )
 class LegacyInnsynApiService(
     @Qualifier("sifInnsynApiClient")
-    private val sifInnsynClient: RestTemplate
+    private val sifInnsynClient: RestTemplate,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(LegacyInnsynApiService::class.java)
@@ -56,25 +60,25 @@ class LegacyInnsynApiService(
                 exchange.statusCode,
                 exchange.body
             )
-            throw IllegalStateException("Feilet med henting av søknadsdata fra sif-innsyn-api")
+            throw LegacySøknadNotFoundException(søknadId)
         }
     }
 
     @Recover
-    private fun recover(error: HttpServerErrorException): List<LegacySøknadDTO> {
-        logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
+    private fun recover(error: HttpServerErrorException, søknadId: String): LegacySøknadDTO {
+        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: HttpClientErrorException): List<LegacySøknadDTO> {
-        logger.error("Error response = '${error.responseBodyAsString}' fra '$søknadUrl'")
+    private fun recover(error: HttpClientErrorException, søknadId: String): LegacySøknadDTO {
+        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
-    private fun recover(error: ResourceAccessException): List<LegacySøknadDTO> {
-        logger.error("{}", error.message)
+    private fun recover(error: ResourceAccessException, søknadId: String): LegacySøknadDTO {
+        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet.", error)
         throw søknadOpplysningerOppslafFeil
     }
 }

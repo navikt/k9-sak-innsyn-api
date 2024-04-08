@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="NO">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Bekreftelse til Arbeidsgiver</title>
+    <meta name="subject" content="Informasjonsbrev til Arbeidsgiver" />
+    <meta name="author" content="nav.no" />
+    <meta name="description" content="Bekreftelse til Arbeidsgiver {{soknad_mottatt_dag}} {{ soknad_mottatt }}" />
+    <bookmarks>
+        <bookmark name="Informasjon" href="#informasjon" />
+        <bookmark name="Instruksjon" href="#instruksjon" />
+    </bookmarks>
+    {{#block 'style-common' }}
+    {{/block}}
+</head>
+
+<body>
+    <div class="innholdscontainer">
+        <span id="header"></span>
+
+        <section id="informasjon">
+            <h1>Til {{arbeidsgiver_navn}}</h1>
+            <p><strong>{{arbeidstaker_navn}}</strong> har søkt om pleiepenger for perioden</p>
+            <ul>
+                <li>
+                   <strong>{{periode.fom}} - {{periode.tom}}</strong>
+                </li>
+            </ul>
+
+            <p>
+                Hvis dette er første søknad eller en ny søknad etter et opphold i pleiepenger på 4
+                uker eller mer, skal du som arbeidsgiver sende inntektsmelding til NAV.
+                Inntektsmeldingen skal sendes så snart som mulig etter at den ansatte har sendt
+                inn søknaden sin, men kan ikke sendes inn tidligere enn 4 uker før første dag
+                med pleiepenger.
+                <br/><br/>
+                Hvis søknaden gjelder en forlengelse av en pleiepengeperiode, der oppholdet er
+                mindre enn 4 uker fra sist, trenger vi ikke ny inntektsmelding.
+            </p>
+        </section>
+
+        <section id="instruksjon">
+            <p><strong>Dette må du passe på når du sender inntektsmelding:</strong></p>
+            <ul>
+                <li>Startdatoen må samsvare med startdatoen på søknaden fra den ansatte.</li>
+                <li>
+                    Hvis den ansatte har flere arbeidsforhold/stillinger hos dere, må du sørge
+                    for at du fyller ut riktig arbeidsforholdsID.
+                </li>
+            </ul>
+
+            <p>
+                Inntektsmeldingen sendes fra arbeidsgivers eget lønns- og personalsystem, eller
+                fra altinn.no. Du får mer informasjon om inntektsmeldingen på  <a href="https://www.nav.no/inntektsmelding">nav.no/inntektsmelding</a>
+            </p>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <p id="footer">
+        <span class="tidspunkt">{{ tidspunkt }}</span>
+        <span class="sidetall">side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+    </p>
+</body>
+
+</html>

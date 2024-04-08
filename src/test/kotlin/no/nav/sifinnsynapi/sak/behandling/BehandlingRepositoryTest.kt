@@ -1,14 +1,8 @@
 package no.nav.sifinnsynapi.sak.behandling
 
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
-import no.nav.sifinnsynapi.sak.behandling.BehandlingRepository
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
