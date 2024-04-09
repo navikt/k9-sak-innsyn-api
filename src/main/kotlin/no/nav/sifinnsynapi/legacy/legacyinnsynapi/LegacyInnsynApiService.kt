@@ -66,19 +66,19 @@ class LegacyInnsynApiService(
 
     @Recover
     private fun recover(error: HttpServerErrorException, søknadId: String): LegacySøknadDTO {
-        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
+        logger.warn("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
     private fun recover(error: HttpClientErrorException, søknadId: String): LegacySøknadDTO {
-        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
+        logger.warn("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}", error.responseBodyAsString, error)
         throw søknadOpplysningerOppslafFeil
     }
 
     @Recover
     private fun recover(error: ResourceAccessException, søknadId: String): LegacySøknadDTO {
-        logger.error("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet.", error)
+        logger.warn("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet.", error)
         throw søknadOpplysningerOppslafFeil
     }
 }

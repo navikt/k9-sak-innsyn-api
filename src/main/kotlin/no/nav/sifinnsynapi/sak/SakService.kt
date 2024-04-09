@@ -1,10 +1,11 @@
 package no.nav.sifinnsynapi.sak
+
 import jakarta.transaction.Transactional
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.innsyn.sak.SøknadInfo
 import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.SøknadInfo
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -28,7 +29,6 @@ import java.time.LocalDate
 import java.util.*
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
-import kotlin.math.log
 
 @Service
 class SakService(
@@ -115,7 +115,7 @@ class SakService(
 
     private fun skalIgnorereBehandling(
         behandling: Behandling,
-        søkersDokmentoversikt: List<DokumentDTO>
+        søkersDokmentoversikt: List<DokumentDTO>,
     ): Boolean {
         if (behandling.status == BehandlingStatus.AVSLUTTET) {
             return false
@@ -128,7 +128,11 @@ class SakService(
             return true
         }
         if (behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ }) {
-            logger.info("Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj", behandlingsId, saksnummer)
+            logger.info(
+                "Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj",
+                behandlingsId,
+                saksnummer
+            )
             return true
         }
 
@@ -147,7 +151,7 @@ class SakService(
 
     private fun mapBehandling(
         behandling: Behandling,
-        søkersDokmentoversikt: List<DokumentDTO>
+        søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
         val søknaderISak: List<SøknadISakDTO> = behandling.søknader
             .medTilhørendeDokumenter(søkersDokmentoversikt)
@@ -155,10 +159,14 @@ class SakService(
             .map { (søknad, dokumenter) ->
                 val k9FormatSøknad =
                     søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
-
                 val søknadId = k9FormatSøknad.søknadId.id
-                val legacySøknad =
+
+                val legacySøknad = if (søkersDokmentoversikt.inneholder(søknad)) {
                     kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+                } else {
+                    logger.info("Ignorerer søknad med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                    null
+                }
 
                 val søknadsType = utledSøknadsType(
                     k9FormatSøknad = k9FormatSøknad,
@@ -190,6 +198,8 @@ class SakService(
             aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
         )
     }
+
+    private fun List<DokumentDTO>.inneholder(søknad: SøknadInfo) = any { it.journalpostId == søknad.journalpostId }
 
     private fun utledArbeidsgivere(
         legacySøknad: LegacySøknadDTO?,
