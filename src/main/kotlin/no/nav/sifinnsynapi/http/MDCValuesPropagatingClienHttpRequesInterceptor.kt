@@ -3,7 +3,7 @@ package no.nav.sifinnsynapi.http
 import no.nav.sifinnsynapi.util.Constants.CALL_ID
 import no.nav.sifinnsynapi.util.Constants.CORRELATION_ID
 import no.nav.sifinnsynapi.util.Constants.NAV_CONSUMER_ID
-import no.nav.sifinnsynapi.util.MDCUtil.callId
+import no.nav.sifinnsynapi.util.MDCUtil.callIdOrNew
 import org.slf4j.MDC
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -31,7 +31,7 @@ class MDCValuesPropagatingClienHttpRequesInterceptor : ClientHttpRequestIntercep
                     request.headers.add(key, value)
                 }
             }
-            request.headers.add(CALL_ID, callId())
+            request.headers.add(CALL_ID, callIdOrNew())
         }
     }
 }
