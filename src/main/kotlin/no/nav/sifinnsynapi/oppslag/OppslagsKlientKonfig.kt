@@ -50,7 +50,6 @@ class OppslagsKlientKonfig(
         return builder
             .setConnectTimeout(Duration.ofSeconds(20))
             .setReadTimeout(Duration.ofSeconds(20))
-            .defaultHeader(X_CORRELATION_ID, MDCUtil.callIdOrNew())
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)
