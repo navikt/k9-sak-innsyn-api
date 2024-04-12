@@ -48,7 +48,7 @@ class SakServiceITest {
     @BeforeEach
     fun setUp() {
         every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
             BarnOppslagDTO(
                 aktørId = barn1AktørId,
                 fødselsdato = LocalDate.parse("2005-02-12"),

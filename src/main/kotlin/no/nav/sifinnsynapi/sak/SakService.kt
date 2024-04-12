@@ -17,6 +17,7 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadDTO
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
@@ -58,16 +59,10 @@ class SakService(
         logger.info("Fant ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende søker har omsorgen for.")
 
         // Slå sammen pleietrengende og behandlinger
-        val oppslagsbarn = oppslagsService.hentBarn()
+        val oppslagsbarn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
         logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
 
-        val ikkeSkjermetOmsorgsbarn = oppslagsbarn
-            // Dersom pleietrengende er skjermet, vil ikke hen returneres fra oppslagstjenesten.
-            // Vi sjekker derfor opp mot pleietrengende søker har omsorgen for, og returnerer kun de som ikke er skjermet.
-            .filter { pleietrengendeSøkerHarOmsorgFor.contains(it.aktørId) }
-        logger.info("Fant ${ikkeSkjermetOmsorgsbarn.size} pleietrengende som vi kan hente saker for.")
-
-        val pleietrengendeMedBehandlinger = ikkeSkjermetOmsorgsbarn
+        val pleietrengendeMedBehandlinger = oppslagsbarn
             .map { it.somPleietrengendeDTO() }
             .assosierPleietrengendeMedBehandlinger(søker.aktørId, fagsakYtelseType)
 

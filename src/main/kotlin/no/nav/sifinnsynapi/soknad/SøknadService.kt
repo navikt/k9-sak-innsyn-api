@@ -4,7 +4,6 @@ import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
-import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.NotSupportedArbeidsgiverMeldingException
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils
@@ -12,11 +11,11 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.finnOrganis
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.tilArbeidstakernavn
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingPDFGenerator
 import no.nav.sifinnsynapi.pdf.PleiepengerArbeidsgiverMelding
 import no.nav.sifinnsynapi.pdf.SøknadsPeriode
-import no.nav.sifinnsynapi.sak.Søknadstype
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -49,20 +48,21 @@ class SøknadService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
+
+        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
+        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
+            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
+            return listOf()
+        }
+
+        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
         if (barnOppslagDTOS.isEmpty()) {
             logger.info("Fant ingen barn på søker")
             return listOf( )
         }
+        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
 
-        val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        if (pleietrengendeAktørIder.isEmpty()) {
-            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
-            return listOf()
-        }
-        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeAktørIder.size)
-
-        return pleietrengendeAktørIder
+        return pleietrengendeSøkerHarOmsorgFor
             .mapNotNull { pleietrengendeAktørId ->
                 val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
                 if (barn != null) {

@@ -2,19 +2,16 @@ package no.nav.sifinnsynapi.soknad
 
 import assertk.assertions.isGreaterThan
 import assertk.assertions.isNotEmpty
-import assertk.assertions.isNotEqualTo
 import assertk.assertions.size
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.søknad.Søknad
-import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadDTO
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
@@ -37,7 +34,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.Duration
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 import java.util.*
@@ -120,7 +116,7 @@ internal class SøknadServiceTest {
     @BeforeEach
     fun setUp() {
         every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
             BarnOppslagDTO(
                 aktørId = barn1AktørId,
                 fødselsdato = LocalDate.parse("2005-02-12"),

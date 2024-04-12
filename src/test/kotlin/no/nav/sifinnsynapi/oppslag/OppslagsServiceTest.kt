@@ -8,6 +8,7 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
 import no.nav.sifinnsynapi.util.Constants
+import no.nav.sifinnsynapi.utils.stubSystemoppslagForHentBarn
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,5 +74,14 @@ internal class OppslagsServiceTest {
     fun hentBarn() {
         val barn = oppslagsService.hentBarn()
         assertThat(barn).size().isEqualTo(2)
+    }
+
+    @Test
+    fun `hent barn med systemoppslag`() {
+        val barnIdent = "12345678901"
+        stubSystemoppslagForHentBarn(barnIdent, 200)
+
+        val barn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(listOf(barnIdent)))
+        assertThat(barn).size().isEqualTo(1)
     }
 }
