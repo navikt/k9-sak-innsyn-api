@@ -1,10 +1,12 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
-import no.nav.k9.ettersendelse.Ettersendelse
-import no.nav.k9.innsyn.sak.*
+import no.nav.k9.innsyn.sak.Aksjonspunkt
+import no.nav.k9.innsyn.sak.Behandling
+import no.nav.k9.innsyn.sak.BehandlingStatus
+import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.SøknadInfo
 import no.nav.k9.konstant.Konstant
-import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
@@ -21,12 +23,11 @@ import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
-import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
-import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
 
@@ -36,7 +37,7 @@ class SakService(
     private val dokumentService: DokumentService,
     private val oppslagsService: OppslagsService,
     private val omsorgService: OmsorgService,
-    private val innsendingService: InnsendingService,
+    private val søknadService: SøknadService,
     private val legacyInnsynApiService: LegacyInnsynApiService,
 ) {
     private companion object {
@@ -50,35 +51,26 @@ class SakService(
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
 
-        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
-            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
-        }
-
-        val pleietrengendeMedBehandlinger = behandlingerSupplier.get()
-            .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
-            .distinct() // Fjerner duplikater
-            .toList()
-            .let { pleietrengendeAktørIder ->
-                // Henter pleietrengende basert på aktørIder
-                logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
-                oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
-                    .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
-            }
-            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
-
-        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
-            loggNyesteBehandling(
-                "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
-                behandlingerSupplier
-            )
+        // Returner tom liste hvis søker ikke har omsorg for noen pleietrengende.
+        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
+            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
             return emptyList()
         }
+        logger.info("Fant ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende søker har omsorgen for.")
+
+        // Slå sammen pleietrengende og behandlinger
+        val oppslagsbarn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
+        logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
+
+        val pleietrengendeMedBehandlinger = oppslagsbarn
+            .map { it.somPleietrengendeDTO() }
+            .assosierPleietrengendeMedBehandlinger(søker.aktørId, fagsakYtelseType)
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
-        val antallSaker = pleietrengendeMedBehandlinger
+        return pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
@@ -100,22 +92,6 @@ class SakService(
                     )
                 }
             }
-        logger.info(
-            "Fant ${antallSaker.size} saker med {} behandlinger.",
-            antallSaker.flatMap { it.sak.behandlinger }.size
-        )
-        return antallSaker
-    }
-
-    private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
-        val behandlinger = behandlingerSupplier.get()
-        val nyesteSak = behandlinger.somBehandling().findFirst().getOrNull()
-        logger.info("$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
-            behandlinger.count(),
-            nyesteSak?.fagsak?.saksnummer?.verdi,
-            nyesteSak?.status,
-            nyesteSak?.aksjonspunkter?.joinToString { it.venteårsak.name }
-        )
     }
 
     private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
@@ -142,11 +118,11 @@ class SakService(
         val behandlingsId = behandling.behandlingsId
         val saksnummer = behandling.fagsak.saksnummer
 
-        if (behandling.innsendinger.isEmpty()) {
+        if (behandling.søknader.isEmpty()) {
             logger.info("Ignorerer behandling={} for sak={} fordi søknader er tom", behandlingsId, saksnummer)
             return true
         }
-        if (behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }) {
+        if (behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj",
                 behandlingsId,
@@ -155,7 +131,7 @@ class SakService(
             return true
         }
 
-        if (søkersDokmentoversikt.none { dok -> behandling.innsendinger.any { s -> dok.journalpostId == s.journalpostId } }) {
+        if (søkersDokmentoversikt.none { dok -> behandling.søknader.any { s -> dok.journalpostId == s.journalpostId } }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder ingen støttet dokument fra dokumentoversikt. " +
                         "Sannsynligvis skyldes det at søknad innholder kun punsj, men før kildesystem ble innført ",
@@ -172,11 +148,37 @@ class SakService(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
-        val innsendelserISak: List<InnsendelserISakDTO> = behandling.innsendinger
+        val søknaderISak: List<SøknadISakDTO> = behandling.søknader
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .medTilhørendeInnsendelser(søkersDokmentoversikt)
-            .requireNoNulls() // Kaster exception hvis noen søknader er null.
+            .filterKeys { søknad -> søknadService.hentSøknad(søknad.journalpostId) != null } // Filtrer bort søknader som ikke finnes
+            .map { (søknad, dokumenter) ->
+                val k9FormatSøknad =
+                    søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+                val søknadId = k9FormatSøknad.søknadId.id
 
+                val legacySøknad = if (søkersDokmentoversikt.inneholder(søknad)) {
+                    kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+                } else {
+                    logger.info("Ignorerer søknad med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                    null
+                }
+
+                val søknadsType = utledSøknadsType(
+                    k9FormatSøknad = k9FormatSøknad,
+                    søknadId = søknadId,
+                    legacySøknad = legacySøknad
+                )
+
+                val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
+
+                SøknadISakDTO(
+                    søknadId = UUID.fromString(søknadId),
+                    søknadstype = søknadsType,
+                    arbeidsgivere = arbeidsgivere,
+                    k9FormatSøknad = k9FormatSøknad,
+                    dokumenter = dokumenter
+                )
+            }
 
         val utgåendeDokumenterISaken = søkersDokmentoversikt
             // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
@@ -186,75 +188,13 @@ class SakService(
             status = behandling.status,
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             avsluttetTidspunkt = behandling.avsluttetTidspunkt,
-            innsendelser = innsendelserISak,
+            søknader = søknaderISak,
             utgåendeDokumenter = utgåendeDokumenterISaken,
             aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
         )
     }
 
-    private fun Innsending.skalIgnorereInnsendelse(
-        innsendingInfo: InnsendingInfo,
-        søkersDokmentoversikt: List<DokumentDTO>,
-    ): Boolean {
-        return when {
-            // Dersom innsendingen er en søknad og kildesystem er punsj, skal innsendingen ignoreres.
-            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
-                true
-            }
-
-            // Dersom innsendingen ikke finnes i søkers dokumentoversikt, skal innsendingen ignoreres.
-            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
-                true
-            }
-
-            this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
-                true
-            }
-
-            else -> false
-        }
-    }
-
-    private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =
-        mapNotNull { (innsendingInfo, dokumenter) ->
-            val k9FormatInnsending = innsendingInfo.mapTilK9Format()
-            if (k9FormatInnsending == null) {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den ikke finnes.")
-                return@mapNotNull null
-            }
-
-            if (k9FormatInnsending.skalIgnorereInnsendelse(innsendingInfo, søkersDokmentoversikt)) {
-                return@mapNotNull null
-            }
-
-            val søknadId = k9FormatInnsending.søknadId.id
-            val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
-
-            val innsendelsestype = utledSøknadsType(
-                k9FormatSøknad = k9FormatInnsending,
-                søknadId = søknadId,
-                legacySøknad = legacySøknad
-            )
-
-            val arbeidsgivere = when (k9FormatInnsending) {
-                is Søknad -> utledArbeidsgivere(legacySøknad, k9FormatInnsending)
-                is Ettersendelse -> null
-                else -> throw error("Ukjent type av innsending")
-            }
-
-            InnsendelserISakDTO(
-                søknadId = UUID.fromString(søknadId),
-                innsendelsestype = innsendelsestype,
-                arbeidsgivere = arbeidsgivere,
-                k9FormatInnsendelse = k9FormatInnsending,
-                dokumenter = dokumenter
-            )
-        }
-
-    private fun List<DokumentDTO>.inneholder(søknad: InnsendingInfo) = any { it.journalpostId == søknad.journalpostId }
+    private fun List<DokumentDTO>.inneholder(søknad: SøknadInfo) = any { it.journalpostId == søknad.journalpostId }
 
     private fun utledArbeidsgivere(
         legacySøknad: LegacySøknadDTO?,
@@ -276,37 +216,28 @@ class SakService(
     }
 
     private fun utledSøknadsType(
-        k9FormatSøknad: Innsending,
+        k9FormatSøknad: Søknad,
         søknadId: String,
         legacySøknad: LegacySøknadDTO?,
-    ): Innsendelsestype {
-        return when (k9FormatSøknad) {
-            is Søknad -> {
-                when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
-                    null -> {
-                        logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
-                        when (legacySøknad?.søknadstype) {
-                            LegacySøknadstype.PP_SYKT_BARN -> Innsendelsestype.SØKNAD
-                            LegacySøknadstype.PP_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.OMS_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Innsendelsestype.ENDRINGSMELDING
-                            null -> Innsendelsestype.UKJENT
-                        }
-                    }
-
-                    Kildesystem.ENDRINGSDIALOG -> Innsendelsestype.ENDRINGSMELDING
-                    Kildesystem.SØKNADSDIALOG -> Innsendelsestype.SØKNAD
-                    Kildesystem.PUNSJ -> Innsendelsestype.SØKNAD // TODO: Blir dette riktig?
-                    Kildesystem.UTLEDET -> Innsendelsestype.SØKNAD // // TODO: Blir dette riktig?
-
-                    else -> throw error("Ukjent kildesystem $ks")
-                }
+    ) = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
+        null -> {
+            logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
+            when (legacySøknad?.søknadstype) {
+                LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
+                LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.OMS_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Søknadstype.ENDRINGSMELDING
+                null -> Søknadstype.UKJENT
             }
-
-            is Ettersendelse -> return Innsendelsestype.ETTERSENDELSE
-            else -> throw error("Ukjent type av innsending")
         }
+
+        Kildesystem.ENDRINGSDIALOG -> Søknadstype.ENDRINGSMELDING
+        Kildesystem.SØKNADSDIALOG -> Søknadstype.SØKNAD
+        Kildesystem.PUNSJ -> Søknadstype.SØKNAD // TODO: Blir dette riktig?
+        Kildesystem.UTLEDET -> Søknadstype.SØKNAD // // TODO: Blir dette riktig?
+
+        else -> throw error("Ukjent kildesystem $ks")
     }
 
     fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
@@ -314,8 +245,8 @@ class SakService(
         return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
     }
 
-    private fun MutableSet<InnsendingInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>): Map<InnsendingInfo, List<DokumentDTO>> =
-        associateWith { søknadInfo: InnsendingInfo ->
+    private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>): Map<SøknadInfo, List<DokumentDTO>> =
+        associateWith { søknadInfo: SøknadInfo ->
             val dokumenterTilknyttetSøknad =
                 søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
             logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
@@ -323,49 +254,29 @@ class SakService(
         }
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(
-        behandlingSupplier: Supplier<Stream<BehandlingDAO>>,
-    ): Map<PleietrengendeDTO, MutableList<Behandling>> =
+        søkerAktørId: String,
+        fagsakYtelseType: FagsakYtelseType,
+    ) =
         associateWith { pleietrengendeDTO ->
-            val pleietrengendesBehandlinger = behandlingSupplier
-                .get()
-                .filter { it.pleietrengendeAktørId == pleietrengendeDTO.aktørId }
-                .somBehandling()
-                .toList()
-            logger.info("Fant ${pleietrengendesBehandlinger.size} behandlinger for pleietrengende.")
-            pleietrengendesBehandlinger
+            val behandlinger =
+                behandlingService.hentBehandlinger(søkerAktørId, pleietrengendeDTO.aktørId, fagsakYtelseType)
+                    .somBehandling()
+                    .toList()
+            logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
+            behandlinger
         }
 
-    private fun InnsendingInfo.mapTilK9Format(): Innsending? {
-        return when (type) {
-            null, InnsendingType.SØKNAD -> innsendingService.hentSøknad(journalpostId)
-                ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+    private fun SøknadInfo.hentOgMapTilK9FormatSøknad(): Søknad? = søknadService.hentSøknad(journalpostId)
+        ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
-            InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(journalpostId)
-                ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }
-        }
-    }
-
-    private fun BarnOppslagDTO.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor: List<String>): PleietrengendeDTO {
-        val søkerHarOmsorgenForPleietrengende = pleietrengendeSøkerHarOmsorgFor.contains(aktørId)
-        var fornavn1: String? = this.fornavn
-        var mellomnavn1: String? = this.mellomnavn
-        var etternavn1: String? = this.etternavn
-
-        if (!søkerHarOmsorgenForPleietrengende) {
-            fornavn1 = null
-            mellomnavn1 = null
-            etternavn1 = null
-        }
-
-        return PleietrengendeDTO(
-            identitetsnummer = this.identitetsnummer!!,
-            fødselsdato = this.fødselsdato,
-            fornavn = fornavn1,
-            mellomnavn = mellomnavn1,
-            etternavn = etternavn1,
-            aktørId = this.aktørId
-        )
-    }
+    private fun BarnOppslagDTO.somPleietrengendeDTO() = PleietrengendeDTO(
+        identitetsnummer = this.identitetsnummer!!,
+        fødselsdato = this.fødselsdato,
+        fornavn = this.fornavn,
+        mellomnavn = this.mellomnavn,
+        etternavn = this.etternavn,
+        aktørId = this.aktørId
+    )
 
     private fun Set<Aksjonspunkt>.somAksjonspunktDTO(): List<AksjonspunktDTO> =
         map { AksjonspunktDTO(venteårsak = it.venteårsak, tidsfrist = it.tidsfrist) }

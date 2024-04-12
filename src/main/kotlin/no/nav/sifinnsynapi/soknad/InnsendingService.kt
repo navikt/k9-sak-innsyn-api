@@ -26,21 +26,20 @@ import java.util.stream.Stream
 
 
 @Service
-class InnsendingService(
-    private val søknadRepository: SøknadRepository,
+class SøknadService(
+    private val repo: SøknadRepository,
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService,
     private val legacyInnsynApiService: LegacyInnsynApiService,
-    private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator,
-    private val ettersendelseRepository: EttersendelseRepository
+    private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator
 ) {
 
     private companion object {
-        private val logger = LoggerFactory.getLogger(InnsendingService::class.java)
+        private val logger = LoggerFactory.getLogger(SøknadService::class.java)
     }
 
     fun hentSøknad(journalpostId: String): PsbSøknadDAO? {
-        return søknadRepository.findById(journalpostId).orElse(null)
+        return repo.findById(journalpostId).orElse(null)
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +57,8 @@ class InnsendingService(
 
         val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
         if (barnOppslagDTOS.isEmpty()) {
-            return emptyList()
+            logger.info("Fant ingen barn på søker")
+            return listOf( )
         }
         logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
 
@@ -79,7 +79,7 @@ class InnsendingService(
         søkersAktørId: String,
         pleietrengendeAktørId: String,
     ): Søknad? {
-        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+        return repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
                     psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
@@ -89,12 +89,12 @@ class InnsendingService(
             }
     }
 
-    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)
+    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
 
     @Transactional
     fun trekkSøknad(journalpostId: String): Boolean {
-        søknadRepository.deleteById(journalpostId)
-        return !søknadRepository.existsById(journalpostId)
+        repo.deleteById(journalpostId)
+        return !repo.existsById(journalpostId)
     }
 
     private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>? = null): SøknadDTO {
@@ -142,13 +142,5 @@ class InnsendingService(
         arbeidsgivernavn = funnetOrg.optString(PSBJsonUtils.ORGANISASJONSNAVN, null),
         arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
     )
-
-    fun lagreEttersendelse(ettersendelse: EttersendelseDAO) {
-        ettersendelseRepository.save(ettersendelse)
-    }
-
-    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
-        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
-    }
 }
 

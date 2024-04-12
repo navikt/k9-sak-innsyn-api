@@ -23,7 +23,7 @@ import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
-import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.SøknadService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -36,7 +36,7 @@ class SakServiceTest {
     val behandlingService = mockk<BehandlingService>()
     val dokumentService = mockk<DokumentService>()
     val oppslagsService = mockk<OppslagsService>()
-    val innsendingService = mockk<InnsendingService>()
+    val søknadService = mockk<SøknadService>()
     val omsorgService = mockk<OmsorgService>()
     val legacyInnsynApiService = mockk<LegacyInnsynApiService>()
 
@@ -45,7 +45,7 @@ class SakServiceTest {
         dokumentService,
         oppslagsService,
         omsorgService,
-        innsendingService,
+        søknadService,
         legacyInnsynApiService
     )
 
@@ -97,16 +97,16 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
+                        SøknadInfo(SøknadStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null)
                     )
                 )
             ).stream()
         }
-        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
+        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(digitalSøknadJP))
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -134,16 +134,16 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
+                        SøknadInfo(SøknadStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null)
                     )
                 )
             ).stream()
         }
-        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
+        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto("randomJP1"))
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -170,16 +170,16 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ, InnsendingType.SØKNAD)
+                        SøknadInfo(SøknadStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ)
                     )
                 )
             ).stream()
         }
-        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(punsjsøknad)) //ikke mulig i praksis
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -218,7 +218,7 @@ class SakServiceTest {
         PleiepengerSyktBarn()
     )
 
-    private fun lagBehandlingDAO(søknadInfos: Set<InnsendingInfo>): BehandlingDAO {
+    private fun lagBehandlingDAO(søknadInfos: Set<SøknadInfo>): BehandlingDAO {
         return BehandlingDAO(
             UUID.randomUUID(),
             hovedSøkerAktørId,
@@ -229,7 +229,7 @@ class SakServiceTest {
             )
         }
 
-    private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
+    private fun lagBehandling(søknadInfos: Set<SøknadInfo>): Behandling {
         return Behandling(
             UUID.randomUUID(),
             ZonedDateTime.now(),

@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.utils
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import no.nav.sifinnsynapi.oppslag.Adressebeskyttelse
 import org.springframework.cloud.contract.spec.internal.MediaTypes
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -28,27 +27,21 @@ fun stubForAktørId(aktørId: String, status: Int) {
     )
 }
 
-fun stubSystemoppslagForHentBarn(
-    ident: String,
-    status: Int,
-    adressebeskyttelse: List<Adressebeskyttelse> = emptyList(),
-) {
+fun stubSystemoppslagForHentBarn(ident: String, status: Int) {
     WireMock.stubFor(
         WireMock.post(WireMock.urlPathMatching("/k9-selvbetjening-oppslag-mock/system/hent-barn"))
             .withHeader("Authorization", WireMock.matching(".*"))
             .withHeader("X-K9-Ytelse", WireMock.equalTo("PLEIEPENGER_SYKT_BARN"))
-            .withRequestBody(
-                WireMock.equalToJson(
-                    //language=json
-                    """
+            .withRequestBody(WireMock.equalToJson(
+                //language=json
+                """
                     {
                       "identer": [
                         "$ident"
                       ]
                     }
                 """.trimIndent()
-                )
-            )
+            ))
             .willReturn(
                 WireMock.aResponse()
                     .withStatus(status)
@@ -68,25 +61,10 @@ fun stubSystemoppslagForHentBarn(
                                     "ident": {
                                       "value": "$ident"
                                     },
-                                    "fødselsdato": "2012-02-24",
-                                    "adressebeskyttelse": ${
-                                  if (adressebeskyttelse.isEmpty()) {
-                                    """
-                                      []
-                                    """.trimIndent()
-                                  } else {
-                                    adressebeskyttelse.map {
-                                      """
-                                        {
-                                          "gradering": "${it.gradering}"
-                                        }
-                                        """.trimIndent()
-                                        }
-                                    }   
+                                    "fødselsdato": "2012-02-24"   
                                 }
                               }
-                            }
-                          ] 
+                            ]
                         """.trimIndent()
                     )
             )
