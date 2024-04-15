@@ -164,7 +164,7 @@ class OppslagsService(
             HttpEntity(hentBarnForespørsel),
             object : ParameterizedTypeReference<List<SystemoppslagBarn>>() {})
 
-        return exchange.body?.map {
+        val barnOppslagDTOS = exchange.body?.map {
             BarnOppslagDTO(
                 fødselsdato = it.pdlBarn.fødselsdato,
                 fornavn = it.pdlBarn.fornavn,
@@ -173,7 +173,11 @@ class OppslagsService(
                 aktørId = it.aktørId.value,
                 identitetsnummer = it.pdlBarn.ident.value
             )
-        } ?: listOf()
+        }
+        if (barnOppslagDTOS.isNullOrEmpty()) {
+            logger.info("Fant ingen barn ved systemoppslag.")
+        }
+        return barnOppslagDTOS ?: listOf()
     }
 
     @Recover
