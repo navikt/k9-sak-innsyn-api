@@ -1,11 +1,7 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
-import no.nav.k9.innsyn.sak.Aksjonspunkt
-import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.innsyn.sak.FagsakYtelseType
-import no.nav.k9.innsyn.sak.SøknadInfo
+import no.nav.k9.innsyn.sak.*
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -52,14 +48,21 @@ class SakService(
 
         // Returner tom liste hvis søker ikke har omsorg for noen pleietrengende.
         if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
-            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
+            val behandlinger = behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType).somBehandling().toList()
+            loggNyesteBehandling("Fant ingen pleietrengende søker har omsorgen for", behandlinger)
             return emptyList()
         }
+
         logger.info("Fant ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende søker har omsorgen for.")
 
         // Slå sammen pleietrengende og behandlinger
         val oppslagsbarn = oppslagsService.hentBarn()
         logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
+
+        if (oppslagsbarn.isEmpty()) {
+            val behandlinger = behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType).somBehandling().toList()
+            loggNyesteBehandling("Fant ingen folkeregistrert barn.", behandlinger)
+        }
 
         val ikkeSkjermetOmsorgsbarn = oppslagsbarn
             // Dersom pleietrengende er skjermet, vil ikke hen returneres fra oppslagstjenesten.
@@ -97,6 +100,16 @@ class SakService(
                     )
                 }
             }
+    }
+
+    private fun loggNyesteBehandling(prefix: String, behandlinger: MutableList<Behandling>) {
+        val nyesteSak = behandlinger.firstOrNull()
+        logger.info("$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
+            behandlinger.size,
+            nyesteSak?.fagsak?.saksnummer?.verdi,
+            nyesteSak?.status,
+            nyesteSak?.aksjonspunkter?.joinToString { it.venteårsak.name }
+        )
     }
 
     private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
