@@ -63,13 +63,15 @@ class OppslagsKlientKonfig(
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
                 request.uri.path.contains("/system") -> {
-                    val response = oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties)
-                    request.headers.setBearerAuth(response.accessToken)
+                    oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties).accessToken?.let {
+                        request.headers.setBearerAuth(it)
+                    }?: throw SecurityException("Accesstoken er null")
                 }
 
                 else -> {
-                    val response = oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties)
-                    request.headers.setBearerAuth(response.accessToken)
+                    oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties).accessToken?.let {
+                        request.headers.setBearerAuth(it)
+                    }?: throw SecurityException("Accesstoken er null")
                 }
             }
             execution.execute(request, body)
