@@ -20,6 +20,7 @@ jobs:
     with:
       readertoken: true
       buildcommand: './gradlew check'
+      javaversion: 21
 
   codeql:
     uses: navikt/sif-gha-workflows/.github/workflows/gradle-codeql.yml@main
@@ -33,6 +34,7 @@ jobs:
       readertoken: true
       package-command: './gradlew clean build -x test'
       branch: master
+      javaversion: 21
 
   build:
     uses: navikt/sif-gha-workflows/.github/workflows/gradle-build.yml@main
@@ -45,6 +47,7 @@ jobs:
       team: dusseldorf
       readertoken: true
       buildcommand: '--configuration-cache build -x test'
+      javaversion: 21
 
   trivy:
     needs: [ build ]
