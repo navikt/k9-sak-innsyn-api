@@ -50,8 +50,9 @@ class LegacyInnsynApiClientConfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            val response = oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties)
-            request.headers.setBearerAuth(response.accessToken)
+            oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties).accessToken?.let {
+                request.headers.setBearerAuth(it)
+            } ?: throw SecurityException("Accesstoken er null")
             execution.execute(request, body)
         }
     }
