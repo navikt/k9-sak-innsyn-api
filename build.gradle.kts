@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.2.4"
     id("io.spring.dependency-management") version "1.1.4"
-    id("com.expediagroup.graphql") version "7.0.2"
+    id("com.expediagroup.graphql") version "7.1.1"
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.spring") version "1.9.23"
     kotlin("plugin.jpa") version "1.9.23"
@@ -20,7 +20,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "7.1.0"
+val graphQLKotlinVersion = "7.1.1"
 val springCloudVersion = "4.1.2"
 val springdocVersion = "2.5.0"
 val logstashLogbackEncoderVersion = "7.4"
@@ -31,7 +31,7 @@ val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.3"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.2.1"
-val assertkJvmVersion = "0.28.0"
+val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.10"
 val guavaVersion = "33.1.0-jre"
