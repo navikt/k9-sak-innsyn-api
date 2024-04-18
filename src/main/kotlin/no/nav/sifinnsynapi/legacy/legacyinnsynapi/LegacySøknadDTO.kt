@@ -2,6 +2,9 @@ package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.arbeidsgivere
+import no.nav.sifinnsynapi.oppslag.Organisasjon
+import org.json.JSONObject
 import java.util.*
 
 data class LegacySøknadDTO @JsonCreator constructor(
@@ -14,6 +17,11 @@ data class LegacySøknadDTO @JsonCreator constructor(
     override fun toString(): String {
         return "SøknadDTO()"
     }
+
+    fun arbeidsgivere(): List<Organisasjon> = when (søknadstype) {
+        LegacySøknadstype.PP_SYKT_BARN -> JSONObject(søknad).arbeidsgivere()
+        else -> emptyList()
+    }
 }
 
 enum class LegacySøknadstype {
@@ -23,7 +31,7 @@ enum class LegacySøknadstype {
     OMS_ETTERSENDELSE,
     PP_SYKT_BARN_ENDRINGSMELDING;
 
-    fun gjelderPP() = when(this){
+    fun gjelderPP() = when (this) {
         PP_SYKT_BARN, PP_ETTERSENDELSE, PP_SYKT_BARN_ENDRINGSMELDING -> true
         else -> false
     }

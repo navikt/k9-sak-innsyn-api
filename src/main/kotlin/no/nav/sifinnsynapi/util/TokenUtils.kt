@@ -11,8 +11,8 @@ object TokenClaims {
 }
 
 fun SpringTokenValidationContextHolder.personIdent(): String {
-    val jwtToken = tokenValidationContext.firstValidToken
-        .orElseThrow { IllegalStateException("Ingen gyldige tokens i Authorization headeren") }
+    val jwtToken = getTokenValidationContext().firstValidToken
+        ?: throw IllegalStateException("Ingen gyldige tokens i Authorization headeren")
 
     val pid = jwtToken.jwtTokenClaims.getStringClaim(TokenClaims.CLAIM_PID)
     val sub = jwtToken.jwtTokenClaims.getStringClaim(TokenClaims.CLAIM_SUB)

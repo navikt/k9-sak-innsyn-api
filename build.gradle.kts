@@ -2,17 +2,17 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.2"
+    id("org.springframework.boot") version "3.2.4"
     id("io.spring.dependency-management") version "1.1.4"
     id("com.expediagroup.graphql") version "7.0.2"
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.spring") version "1.9.22"
-    kotlin("plugin.jpa") version "1.9.22"
+    kotlin("jvm") version "1.9.23"
+    kotlin("plugin.spring") version "1.9.23"
+    kotlin("plugin.jpa") version "1.9.23"
 }
 
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 configurations {
     compileOnly {
@@ -20,24 +20,29 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "7.0.2"
-val springCloudVersion = "4.1.1"
-val springdocVersion = "2.3.0"
+val graphQLKotlinVersion = "7.1.0"
+val springCloudVersion = "4.1.2"
+val springdocVersion = "2.5.0"
 val logstashLogbackEncoderVersion = "7.4"
-val tokenSupportVersion = "3.2.0"
-val k9FormatVersion = "9.2.12"
+val tokenSupportVersion = "4.1.4"
+val k9FormatVersion = "9.2.14"
 val retryVersion = "2.0.5"
 val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.2"
+val postgresqlVersion = "42.7.3"
 val hibernateTypes52Version = "2.20.0"
-val awailitilityKotlinVersion = "4.2.0"
+val awailitilityKotlinVersion = "4.2.1"
 val assertkJvmVersion = "0.28.0"
 val springMockkVersion = "4.0.2"
-val mockkVersion = "1.13.9"
-val guavaVersion = "33.0.0-jre"
-val orgJsonVersion = "20231013"
+val mockkVersion = "1.13.10"
+val guavaVersion = "33.1.0-jre"
+val orgJsonVersion = "20240303"
 val k9FellesVersion = "2.0.8"
-val testcontainersVersion ="1.19.4"
+val k9FormidlingVersion = "1.0.7"
+val k9SakVersion = "4.1.8"
+val openhtmltopdfVersion = "1.0.10"
+val handlebarsVersion = "4.4.0"
+
+val testcontainersVersion ="1.19.7"
 
 repositories {
     mavenCentral()
@@ -50,7 +55,6 @@ repositories {
         }
     }
 }
-
 dependencies {
     implementation("org.yaml:snakeyaml:2.2") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
@@ -60,6 +64,9 @@ dependencies {
     implementation("no.nav.k9:soknad:$k9FormatVersion")
     implementation("no.nav.k9:innsyn:$k9FormatVersion")
     implementation("no.nav.k9:konstant:$k9FormatVersion")
+
+    implementation("no.nav.k9.formidling:eksterne-kontrakter:$k9FormidlingVersion")
+    implementation("no.nav.k9.sak:kodeverk:$k9SakVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenSupportVersion")
     implementation("no.nav.security:token-client-spring:$tokenSupportVersion")
@@ -125,6 +132,11 @@ dependencies {
     }
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
+    // PDF
+    implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:$openhtmltopdfVersion")
+    implementation("com.openhtmltopdf:openhtmltopdf-slf4j:$openhtmltopdfVersion")
+    implementation("com.github.jknack:handlebars:$handlebarsVersion")
+
     // Diverse
     implementation("org.json:json:$orgJsonVersion")
 
@@ -145,7 +157,7 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
 

@@ -13,6 +13,7 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.retry.RetryListener
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
 
@@ -21,7 +22,7 @@ class LegacyInnsynApiClientConfig(
     @Value("\${no.nav.gateways.sif-innsyn-api-base-url}") private val sifInnsynApiBaseUrl: String,
     oauth2Config: ClientConfigurationProperties,
     private val oAuth2AccessTokenService: OAuth2AccessTokenService
-) {
+): RetryListener {
 
     private companion object {
         private val logger = LoggerFactory.getLogger(LegacyInnsynApiClientConfig::class.java)
@@ -49,8 +50,9 @@ class LegacyInnsynApiClientConfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            val response = oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties)
-            request.headers.setBearerAuth(response.accessToken)
+            oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties).accessToken?.let {
+                request.headers.setBearerAuth(it)
+            } ?: throw SecurityException("Accesstoken er null")
             execution.execute(request, body)
         }
     }

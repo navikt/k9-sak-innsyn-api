@@ -1,7 +1,7 @@
 package no.nav.sifinnsynapi.sak.behandling.converters
 
 import jakarta.persistence.AttributeConverter
-import no.nav.k9.kodeverk.behandling.FagsakYtelseType
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 
 internal class FagsakYtelseTypeConverter : AttributeConverter<FagsakYtelseType, String> {
 
