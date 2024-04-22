@@ -2,24 +2,43 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import no.nav.k9.innsyn.sak.Aksjonspunkt
+import no.nav.k9.innsyn.sak.AktørId
+import no.nav.k9.innsyn.sak.Behandling
+import no.nav.k9.innsyn.sak.BehandlingResultat
+import no.nav.k9.innsyn.sak.BehandlingStatus
+import no.nav.k9.innsyn.sak.Fagsak
 import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.Saksnummer
+import no.nav.k9.innsyn.sak.SøknadInfo
+import no.nav.k9.innsyn.sak.SøknadStatus
+import no.nav.k9.søknad.JsonUtils
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
+import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
+import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.net.URL
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -37,6 +56,12 @@ class SakServiceITest {
 
     @MockkBean(relaxed = true)
     private lateinit var oppslagsService: OppslagsService
+
+    @MockkBean(relaxed = true)
+    lateinit var dokumentService: DokumentService
+
+    @MockkBean(relaxed = true)
+    lateinit var behandlingService: BehandlingService
 
     private companion object {
         private val annenSøkerAktørId = "00000000000"
@@ -100,14 +125,71 @@ class SakServiceITest {
     }
 
     @Test
-    @Disabled("Aktiver igjen når hentSaker returnerer data")
     fun `gitt søker har omsorgen for barnet, forvent saker`() {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        val saksnummer = "sak1234"
+        val journalpostId = "123456789"
+
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            DokumentDTO(
+                journalpostId = journalpostId,
+                dokumentInfoId = "123456789",
+                saksnummer = Saksnummer(saksnummer),
+                tittel = "Søknad om pleiepenger til sykt barn",
+                dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
+                filtype = "PDFA",
+                harTilgang = true,
+                url = URL("http://localhost:8080/saker/123456789"),
+                journalposttype = Journalposttype.INNGÅENDE,
+                relevanteDatoer = listOf(
+                    RelevantDatoDTO(
+                        dato = LocalDate.now().toString(),
+                        datotype = Datotype.DATO_OPPRETTET
+                    )
+                )
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+            listOf(
+                BehandlingDAO(
+                    behandlingId = UUID.randomUUID(),
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    saksnummer = saksnummer,
+                    behandling = JsonUtils.toString(lagBehandling(setOf(
+                        SøknadInfo(SøknadStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null)
+                    ))),
+                    ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
+                )
+            ).stream()
+        }
+
         val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         Assertions.assertThat(hentSaker).isNotEmpty
         Assertions.assertThat(hentSaker).size().isEqualTo(1)
+    }
+
+    @Test
+    fun `gitt søker har omsorgen for barnet, men barnet er addressebeskyttet, forvent ingen innsyn`() {
+        omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf()
+
+        val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+        Assertions.assertThat(hentSaker).isEmpty()
     }
 
     @Test
@@ -142,5 +224,23 @@ class SakServiceITest {
     fun `Forvent saksbehandlingstid oppgitt i uker`() {
         val saksbehandlingstid = sakService.hentGenerellSaksbehandlingstid()
         Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(6)
+    }
+
+    private fun lagBehandling(søknadInfos: Set<SøknadInfo>): Behandling {
+        return Behandling(
+            UUID.randomUUID(),
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            BehandlingResultat.INNVILGET,
+            BehandlingStatus.OPPRETTET,
+            søknadInfos,
+            setOf(
+                Aksjonspunkt(Aksjonspunkt.Venteårsak.INNTEKTSMELDING, ZonedDateTime.now())
+            ),
+            false,
+            Fagsak(
+                Saksnummer("ABC123"), AktørId("11111111111"), AktørId("22222222222"), FagsakYtelseType.PLEIEPENGER_SYKT_BARN
+            )
+        )
     }
 }

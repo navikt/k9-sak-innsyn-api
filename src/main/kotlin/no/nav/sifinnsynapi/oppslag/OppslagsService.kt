@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.oppslag
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -171,29 +172,46 @@ class OppslagsService(
                 mellomnavn = it.pdlBarn.mellomnavn,
                 etternavn = it.pdlBarn.etternavn,
                 aktørId = it.aktørId.value,
-                identitetsnummer = it.pdlBarn.ident.value
+                identitetsnummer = it.pdlBarn.ident.value,
+                adressebeskyttelse = it.pdlBarn.adressebeskyttelse
             )
         }
+
         if (barnOppslagDTOS.isNullOrEmpty()) {
             logger.info("Fant ingen barn ved systemoppslag.")
         }
-        return barnOppslagDTOS ?: listOf()
+
+        val (ikkeAdressebeskyttet, adressebeskyttet) = (barnOppslagDTOS ?: listOf()).partition { it.ikkeErAdressebeskyttet() }
+        if (adressebeskyttet.isNotEmpty()) {
+            logger.info("Filtererte ut ${adressebeskyttet.size} barn med adressebeskyttelse.")
+        }
+
+        return ikkeAdressebeskyttet
     }
 
     @Recover
-    fun systemoppslagBarn(hentBarnForespørsel: HentBarnForespørsel, error: HttpServerErrorException): List<BarnOppslagDTO> {
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: HttpServerErrorException,
+    ): List<BarnOppslagDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${systemBarnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 
     @Recover
-    fun systemoppslagBarn(hentBarnForespørsel: HentBarnForespørsel, error: HttpClientErrorException): List<BarnOppslagDTO> {
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: HttpClientErrorException,
+    ): List<BarnOppslagDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${systemBarnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 
     @Recover
-    fun systemoppslagBarn(hentBarnForespørsel: HentBarnForespørsel, error: ResourceAccessException): List<BarnOppslagDTO> {
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: ResourceAccessException,
+    ): List<BarnOppslagDTO> {
         logger.error("'${error.message}' ved systemkall mot '${systemBarnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
@@ -236,10 +254,27 @@ data class BarnOppslagDTO(
     val etternavn: String,
     @JsonAlias("aktør_id") val aktørId: String,
     val identitetsnummer: String? = null,
+    internal @JsonIgnore val adressebeskyttelse: List<Adressebeskyttelse> = emptyList(),
 ) {
     override fun toString(): String {
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
+
+    fun ikkeErAdressebeskyttet(): Boolean {
+        return (adressebeskyttelse.isEmpty()) || (adressebeskyttelse.none {
+            it.gradering == AdressebeskyttelseGradering.STRENGT_FORTROLIG_UTLAND
+                    || it.gradering == AdressebeskyttelseGradering.STRENGT_FORTROLIG
+                    || it.gradering == AdressebeskyttelseGradering.FORTROLIG
+        })
+    }
+}
+
+data class Adressebeskyttelse(
+    val gradering: AdressebeskyttelseGradering,
+)
+
+enum class AdressebeskyttelseGradering {
+    STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG, UGRADERT
 }
 
 data class SystemoppslagBarn(
@@ -254,6 +289,7 @@ data class PdlBarn(
     val forkortetNavn: String?,
     val fødselsdato: LocalDate,
     val ident: PdlBarnIdent,
+    val adressebeskyttelse: List<Adressebeskyttelse> = emptyList(),
 ) {
     override fun toString(): String {
         return "PdlBarn(fornavn='$*****', mellomnavn='$*****', etternavn='$*****', forkortetNavn='$*****', fødselsdato=$*****, ident=$ident)"
