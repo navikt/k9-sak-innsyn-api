@@ -85,8 +85,9 @@ class SafSelvbetjeningClientsConfig(
         oAuth2AccessTokenService: OAuth2AccessTokenService
     ): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-            request.headers.setBearerAuth(response.accessToken)
+            oAuth2AccessTokenService.getAccessToken(clientProperties).accessToken?.let {
+                request.headers.setBearerAuth(it)
+            } ?: throw SecurityException("Accesstoken er null")
             execution.execute(request, body)
         }
     }

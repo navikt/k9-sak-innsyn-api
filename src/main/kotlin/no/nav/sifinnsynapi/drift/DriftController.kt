@@ -42,7 +42,11 @@ class DriftController(
     @PostMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(OK)
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
-        val identTilInnloggetBruker: String = tokenValidationContextHolder.tokenValidationContext.firstValidToken.get().jwtTokenClaims.getStringClaim("NAVident")
+        val identTilInnloggetBruker: String = tokenValidationContextHolder
+            .getTokenValidationContext()
+            .firstValidToken
+            ?.jwtTokenClaims
+            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
         val søkerAktørId = hentAktørId(debugForespørsel.søkerNorskIdentitetsnummer)
         val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }
