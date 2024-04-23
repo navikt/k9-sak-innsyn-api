@@ -114,7 +114,7 @@ class OppslagsService(
     @Recover
     private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO> {
         logger.error("{}", error.message)
-        throw IllegalStateException("Timout ved henting av søkers barn")
+        throw IllegalStateException("Timeout ved henting av søkers barn")
     }
 
     fun hentIdenter(hentIdenterForespørsel: HentIdenterForespørsel): List<HentIdenterRespons> {
