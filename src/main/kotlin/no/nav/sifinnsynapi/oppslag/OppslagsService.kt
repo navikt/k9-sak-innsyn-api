@@ -88,7 +88,7 @@ class OppslagsService(
     @Recover
     private fun recover(error: ResourceAccessException): SøkerOppslagRespons? {
         logger.error("{}", error.message)
-        throw IllegalStateException("Timout ved henting av søkers personinformasjon")
+        throw IllegalStateException("Timeout ved henting av søkers personinformasjon")
     }
 
     fun hentBarn(): List<BarnOppslagDTO> {
