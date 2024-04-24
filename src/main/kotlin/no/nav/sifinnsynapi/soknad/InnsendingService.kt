@@ -57,7 +57,7 @@ class SøknadService(
 
         val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
         if (barnOppslagDTOS.isEmpty()) {
-            return barnOppslagDTOS
+            return emptyList()
         }
         logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
 
