@@ -184,6 +184,68 @@ class SakServiceITest {
     }
 
     @Test
+    fun `gitt søker ikke har omsorgen for barnet, forvent innsyn i sak og at barnets navn anonymiseres`() {
+        omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
+        omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
+
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        val saksnummer = "sak1234"
+        val journalpostId = "123456789"
+
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            DokumentDTO(
+                journalpostId = journalpostId,
+                dokumentInfoId = "123456789",
+                saksnummer = Saksnummer(saksnummer),
+                tittel = "Søknad om pleiepenger til sykt barn",
+                dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
+                filtype = "PDFA",
+                harTilgang = true,
+                url = URL("http://localhost:8080/saker/123456789"),
+                journalposttype = Journalposttype.INNGÅENDE,
+                relevanteDatoer = listOf(
+                    RelevantDatoDTO(
+                        dato = LocalDate.now().toString(),
+                        datotype = Datotype.DATO_OPPRETTET
+                    )
+                )
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                BehandlingDAO(
+                    behandlingId = UUID.randomUUID(),
+                    søkerAktørId = hovedSøkerAktørId,
+                    pleietrengendeAktørId = barn1AktørId,
+                    saksnummer = saksnummer,
+                    behandling = JsonUtils.toString(lagBehandling(setOf(
+                        SøknadInfo(SøknadStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null)
+                    ))),
+                    ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
+                )
+            ).stream()
+        }
+
+        val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+        Assertions.assertThat(hentSaker).isNotEmpty
+        Assertions.assertThat(hentSaker).size().isEqualTo(1)
+        Assertions.assertThat(hentSaker.first().pleietrengende.fornavn).isNull()
+        Assertions.assertThat(hentSaker.first().pleietrengende.mellomnavn).isNull()
+        Assertions.assertThat(hentSaker.first().pleietrengende.etternavn).isNull()
+    }
+
+    @Test
     fun `gitt søker har omsorgen for barnet, men barnet er addressebeskyttet, forvent ingen innsyn`() {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         every { oppslagsService.systemoppslagBarn(any()) } returns listOf()
