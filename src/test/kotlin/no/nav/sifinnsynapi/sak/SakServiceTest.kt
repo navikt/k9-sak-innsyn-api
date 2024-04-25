@@ -97,7 +97,7 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
@@ -134,7 +134,7 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
@@ -170,7 +170,7 @@ class SakServiceTest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(

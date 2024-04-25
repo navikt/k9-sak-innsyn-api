@@ -163,7 +163,7 @@ class SakServiceITest {
             )
         )
 
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 BehandlingDAO(
                     behandlingId = UUID.randomUUID(),
