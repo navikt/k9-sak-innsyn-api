@@ -1,11 +1,7 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
-import no.nav.k9.innsyn.sak.Aksjonspunkt
-import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.innsyn.sak.FagsakYtelseType
-import no.nav.k9.innsyn.sak.SøknadInfo
+import no.nav.k9.innsyn.sak.*
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -28,6 +24,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
+import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
 
@@ -51,20 +48,26 @@ class SakService(
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
 
-        // Returner tom liste hvis søker ikke har omsorg for noen pleietrengende.
-        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
-            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
+        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
+            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
+        }
+
+        val pleietrengendeMedBehandlinger = behandlingerSupplier.get()
+            .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
+            .distinct() // Fjerner duplikater
+            .toList()
+            .let { pleietrengendeAktørIder ->
+                // Henter pleietrengende basert på aktørIder
+                logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
+                oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
+                    .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
+            }
+            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
+
+        if(pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+            loggNyesteBehandling("Pleietrengende med behandlinger var tomt, men søker hadde behandlinger", behandlingerSupplier)
             return emptyList()
         }
-        logger.info("Fant ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende søker har omsorgen for.")
-
-        // Slå sammen pleietrengende og behandlinger
-        val oppslagsbarn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
-        logger.info("Fant ${oppslagsbarn.size} barn i folkeregisteret registrert på søker.")
-
-        val pleietrengendeMedBehandlinger = oppslagsbarn
-            .map { it.somPleietrengendeDTO() }
-            .assosierPleietrengendeMedBehandlinger(søker.aktørId, fagsakYtelseType)
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
@@ -92,6 +95,17 @@ class SakService(
                     )
                 }
             }
+    }
+
+    private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
+        val behandlinger = behandlingerSupplier.get()
+        val nyesteSak = behandlinger.somBehandling().findFirst().getOrNull()
+        logger.info("$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
+            behandlinger.count(),
+            nyesteSak?.fagsak?.saksnummer?.verdi,
+            nyesteSak?.status,
+            nyesteSak?.aksjonspunkter?.joinToString { it.venteårsak.name }
+        )
     }
 
     private fun List<Behandling>.utledSaksbehandlingsfristFraÅpenBehandling(): LocalDate? {
@@ -254,29 +268,42 @@ class SakService(
         }
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(
-        søkerAktørId: String,
-        fagsakYtelseType: FagsakYtelseType,
-    ) =
+        behandlingSupplier: Supplier<Stream<BehandlingDAO>>,
+    ): Map<PleietrengendeDTO, MutableList<Behandling>> =
         associateWith { pleietrengendeDTO ->
-            val behandlinger =
-                behandlingService.hentBehandlinger(søkerAktørId, pleietrengendeDTO.aktørId, fagsakYtelseType)
-                    .somBehandling()
-                    .toList()
-            logger.info("Fant ${behandlinger.size} behandlinger for pleietrengende.")
-            behandlinger
+            val pleietrengendesBehandlinger = behandlingSupplier
+                .get()
+                .filter { it.pleietrengendeAktørId == pleietrengendeDTO.aktørId }
+                .somBehandling()
+                .toList()
+            logger.info("Fant ${pleietrengendesBehandlinger.size} behandlinger for pleietrengende.")
+            pleietrengendesBehandlinger
         }
 
     private fun SøknadInfo.hentOgMapTilK9FormatSøknad(): Søknad? = søknadService.hentSøknad(journalpostId)
         ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
-    private fun BarnOppslagDTO.somPleietrengendeDTO() = PleietrengendeDTO(
-        identitetsnummer = this.identitetsnummer!!,
-        fødselsdato = this.fødselsdato,
-        fornavn = this.fornavn,
-        mellomnavn = this.mellomnavn,
-        etternavn = this.etternavn,
-        aktørId = this.aktørId
-    )
+    private fun BarnOppslagDTO.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor: List<String>): PleietrengendeDTO {
+        val søkerHarOmsorgenForPleietrengende = pleietrengendeSøkerHarOmsorgFor.contains(aktørId)
+        var fornavn1: String? = this.fornavn
+        var mellomnavn1: String? = this.mellomnavn
+        var etternavn1: String? = this.etternavn
+
+        if (!søkerHarOmsorgenForPleietrengende) {
+            fornavn1 = null
+            mellomnavn1 = null
+            etternavn1 = null
+        }
+
+        return PleietrengendeDTO(
+            identitetsnummer = this.identitetsnummer!!,
+            fødselsdato = this.fødselsdato,
+            fornavn = fornavn1,
+            mellomnavn = mellomnavn1,
+            etternavn = etternavn1,
+            aktørId = this.aktørId
+        )
+    }
 
     private fun Set<Aksjonspunkt>.somAksjonspunktDTO(): List<AksjonspunktDTO> =
         map { AksjonspunktDTO(venteårsak = it.venteårsak, tidsfrist = it.tidsfrist) }

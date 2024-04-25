@@ -7,7 +7,7 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.innsyn.sak.Saksnummer
-import no.nav.k9.søknad.Innsending
+import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.DtoKonstanter
 import no.nav.sifinnsynapi.oppslag.Organisasjon
 import java.net.URL
@@ -26,9 +26,9 @@ data class PleietrengendeDTO(
     val aktørId: String,
 
     // Navn vil kunne være null hvis søker ikke har omsorgen for pleietrengende.
-    val fornavn: String? = null,
+    val fornavn: String?,
     val mellomnavn: String? = null,
-    val etternavn: String? = null,
+    val etternavn: String?,
 )
 
 data class SakDTO(
@@ -52,20 +52,20 @@ data class BehandlingDTO(
         pattern = DtoKonstanter.DATO_TID_FORMAT,
         timezone = DtoKonstanter.TIDSSONE
     ) val avsluttetTidspunkt: ZonedDateTime? = null,
-    val innsendelser: List<InnsendelserISakDTO>,
+    val søknader: List<SøknadISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
     val utgåendeDokumenter: List<DokumentDTO>,
 )
 
-data class InnsendelserISakDTO(
+data class SøknadISakDTO(
     val søknadId: UUID,
-    val innsendelsestype: Innsendelsestype,
-    val k9FormatInnsendelse: Innsending? = null,
+    val søknadstype: Søknadstype,
+    val k9FormatSøknad: Søknad,
     val dokumenter: List<DokumentDTO>,
-    val arbeidsgivere: List<Organisasjon>? = null
+    val arbeidsgivere: List<Organisasjon>? = null,
 )
 
-enum class Innsendelsestype {
+enum class Søknadstype {
     SØKNAD, ETTERSENDELSE, ENDRINGSMELDING, UKJENT,
 }
 
