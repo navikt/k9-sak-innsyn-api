@@ -26,9 +26,9 @@ data class PleietrengendeDTO(
     val aktørId: String,
 
     // Navn vil kunne være null hvis søker ikke har omsorgen for pleietrengende.
-    val fornavn: String?,
+    val fornavn: String? = null,
     val mellomnavn: String? = null,
-    val etternavn: String?,
+    val etternavn: String? = null,
 )
 
 data class SakDTO(
