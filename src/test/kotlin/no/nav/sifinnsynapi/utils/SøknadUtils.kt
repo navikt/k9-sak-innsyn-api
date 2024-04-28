@@ -55,7 +55,8 @@ fun defaultPsbSøknadInnholdHendelse(
             søknadsPeriode = søknadsPeriode,
             arbeidstid = arbeidstid,
             tilsynsordning = tilsynsordning
-        )
+        ),
+        null
     )
 )
 
