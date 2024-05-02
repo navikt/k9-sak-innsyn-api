@@ -125,8 +125,9 @@ class CommonKafkaConfig {
 
                 when (hendelse.data) {
                     is PsbSøknadsinnhold -> {
-                        MDCUtil.toMDC(Constants.SØKNAD_ID, (hendelse.data as PsbSøknadsinnhold).søknad.søknadId.id)
-                        MDCUtil.toMDC(Constants.JOURNALPOST_ID, (hendelse.data as PsbSøknadsinnhold).journalpostId)
+                        val innsending = (hendelse.data as PsbSøknadsinnhold)
+                        MDCUtil.toMDC(Constants.SØKNAD_ID, innsending.søknad?.søknadId?.id ?: innsending.ettersendelse?.søknadId?.id)
+                        MDCUtil.toMDC(Constants.JOURNALPOST_ID, innsending.journalpostId)
                     }
                     is SøknadTrukket -> {
                         MDCUtil.toMDC(Constants.JOURNALPOST_ID, (hendelse.data as SøknadTrukket).journalpostId)
