@@ -21,4 +21,5 @@ data class EttersendelseDAO(
     override fun toString(): String {
         return "EttersendelseDAO(journalpostId=$journalpostId, opprettetDato=$opprettetDato, oppdatertDato=$oppdatertDato)"
     }
+
 }
