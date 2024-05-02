@@ -1,6 +1,9 @@
 package no.nav.sifinnsynapi.konsument.k9sak
 
-import no.nav.k9.innsyn.*
+import no.nav.k9.innsyn.InnsynHendelse
+import no.nav.k9.innsyn.Omsorg
+import no.nav.k9.innsyn.PsbSøknadsinnhold
+import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
@@ -8,6 +11,7 @@ import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadService
 import org.slf4j.LoggerFactory
@@ -127,8 +131,22 @@ class K9SakHendelseKonsument(
     private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
         logger.info("Innsynhendelse mappet til PsbSøknadsinnhold.")
 
-        logger.trace("Lagrer PsbSøknadsinnhold med journalpostId: {}...", innsynHendelse.data.journalpostId)
-        søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
+        val data = innsynHendelse.data
+        logger.trace("Lagrer PsbSøknadsinnhold med journalpostId: {}...", data.journalpostId)
+
+        if (data.søknad != null && data.ettersendelse != null) {
+            logger.warn("Både søknad og ettersendelse er satt! Forventet kun ene")
+        }
+
+        if (data.søknad != null) {
+            logger.info("Lagerer søknad")
+            søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
+        }
+        if (data.ettersendelse != null) {
+            logger.info("Lagrer ettersendelse")
+            søknadService.lagreEttersendelse(innsynHendelse.somEttersendelseDAO())
+        }
+
         logger.trace("PsbSøknadsinnhold lagret.")
     }
 
@@ -174,6 +192,16 @@ private fun InnsynHendelse<PsbSøknadsinnhold>.somPsbSøknadDAO() = PsbSøknadDA
     søkerAktørId = data.søkerAktørId,
     pleietrengendeAktørId = data.pleietrengendeAktørId,
     søknad = JsonUtils.toString(data.søknad),
+    opprettetDato = ZonedDateTime.now(UTC),
+    oppdatertDato = oppdateringstidspunkt
+)
+
+
+private fun InnsynHendelse<PsbSøknadsinnhold>.somEttersendelseDAO() = EttersendelseDAO(
+    journalpostId = data.journalpostId,
+    søkerAktørId = data.søkerAktørId,
+    pleietrengendeAktørId = data.pleietrengendeAktørId,
+    ettersendelse = JsonUtils.toString(data.ettersendelse),
     opprettetDato = ZonedDateTime.now(UTC),
     oppdatertDato = oppdateringstidspunkt
 )

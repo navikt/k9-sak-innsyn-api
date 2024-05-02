@@ -5,6 +5,8 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import no.nav.k9.ettersendelse.Ettersendelse
+import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
@@ -16,7 +18,9 @@ import no.nav.sifinnsynapi.config.kafka.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.oppslag.*
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.soknad.SøknadService
 import no.nav.sifinnsynapi.utils.*
@@ -336,6 +340,26 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val søknad = søknadRepository.findById(journalpostId)
             assertTrue(søknad.isEmpty)
+        }
+
+    }
+
+    @Test
+    fun `Gitt hendelse om ny ettersendelse, forvent at den lagres`() {
+        val journalpostId = "1"
+
+        val psbSøknadInnholdHendelse = psbSøknadInnholdHendelseMedEttersendelse(
+            journalpostId = journalpostId,
+            søkerAktørId = hovedSøkerAktørId,
+            pleiepetrengendeAktørId = barn1AktørId
+        )
+        k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
+
+        await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
+            val dao = søknadService.hentEttersendelser(journalpostId).first().ettersendelse
+            val ettersendelse = JsonUtils.fromString(dao, Ettersendelse::class.java)
+
+            assertNotNull(ettersendelse)
         }
 
     }

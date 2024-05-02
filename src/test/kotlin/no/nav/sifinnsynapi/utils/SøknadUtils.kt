@@ -4,6 +4,10 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.k9.ettersendelse.Ettersendelse
+import no.nav.k9.ettersendelse.EttersendelseType
+import no.nav.k9.ettersendelse.Pleietrengende
+import no.nav.k9.ettersendelse.Ytelse
 import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
@@ -55,6 +59,24 @@ fun defaultPsbSøknadInnholdHendelse(
             søknadsPeriode = søknadsPeriode,
             arbeidstid = arbeidstid,
             tilsynsordning = tilsynsordning
+        ),
+        null
+    )
+)
+
+fun psbSøknadInnholdHendelseMedEttersendelse(
+    søknadId: UUID = UUID.randomUUID(),
+    oppdateringsTidspunkt: ZonedDateTime = ZonedDateTime.now(UTC),
+    journalpostId: String = "1",
+    søkerAktørId: String = "1",
+    pleiepetrengendeAktørId: String = "2"
+) = InnsynHendelse(
+    oppdateringsTidspunkt,
+    PsbSøknadsinnhold(
+        journalpostId, søkerAktørId, pleiepetrengendeAktørId,
+        null,
+        defaultEttersendelse(
+            søknadId = søknadId,
         )
     )
 )
@@ -98,6 +120,21 @@ fun defaultSøknad(
     .medMottattDato(mottattDato)
     .medVersjon(Versjon.of("1.0.0"))
     .medYtelse(ytelse)
+
+fun defaultEttersendelse(
+    søknadId: UUID = UUID.randomUUID(),
+    søkersIdentitetsnummer: String = "14026223262",
+    pleietrengendeIdentitetsnummer: String = "24026223267",
+    mottattDato: ZonedDateTime = ZonedDateTime.now()
+): Ettersendelse = Ettersendelse.builder()
+    .søknadId(SøknadId(søknadId.toString()))
+    .søker(Søker(NorskIdentitetsnummer.of(søkersIdentitetsnummer)))
+    .mottattDato(mottattDato)
+    .ytelse(Ytelse.PLEIEPENGER_SYKT_BARN)
+    .pleietrengende(Pleietrengende(NorskIdentitetsnummer.of(pleietrengendeIdentitetsnummer)))
+    .type(EttersendelseType.LEGEERKLÆRING)
+    .build()
+
 
 fun defaultPleiepengerSyktBarn(
     søknadsPeriode: Periode = Periode(LocalDate.now().plusDays(5), LocalDate.now().plusDays(5)),
