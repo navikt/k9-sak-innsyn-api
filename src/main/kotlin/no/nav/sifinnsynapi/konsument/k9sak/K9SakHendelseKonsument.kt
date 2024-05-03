@@ -14,7 +14,10 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.util.Constants
+import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
@@ -83,21 +86,28 @@ class K9SakHendelseKonsument(
                 logger.info("Mapper om innsynhendelse...")
                 val innsynHendelse =
                     JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
-
-                when (innsynHendelse.data) {
-                    is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
-                    is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
-                    is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
-                    is Behandling -> håndterBehandling(innsynHendelse as InnsynHendelse<Behandling>)
+                try {
+                    when (innsynHendelse.data) {
+                        is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
+                        is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
+                        is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
+                        is Behandling -> håndterBehandling(innsynHendelse as InnsynHendelse<Behandling>)
+                    }
+                } finally {
+                    slettMDC()
                 }
             }
         }
     }
 
-    private fun håndterBehandling(innsynHendelse: InnsynHendelse<Behandling>) {
-        logger.info("Innsynhendelse mappet til Behandling.")
 
+
+
+    private fun håndterBehandling(innsynHendelse: InnsynHendelse<Behandling>) {
         val behandling = innsynHendelse.data
+        settOppMdcBehandling(behandling)
+
+        logger.info("Innsynhendelse mappet til Behandling.")
         logger.trace("Lagrer Behandling med behandlingsId: {}...", behandling.behandlingsId)
 
         val resultat = gyldigBehandling(innsynHendelse)
@@ -120,18 +130,23 @@ class K9SakHendelseKonsument(
     private data class Validering(val ok: Boolean, val forklaring: String? = null)
 
     private fun håndterSøknadTrukket(innsynHendelse: InnsynHendelse<SøknadTrukket>) {
+        val data = innsynHendelse.data
+        settOppMdcSøknadTrukket(data)
+
         logger.info("Innsynhendelse mappet til SøknadTrukket.")
 
-        val journalpostId = innsynHendelse.data.journalpostId
+        val journalpostId = data.journalpostId
         logger.trace("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
         if (søknadService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
         else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
     }
 
     private fun håndterPsbSøknadsInnhold(innsynHendelse: InnsynHendelse<PsbSøknadsinnhold>) {
+        val data = innsynHendelse.data
+        settOppMdcSøknad(data)
+
         logger.info("Innsynhendelse mappet til PsbSøknadsinnhold.")
 
-        val data = innsynHendelse.data
         logger.trace("Lagrer PsbSøknadsinnhold med journalpostId: {}...", data.journalpostId)
 
         if (data.søknad != null && data.ettersendelse != null) {
@@ -171,6 +186,30 @@ class K9SakHendelseKonsument(
                 logger.trace("Omsorg lagret.")
             }
         }
+    }
+
+    private fun settOppMdcBehandling(behandling: Behandling) {
+        MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
+        MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
+    }
+
+    private fun settOppMdcSøknadTrukket(søknadTrukket: SøknadTrukket) {
+        MDCUtil.toMDC(Constants.JOURNALPOST_ID, søknadTrukket.journalpostId)
+    }
+
+    private fun settOppMdcSøknad(innsending: PsbSøknadsinnhold) {
+        MDCUtil.toMDC(
+            Constants.SØKNAD_ID,
+            innsending.søknad?.søknadId?.id ?: innsending.ettersendelse?.søknadId?.id
+        )
+        MDCUtil.toMDC(Constants.JOURNALPOST_ID, innsending.journalpostId)
+    }
+
+    private fun slettMDC() {
+        MDC.remove(Constants.BEHANDLING_ID)
+        MDC.remove(Constants.SAKSNUMMER)
+        MDC.remove(Constants.JOURNALPOST_ID)
+        MDC.remove(Constants.SØKNAD_ID)
     }
 }
 
