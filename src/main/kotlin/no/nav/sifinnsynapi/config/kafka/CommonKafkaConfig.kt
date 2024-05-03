@@ -120,31 +120,6 @@ class CommonKafkaConfig {
             factory.setRecordInterceptor { record: ConsumerRecord<String, String>, consumer: Consumer<String, String> ->
                 MDCUtil.toMDC(Constants.NAV_CONSUMER_ID, clientId)
                 logger.loggAntallForsøk(record)
-
-                val hendelse = JsonUtils.fromString(record.value(), InnsynHendelse::class.java) as InnsynHendelse<*>
-
-                when (hendelse.data) {
-                    is PsbSøknadsinnhold -> {
-                        val innsending = (hendelse.data as PsbSøknadsinnhold)
-                        MDCUtil.toMDC(Constants.SØKNAD_ID, innsending.søknad?.søknadId?.id ?: innsending.ettersendelse?.søknadId?.id)
-                        MDCUtil.toMDC(Constants.JOURNALPOST_ID, innsending.journalpostId)
-                    }
-                    is SøknadTrukket -> {
-                        MDCUtil.toMDC(Constants.JOURNALPOST_ID, (hendelse.data as SøknadTrukket).journalpostId)
-                    }
-                    is Omsorg -> {
-                        // ingen info vi kan legge til i MDC.
-                    }
-                    is Behandling -> {
-                        val behandling = hendelse.data as Behandling
-                        MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
-                        MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
-                    }
-                    else -> {
-                        throw IllegalStateException("Ukjent data type på InnsynHendelse: ${hendelse.data.javaClass}")
-                    }
-                }
-
                 record
             }
 
