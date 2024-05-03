@@ -4,7 +4,9 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.ninjasquad.springmockk.MockkBean
+import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.felles.type.Periode
@@ -14,6 +16,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.SifInnsynApiApplication
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sifinnsynapi.config.kafka.Topics
 import no.nav.sifinnsynapi.config.kafka.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
@@ -82,6 +85,9 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
     @Autowired
     lateinit var omsorgService: OmsorgService
+
+    @SpykBean
+    lateinit var k9SakHendelseKonsument: K9SakHendelseKonsument
 
     @MockkBean(relaxed = true)
     lateinit var oppslagsService: OppslagsService
@@ -361,6 +367,114 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
             assertNotNull(ettersendelse)
         }
-
     }
+
+    @Test
+    fun `Konsumering av hendelse som feiler skal forsøkes på nytt`() {
+        val hendelse = hendelseMedBådeSøknadOgEttersendelse()
+        k9SakProducer.leggPåTopic(hendelse, Topics.K9_SAK_TOPIC)
+
+        // Forvent at det som ble persistert blir rullet tilbake. Venter i 60 sekunder eller til verifiseringen er gjort.
+        verify(atLeast = 3, timeout = 60_000) { k9SakHendelseKonsument.konsumer(any()) }
+    }
+
+    // language=json
+    private fun hendelseMedBådeSøknadOgEttersendelse() = """
+                {
+                  "data" : {
+                    "type" : "PSB_SØKNADSINNHOLD",
+                    "ettersendelse" : {
+                        "mottattDato" : "2024-05-03T09:28:21.201Z",
+                        "søker" : {
+                            "norskIdentitetsnummer" : "14026223262"
+                        },
+                        "søknadId" : "67bcff24-82ec-47d9-a39b-2dae93c9bf64",
+                        "ytelse" : "PLEIEPENGER_SYKT_BARN"
+                    },
+                    "journalpostId" : "1",
+                    "pleietrengendeAktørId" : "22222222222",
+                    "søkerAktørId" : "11111111111",
+                    "søknad" : {
+                      "mottattDato" : "2024-05-03T09:28:21.201Z",
+                      "språk" : "nb",
+                      "søker" : {
+                        "norskIdentitetsnummer" : "14026223262"
+                      },
+                      "søknadId" : "67bcff24-82ec-47d9-a39b-2dae93c9bf64",
+                      "versjon" : "1.0.0",
+                      "ytelse" : {
+                        "type" : "PLEIEPENGER_SYKT_BARN",
+                        "annetDataBruktTilUtledning" : null,
+                        "arbeidstid" : {
+                          "arbeidstakerList" : [ {
+                            "arbeidstidInfo" : {
+                              "perioder" : {
+                                "2021-08-01/2021-10-11" : {
+                                  "faktiskArbeidTimerPerDag" : "PT4H",
+                                  "jobberNormaltTimerPerDag" : "PT8H"
+                                }
+                              }
+                            },
+                            "norskIdentitetsnummer" : null,
+                            "organisasjonsnavn" : null,
+                            "organisasjonsnummer" : "987654321"
+                          } ],
+                          "frilanserArbeidstidInfo" : null,
+                          "selvstendigNæringsdrivendeArbeidstidInfo" : null
+                        },
+                        "barn" : {
+                          "fødselsdato" : null,
+                          "norskIdentitetsnummer" : "21121879023"
+                        },
+                        "beredskap" : {
+                          "perioder" : { },
+                          "perioderSomSkalSlettes" : { }
+                        },
+                        "bosteder" : {
+                          "perioder" : { },
+                          "perioderSomSkalSlettes" : { }
+                        },
+                        "dataBruktTilUtledning" : null,
+                        "endringsperiode" : [ ],
+                        "infoFraPunsj" : null,
+                        "lovbestemtFerie" : {
+                          "perioder" : { }
+                        },
+                        "nattevåk" : {
+                          "perioder" : { },
+                          "perioderSomSkalSlettes" : { }
+                        },
+                        "omsorg" : {
+                          "beskrivelseAvOmsorgsrollen" : null,
+                          "relasjonTilBarnet" : null
+                        },
+                        "opptjeningAktivitet" : { },
+                        "søknadsperiode" : [ "2024-05-08/2024-05-08" ],
+                        "tilsynsordning" : {
+                          "perioder" : { }
+                        },
+                        "trekkKravPerioder" : [ ],
+                        "utenlandsopphold" : {
+                          "perioder" : { },
+                          "perioderSomSkalSlettes" : { }
+                        },
+                        "uttak" : {
+                          "perioder" : { }
+                        }
+                      },
+                      "begrunnelseForInnsending" : {
+                        "tekst" : null
+                      },
+                      "journalposter" : [ {
+                        "inneholderInfomasjonSomIkkeKanPunsjes" : null,
+                        "inneholderInformasjonSomIkkeKanPunsjes" : null,
+                        "inneholderMedisinskeOpplysninger" : null,
+                        "journalpostId" : "123456789"
+                      } ],
+                      "kildesystem" : null
+                    }
+                  },
+                  "oppdateringstidspunkt" : "2024-05-03T09:28:21.193Z"
+                }
+            """.trimIndent()
 }
