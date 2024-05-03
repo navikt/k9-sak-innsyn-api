@@ -49,7 +49,8 @@ fun defaultPsbSøknadInnholdHendelse(
     pleiepetrengendeAktørId: String = "2",
     søknadsPeriode: Periode = Periode(LocalDate.now().plusDays(5), LocalDate.now().plusDays(5)),
     arbeidstid: Arbeidstid? = null,
-    tilsynsordning: Tilsynsordning? = null
+    tilsynsordning: Tilsynsordning? = null,
+    ettersendelse: Ettersendelse? = null
 ) = InnsynHendelse<PsbSøknadsinnhold>(
     oppdateringsTidspunkt,
     PsbSøknadsinnhold(
@@ -60,7 +61,7 @@ fun defaultPsbSøknadInnholdHendelse(
             arbeidstid = arbeidstid,
             tilsynsordning = tilsynsordning
         ),
-        null
+        ettersendelse
     )
 )
 
