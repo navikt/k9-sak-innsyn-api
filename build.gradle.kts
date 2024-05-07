@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.2.5"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("io.spring.dependency-management") version "1.1.5"
     id("com.expediagroup.graphql") version "7.1.1"
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.spring") version "1.9.23"
@@ -34,7 +34,7 @@ val awailitilityKotlinVersion = "4.2.1"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.10"
-val guavaVersion = "33.1.0-jre"
+val guavaVersion = "33.2.0-jre"
 val orgJsonVersion = "20240303"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
