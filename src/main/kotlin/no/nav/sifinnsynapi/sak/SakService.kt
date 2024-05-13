@@ -66,8 +66,11 @@ class SakService(
             }
             .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
 
-        if(pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
-            loggNyesteBehandling("Pleietrengende med behandlinger var tomt, men søker hadde behandlinger", behandlingerSupplier)
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+            loggNyesteBehandling(
+                "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
+                behandlingerSupplier
+            )
             return emptyList()
         }
 
@@ -167,34 +170,39 @@ class SakService(
         val søknaderISak: List<InnsendelserISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .filterKeys { innsendingInfo ->
-                //TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
-                innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
+                when (innsendingInfo.type) {
+                    InnsendingType.SØKNAD -> innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
+                    InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(innsendingInfo.journalpostId) != null
+                }
             } // Filtrer bort søknader som ikke finnes
-            .map { (søknad, dokumenter) ->
-                val k9FormatSøknad =
-                    søknad.mapTilK9Format()!!  // verifisert at søknad finnes ovenfor
-                val søknadId = k9FormatSøknad.søknadId.id
+            .map { (innsendingInfo, dokumenter) ->
+                val k9FormatInnsending = innsendingInfo.mapTilK9Format()!!  // verifisert at innsendingInfo finnes ovenfor
+                val søknadId = k9FormatInnsending.søknadId.id
 
-                val legacySøknad = if (søkersDokmentoversikt.inneholder(søknad)) {
+                val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
                     kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
                 } else {
-                    logger.info("Ignorerer søknad med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                    logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
                     null
                 }
 
                 val innsendelsestype = utledSøknadsType(
-                    k9FormatSøknad = k9FormatSøknad,
+                    k9FormatSøknad = k9FormatInnsending,
                     søknadId = søknadId,
                     legacySøknad = legacySøknad
                 )
 
-                val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
+                val arbeidsgivere = when (k9FormatInnsending) {
+                    is Søknad -> utledArbeidsgivere(legacySøknad, k9FormatInnsending)
+                    is Ettersendelse -> null
+                    else -> throw error("Ukjent type av innsending")
+                }
 
                 InnsendelserISakDTO(
                     søknadId = UUID.fromString(søknadId),
                     innsendelsestype = innsendelsestype,
                     arbeidsgivere = arbeidsgivere,
-                    k9FormatInnsending = k9FormatSøknad,
+                    k9FormatInnsending = k9FormatInnsending,
                     dokumenter = dokumenter
                 )
             }
@@ -262,6 +270,7 @@ class SakService(
                     else -> throw error("Ukjent kildesystem $ks")
                 }
             }
+
             is Ettersendelse -> return Innsendelsestype.ETTERSENDELSE
             else -> throw error("Ukjent type av innsending")
         }
@@ -293,13 +302,14 @@ class SakService(
             pleietrengendesBehandlinger
         }
 
-    private fun InnsendingInfo.mapTilK9Format(): Søknad? {
-        // TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
-        /*innsendingService.hentEttersendelse(journalpostId)
-            ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }*/
+    private fun InnsendingInfo.mapTilK9Format(): Innsending? {
+        return when (type) {
+            InnsendingType.SØKNAD -> innsendingService.hentSøknad(journalpostId)
+                ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
-        return innsendingService.hentSøknad(journalpostId)
-            ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+            InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(journalpostId)
+                ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }
+        }
     }
 
     private fun BarnOppslagDTO.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor: List<String>): PleietrengendeDTO {
