@@ -134,11 +134,11 @@ class SakService(
         val behandlingsId = behandling.behandlingsId
         val saksnummer = behandling.fagsak.saksnummer
 
-        if (behandling.søknader.isEmpty()) {
+        if (behandling.innsendinger.isEmpty()) {
             logger.info("Ignorerer behandling={} for sak={} fordi søknader er tom", behandlingsId, saksnummer)
             return true
         }
-        if (behandling.søknader.all { it.kildesystem == Kildesystem.PUNSJ }) {
+        if (behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj",
                 behandlingsId,
@@ -147,7 +147,7 @@ class SakService(
             return true
         }
 
-        if (søkersDokmentoversikt.none { dok -> behandling.søknader.any { s -> dok.journalpostId == s.journalpostId } }) {
+        if (søkersDokmentoversikt.none { dok -> behandling.innsendinger.any { s -> dok.journalpostId == s.journalpostId } }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder ingen støttet dokument fra dokumentoversikt. " +
                         "Sannsynligvis skyldes det at søknad innholder kun punsj, men før kildesystem ble innført ",
@@ -164,11 +164,11 @@ class SakService(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
-        val søknaderISak: List<InnsendelserISakDTO> = behandling.søknader
+        val søknaderISak: List<InnsendelserISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .filterKeys { søknad ->
+            .filterKeys { innsendingInfo ->
                 //TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
-                innsendingService.hentSøknad(søknad.journalpostId) != null
+                innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
             } // Filtrer bort søknader som ikke finnes
             .map { (søknad, dokumenter) ->
                 val k9FormatSøknad =
@@ -213,7 +213,7 @@ class SakService(
         )
     }
 
-    private fun List<DokumentDTO>.inneholder(søknad: SøknadInfo) = any { it.journalpostId == søknad.journalpostId }
+    private fun List<DokumentDTO>.inneholder(søknad: InnsendingInfo) = any { it.journalpostId == søknad.journalpostId }
 
     private fun utledArbeidsgivere(
         legacySøknad: LegacySøknadDTO?,
@@ -272,8 +272,8 @@ class SakService(
         return SaksbehandlingtidDTO(saksbehandlingstidUker = saksbehandlingstidUker)
     }
 
-    private fun MutableSet<SøknadInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>): Map<SøknadInfo, List<DokumentDTO>> =
-        associateWith { søknadInfo: SøknadInfo ->
+    private fun MutableSet<InnsendingInfo>.medTilhørendeDokumenter(søkersDokmentoversikt: List<DokumentDTO>): Map<InnsendingInfo, List<DokumentDTO>> =
+        associateWith { søknadInfo: InnsendingInfo ->
             val dokumenterTilknyttetSøknad =
                 søkersDokmentoversikt.filter { dokument -> dokument.journalpostId == søknadInfo.journalpostId }
             logger.info("Fant ${dokumenterTilknyttetSøknad.size} dokumenter knyttet til søknaden med journalpostId ${søknadInfo.journalpostId}.")
@@ -293,7 +293,7 @@ class SakService(
             pleietrengendesBehandlinger
         }
 
-    private fun SøknadInfo.mapTilK9Format(): Søknad? {
+    private fun InnsendingInfo.mapTilK9Format(): Søknad? {
         // TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
         /*innsendingService.hentEttersendelse(journalpostId)
             ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }*/

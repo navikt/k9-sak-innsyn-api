@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.sak.behandling
 
 import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.innsyn.sak.InnsendingType
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.felles.Kildesystem
 import org.slf4j.LoggerFactory
@@ -17,14 +16,13 @@ object SaksbehandlingstidUtleder {
             return null
         }
 
-        val søknader = behandling.innsendinger.filter { it.type == InnsendingType.SØKNAD }
-        val kildesystemer = søknader.filter { it.type == InnsendingType.SØKNAD }.map { it.kildesystem?.kode }
+        val kildesystemer = behandling.innsendinger.map { it.kildesystem?.kode }
         if (kildesystemer.isEmpty() || !kildesystemer.all { it == Kildesystem.SØKNADSDIALOG.kode || it == Kildesystem.ENDRINGSDIALOG.kode }) {
             log.info("beregner ikke frist for behandlinger som har dokumenter med kildesystemer={}", kildesystemer)
             return null
         }
 
-        val tidligsteMottattDato = søknader.minByOrNull { it.mottattTidspunkt }?.mottattTidspunkt
+        val tidligsteMottattDato = behandling.innsendinger.minByOrNull { it.mottattTidspunkt }?.mottattTidspunkt
 
         val saksbehandlingstid = overstyrSaksbehandlingstid ?:
         if (behandling.erUtenlands) {

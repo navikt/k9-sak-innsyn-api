@@ -44,21 +44,6 @@ class SaksbehandlingstidUtlederTest {
         assertThat(saksbehandlingsfrist).isEqualTo(tidligsteMottattTidspunkt.plusMonths(6))
     }
 
-
-    @Test
-    fun `skal regne ut saksbehandlingsfrist men ignorere ettersendelse`() {
-        val tidligsteMottattTidspunkt = LocalDate.of(2024, 1, 5).atStartOfDay(ZoneId.systemDefault())
-        val tidligsteSøknadsTidspunkt = tidligsteMottattTidspunkt.plusDays(10)
-        val behandling = lagBehandling(false, setOf(
-            lagSøknad(tidligsteSøknadsTidspunkt, Kildesystem.SØKNADSDIALOG),
-            lagEttersendelse(tidligsteMottattTidspunkt),
-            lagSøknad(tidligsteMottattTidspunkt.plusMonths(20), Kildesystem.SØKNADSDIALOG)
-        ))
-        val saksbehandlingsfrist = SaksbehandlingstidUtleder.utled(behandling)
-        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteSøknadsTidspunkt.plusWeeks(6))
-
-    }
-
     @Test
     fun `skal ikke regne ut saksbehandlingsfrist hvis inneholder punsj`() {
         val tidligsteMottattTidspunkt = LocalDate.of(2024, 1, 5).atStartOfDay(ZoneId.systemDefault())
@@ -104,10 +89,6 @@ class SaksbehandlingstidUtlederTest {
 
     private fun lagSøknad(it: ZonedDateTime, kilde: Kildesystem?  = null): InnsendingInfo {
         return InnsendingInfo(InnsendingStatus.MOTTATT, UUID.randomUUID().toString(), it, kilde, InnsendingType.SØKNAD)
-    }
-
-    private fun lagEttersendelse(mottatt: ZonedDateTime): InnsendingInfo {
-        return InnsendingInfo(InnsendingStatus.MOTTATT, UUID.randomUUID().toString(), mottatt, null, InnsendingType.ETTERSENDELSE)
     }
 
     private fun lagBehandling(erUtenlands: Boolean, søknader: Set<InnsendingInfo>): Behandling {
