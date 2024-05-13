@@ -2,7 +2,7 @@ package no.nav.sifinnsynapi.soknad
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import java.util.*
+import java.util.Optional
 
 interface EttersendelseRepository : JpaRepository<EttersendelseDAO, String> {
     @Query("""

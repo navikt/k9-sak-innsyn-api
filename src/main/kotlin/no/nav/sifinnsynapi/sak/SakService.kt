@@ -1,8 +1,10 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
+import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.konstant.Konstant
+import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
@@ -19,7 +21,7 @@ import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
-import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.soknad.InnsendingService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -34,7 +36,7 @@ class SakService(
     private val dokumentService: DokumentService,
     private val oppslagsService: OppslagsService,
     private val omsorgService: OmsorgService,
-    private val søknadService: SøknadService,
+    private val innsendingService: InnsendingService,
     private val legacyInnsynApiService: LegacyInnsynApiService,
 ) {
     private companion object {
@@ -164,10 +166,13 @@ class SakService(
     ): BehandlingDTO {
         val søknaderISak: List<InnsendelserISakDTO> = behandling.søknader
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .filterKeys { søknad -> søknadService.hentSøknad(søknad.journalpostId) != null } // Filtrer bort søknader som ikke finnes
+            .filterKeys { søknad ->
+                //TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
+                innsendingService.hentSøknad(søknad.journalpostId) != null
+            } // Filtrer bort søknader som ikke finnes
             .map { (søknad, dokumenter) ->
                 val k9FormatSøknad =
-                    søknad.hentOgMapTilK9FormatSøknad()!!  // verifisert at søknad finnes ovenfor
+                    søknad.mapTilK9Format()!!  // verifisert at søknad finnes ovenfor
                 val søknadId = k9FormatSøknad.søknadId.id
 
                 val legacySøknad = if (søkersDokmentoversikt.inneholder(søknad)) {
@@ -230,28 +235,36 @@ class SakService(
     }
 
     private fun utledSøknadsType(
-        k9FormatSøknad: Søknad,
+        k9FormatSøknad: Innsending,
         søknadId: String,
         legacySøknad: LegacySøknadDTO?,
-    ) = when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
-        null -> {
-            logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
-            when (legacySøknad?.søknadstype) {
-                LegacySøknadstype.PP_SYKT_BARN -> Innsendelsestype.SØKNAD
-                LegacySøknadstype.PP_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                LegacySøknadstype.OMS_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Innsendelsestype.ENDRINGSMELDING
-                null -> Innsendelsestype.UKJENT
+    ): Innsendelsestype {
+        return when (k9FormatSøknad) {
+            is Søknad -> {
+                when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
+                    null -> {
+                        logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
+                        when (legacySøknad?.søknadstype) {
+                            LegacySøknadstype.PP_SYKT_BARN -> Innsendelsestype.SØKNAD
+                            LegacySøknadstype.PP_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                            LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                            LegacySøknadstype.OMS_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                            LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Innsendelsestype.ENDRINGSMELDING
+                            null -> Innsendelsestype.UKJENT
+                        }
+                    }
+
+                    Kildesystem.ENDRINGSDIALOG -> Innsendelsestype.ENDRINGSMELDING
+                    Kildesystem.SØKNADSDIALOG -> Innsendelsestype.SØKNAD
+                    Kildesystem.PUNSJ -> Innsendelsestype.SØKNAD // TODO: Blir dette riktig?
+                    Kildesystem.UTLEDET -> Innsendelsestype.SØKNAD // // TODO: Blir dette riktig?
+
+                    else -> throw error("Ukjent kildesystem $ks")
+                }
             }
+            is Ettersendelse -> return Innsendelsestype.ETTERSENDELSE
+            else -> throw error("Ukjent type av innsending")
         }
-
-        Kildesystem.ENDRINGSDIALOG -> Innsendelsestype.ENDRINGSMELDING
-        Kildesystem.SØKNADSDIALOG -> Innsendelsestype.SØKNAD
-        Kildesystem.PUNSJ -> Innsendelsestype.SØKNAD // TODO: Blir dette riktig?
-        Kildesystem.UTLEDET -> Innsendelsestype.SØKNAD // // TODO: Blir dette riktig?
-
-        else -> throw error("Ukjent kildesystem $ks")
     }
 
     fun hentGenerellSaksbehandlingstid(): SaksbehandlingtidDTO {
@@ -280,8 +293,14 @@ class SakService(
             pleietrengendesBehandlinger
         }
 
-    private fun SøknadInfo.hentOgMapTilK9FormatSøknad(): Søknad? = søknadService.hentSøknad(journalpostId)
-        ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+    private fun SøknadInfo.mapTilK9Format(): Søknad? {
+        // TODO: Sjekk type på søknad og hemt deretter søknad eller etternsendelse.
+        /*innsendingService.hentEttersendelse(journalpostId)
+            ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }*/
+
+        return innsendingService.hentSøknad(journalpostId)
+            ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+    }
 
     private fun BarnOppslagDTO.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor: List<String>): PleietrengendeDTO {
         val søkerHarOmsorgenForPleietrengende = pleietrengendeSøkerHarOmsorgFor.contains(aktørId)

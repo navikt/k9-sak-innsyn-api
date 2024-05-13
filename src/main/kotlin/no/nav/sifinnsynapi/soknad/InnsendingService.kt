@@ -26,20 +26,21 @@ import java.util.stream.Stream
 
 
 @Service
-class SøknadService(
-    private val repo: SøknadRepository,
+class InnsendingService(
+    private val søknadRepository: SøknadRepository,
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService,
     private val legacyInnsynApiService: LegacyInnsynApiService,
-    private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator
+    private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator,
+    private val ettersendelseRepository: EttersendelseRepository
 ) {
 
     private companion object {
-        private val logger = LoggerFactory.getLogger(SøknadService::class.java)
+        private val logger = LoggerFactory.getLogger(InnsendingService::class.java)
     }
 
     fun hentSøknad(journalpostId: String): PsbSøknadDAO? {
-        return repo.findById(journalpostId).orElse(null)
+        return søknadRepository.findById(journalpostId).orElse(null)
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +79,7 @@ class SøknadService(
         søkersAktørId: String,
         pleietrengendeAktørId: String,
     ): Søknad? {
-        return repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
                     psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
@@ -88,12 +89,12 @@ class SøknadService(
             }
     }
 
-    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = repo.save(søknad)
+    fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)
 
     @Transactional
     fun trekkSøknad(journalpostId: String): Boolean {
-        repo.deleteById(journalpostId)
-        return !repo.existsById(journalpostId)
+        søknadRepository.deleteById(journalpostId)
+        return !søknadRepository.existsById(journalpostId)
     }
 
     private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>? = null): SøknadDTO {
@@ -141,5 +142,13 @@ class SøknadService(
         arbeidsgivernavn = funnetOrg.optString(PSBJsonUtils.ORGANISASJONSNAVN, null),
         arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
     )
+
+    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
+        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
+    }
+
+    fun lagreEttersendelse(ettersendelse: EttersendelseDAO) {
+        ettersendelseRepository.save(ettersendelse)
+    }
 }
 
