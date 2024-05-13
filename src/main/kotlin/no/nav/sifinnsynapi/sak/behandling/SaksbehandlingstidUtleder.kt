@@ -16,13 +16,13 @@ object SaksbehandlingstidUtleder {
             return null
         }
 
-        val kildesystemer = behandling.søknader.map { it.kildesystem?.kode }
+        val kildesystemer = behandling.innsendinger.map { it.kildesystem?.kode }
         if (kildesystemer.isEmpty() || !kildesystemer.all { it == Kildesystem.SØKNADSDIALOG.kode || it == Kildesystem.ENDRINGSDIALOG.kode }) {
             log.info("beregner ikke frist for behandlinger som har dokumenter med kildesystemer={}", kildesystemer)
             return null
         }
 
-        val tidligsteMottattDato = behandling.søknader.minByOrNull { it.mottattTidspunkt }?.mottattTidspunkt
+        val tidligsteMottattDato = behandling.innsendinger.minByOrNull { it.mottattTidspunkt }?.mottattTidspunkt
 
         val saksbehandlingstid = overstyrSaksbehandlingstid ?:
         if (behandling.erUtenlands) {

@@ -101,7 +101,7 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        SøknadInfo(SøknadStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     )
                 )
             ).stream()
@@ -138,7 +138,7 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        SøknadInfo(SøknadStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     )
                 )
             ).stream()
@@ -174,7 +174,7 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        SøknadInfo(SøknadStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ, InnsendingType.SØKNAD)
                     )
                 )
             ).stream()
@@ -218,7 +218,7 @@ class SakServiceTest {
         PleiepengerSyktBarn()
     )
 
-    private fun lagBehandlingDAO(søknadInfos: Set<SøknadInfo>): BehandlingDAO {
+    private fun lagBehandlingDAO(søknadInfos: Set<InnsendingInfo>): BehandlingDAO {
         return BehandlingDAO(
             UUID.randomUUID(),
             hovedSøkerAktørId,
@@ -229,7 +229,7 @@ class SakServiceTest {
             )
         }
 
-    private fun lagBehandling(søknadInfos: Set<SøknadInfo>): Behandling {
+    private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
         return Behandling(
             UUID.randomUUID(),
             ZonedDateTime.now(),
