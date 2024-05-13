@@ -162,7 +162,7 @@ class SakService(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
-        val søknaderISak: List<SøknadISakDTO> = behandling.søknader
+        val søknaderISak: List<InnsendelserISakDTO> = behandling.søknader
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .filterKeys { søknad -> søknadService.hentSøknad(søknad.journalpostId) != null } // Filtrer bort søknader som ikke finnes
             .map { (søknad, dokumenter) ->
@@ -185,11 +185,11 @@ class SakService(
 
                 val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
 
-                SøknadISakDTO(
+                InnsendelserISakDTO(
                     søknadId = UUID.fromString(søknadId),
-                    søknadstype = søknadsType,
+                    innsendelsestype = søknadsType,
                     arbeidsgivere = arbeidsgivere,
-                    k9FormatSøknad = k9FormatSøknad,
+                    k9FormatInnsending = k9FormatSøknad,
                     dokumenter = dokumenter
                 )
             }
@@ -202,7 +202,7 @@ class SakService(
             status = behandling.status,
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             avsluttetTidspunkt = behandling.avsluttetTidspunkt,
-            søknader = søknaderISak,
+            innsendelser = søknaderISak,
             utgåendeDokumenter = utgåendeDokumenterISaken,
             aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
         )
@@ -237,19 +237,19 @@ class SakService(
         null -> {
             logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
             when (legacySøknad?.søknadstype) {
-                LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
-                LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
-                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
-                LegacySøknadstype.OMS_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
-                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Søknadstype.ENDRINGSMELDING
-                null -> Søknadstype.UKJENT
+                LegacySøknadstype.PP_SYKT_BARN -> Innsendelsestype.SØKNAD
+                LegacySøknadstype.PP_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                LegacySøknadstype.OMS_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
+                LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Innsendelsestype.ENDRINGSMELDING
+                null -> Innsendelsestype.UKJENT
             }
         }
 
-        Kildesystem.ENDRINGSDIALOG -> Søknadstype.ENDRINGSMELDING
-        Kildesystem.SØKNADSDIALOG -> Søknadstype.SØKNAD
-        Kildesystem.PUNSJ -> Søknadstype.SØKNAD // TODO: Blir dette riktig?
-        Kildesystem.UTLEDET -> Søknadstype.SØKNAD // // TODO: Blir dette riktig?
+        Kildesystem.ENDRINGSDIALOG -> Innsendelsestype.ENDRINGSMELDING
+        Kildesystem.SØKNADSDIALOG -> Innsendelsestype.SØKNAD
+        Kildesystem.PUNSJ -> Innsendelsestype.SØKNAD // TODO: Blir dette riktig?
+        Kildesystem.UTLEDET -> Innsendelsestype.SØKNAD // // TODO: Blir dette riktig?
 
         else -> throw error("Ukjent kildesystem $ks")
     }
