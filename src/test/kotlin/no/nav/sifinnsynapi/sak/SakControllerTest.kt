@@ -14,6 +14,7 @@ import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.oppslag.Organisasjon
 import no.nav.sifinnsynapi.util.CallIdGenerator
+import no.nav.sifinnsynapi.utils.defaultEttersendelse
 import no.nav.sifinnsynapi.utils.defaultSøknad
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Assertions
@@ -92,7 +93,7 @@ class SakControllerTest {
 
     @Test
     fun `Gitt 200 respons, forvent korrekt format på liste av saker med tokenx token`() {
-        val søknadId = UUID.randomUUID()
+        val søknadId = UUID.fromString("e9514b88-ace4-4faa-b894-a9ef66b53e79")
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
         val tidsfrist = ZonedDateTime.parse("2024-02-05T14:50:24.318Z")
         every {
@@ -153,7 +154,37 @@ class SakControllerTest {
                                             navn = "Arbeidsgiver AS"
                                         )
                                     )
-                                )
+                                ),
+                                InnsendelserISakDTO(
+                                    søknadId = søknadId,
+                                    innsendelsestype = Innsendelsestype.ETTERSENDELSE,
+                                    k9FormatInnsending = defaultEttersendelse(
+                                        søknadId = søknadId,
+                                        søkersIdentitetsnummer = "1234567890",
+                                        pleietrengendeIdentitetsnummer = "21121879023",
+                                        mottattDato = mottattDato
+                                    ),
+                                    dokumenter = listOf(
+                                        DokumentDTO(
+                                            journalpostId = "123456789",
+                                            dokumentInfoId = "123456789",
+                                            saksnummer = Saksnummer("ABC123"),
+                                            tittel = "Ettersendelse for Søknad om pleiepenger",
+                                            dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_ETTERSENDELSE,
+                                            filtype = "PDFA",
+                                            harTilgang = true,
+                                            url = URL("http://localhost:8080/saker/123456789"),
+                                            journalposttype = Journalposttype.INNGÅENDE,
+                                            relevanteDatoer = listOf(
+                                                RelevantDatoDTO(
+                                                    dato = mottattDato.toString(),
+                                                    datotype = Datotype.DATO_OPPRETTET
+                                                )
+                                            )
+                                        )
+                                    ),
+                                    arbeidsgivere = null
+                                ),
                             ),
                             aksjonspunkter = listOf(
                                 AksjonspunktDTO(
@@ -213,17 +244,17 @@ class SakControllerTest {
                               "status": "OPPRETTET",
                               "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
                               "avsluttetTidspunkt": null,
-                              "søknader": [
+                              "innsendelser": [
                                 {
                                   "søknadId": "$søknadId",
-                                  "søknadstype": "SØKNAD",
+                                  "innsendelsestype": "SØKNAD",
                                   "arbeidsgivere": [
                                     {
                                       "organisasjonsnummer": "123456789",
                                       "navn": "Arbeidsgiver AS"
                                     }
                                   ],
-                                  "k9FormatSøknad": {
+                                  "k9FormatInnsending": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",
                                     "mottattDato": "$mottattDato",
@@ -312,6 +343,42 @@ class SakControllerTest {
                                       ]
                                     }
                                   ]
+                                },
+                                {
+                                  "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                  "innsendelsestype": "ETTERSENDELSE",
+                                  "k9FormatInnsending": {
+                                    "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                    "versjon": "0.0.1",
+                                    "mottattDato": "2024-02-06T14:50:24.318Z",
+                                    "søker": {
+                                      "norskIdentitetsnummer": "1234567890"
+                                    },
+                                    "ytelse": "PLEIEPENGER_SYKT_BARN",
+                                    "pleietrengende": {
+                                      "norskIdentitetsnummer": "21121879023"
+                                    },
+                                    "type": "LEGEERKLÆRING"
+                                  },
+                                  "dokumenter": [
+                                    {
+                                      "journalpostId": "123456789",
+                                      "dokumentInfoId": "123456789",
+                                      "saksnummer": "ABC123",
+                                      "tittel": "Ettersendelse for Søknad om pleiepenger",
+                                      "dokumentType": "PLEIEPENGER_SYKT_BARN_ETTERSENDELSE",
+                                      "filtype": "PDFA",
+                                      "harTilgang": true,
+                                      "url": "http://localhost:8080/saker/123456789",
+                                      "relevanteDatoer": [
+                                        {
+                                          "dato": "2024-02-06T14:50:24.318Z",
+                                          "datotype": "DATO_OPPRETTET"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "arbeidsgivere": null
                                 }
                               ],
                               "utgåendeDokumenter": [
