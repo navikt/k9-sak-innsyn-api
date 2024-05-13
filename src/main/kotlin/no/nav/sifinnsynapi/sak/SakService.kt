@@ -177,7 +177,7 @@ class SakService(
                     null
                 }
 
-                val søknadsType = utledSøknadsType(
+                val innsendelsestype = utledSøknadsType(
                     k9FormatSøknad = k9FormatSøknad,
                     søknadId = søknadId,
                     legacySøknad = legacySøknad
@@ -187,7 +187,7 @@ class SakService(
 
                 InnsendelserISakDTO(
                     søknadId = UUID.fromString(søknadId),
-                    innsendelsestype = søknadsType,
+                    innsendelsestype = innsendelsestype,
                     arbeidsgivere = arbeidsgivere,
                     k9FormatInnsending = k9FormatSøknad,
                     dokumenter = dokumenter
