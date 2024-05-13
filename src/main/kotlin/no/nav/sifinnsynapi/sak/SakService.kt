@@ -1,12 +1,15 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
+import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.FagsakYtelseType
-import no.nav.k9.innsyn.sak.SøknadInfo
+import no.nav.k9.innsyn.sak.InnsendingInfo
+import no.nav.k9.innsyn.sak.InnsendingType
 import no.nav.k9.konstant.Konstant
+import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
@@ -68,8 +71,11 @@ class SakService(
             }
             .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
 
-        if(pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
-            loggNyesteBehandling("Pleietrengende med behandlinger var tomt, men søker hadde behandlinger", behandlingerSupplier)
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+            loggNyesteBehandling(
+                "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
+                behandlingerSupplier
+            )
             return emptyList()
         }
 
@@ -168,32 +174,39 @@ class SakService(
     ): BehandlingDTO {
         val søknaderISak: List<SøknadISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .filterKeys { innsendingInfo -> søknadService.hentSøknad(innsendingInfo.journalpostId) != null } // Filtrer bort søknader som ikke finnes
-            .map { (søknad, dokumenter) ->
-                val k9FormatSøknad =
-                    søknad.mapTilK9Format()!!  // verifisert at søknad finnes ovenfor
-                val søknadId = k9FormatSøknad.søknadId.id
+            .filterKeys { innsendingInfo ->
+                when (innsendingInfo.type) {
+                    null, InnsendingType.SØKNAD -> søknadService.hentSøknad(innsendingInfo.journalpostId) != null
+                    InnsendingType.ETTERSENDELSE -> søknadService.hentEttersendelse(innsendingInfo.journalpostId) != null
+                }
+            } // Filtrer bort søknader som ikke finnes
+            .map { (innsendingInfo, dokumenter) ->
+                val k9FormatInnsending = innsendingInfo.mapTilK9Format()!!  // verifisert at innsendingInfo finnes ovenfor
+                val søknadId = k9FormatInnsending.søknadId.id
 
-                val legacySøknad = if (søkersDokmentoversikt.inneholder(søknad)) {
+                val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
                     kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
                 } else {
-                    logger.info("Ignorerer søknad med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                    logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
                     null
                 }
 
                 val søknadsType = utledSøknadsType(
-                    k9FormatSøknad = k9FormatSøknad,
+                    k9FormatSøknad = k9FormatInnsending,
                     søknadId = søknadId,
                     legacySøknad = legacySøknad
                 )
 
-                val arbeidsgivere = utledArbeidsgivere(legacySøknad, k9FormatSøknad)
+                val arbeidsgivere = when (k9FormatInnsending) {
+                    is Søknad -> utledArbeidsgivere(legacySøknad, k9FormatInnsending)
+                    else -> null
+                }
 
                 SøknadISakDTO(
                     søknadId = UUID.fromString(søknadId),
                     søknadstype = søknadsType,
                     arbeidsgivere = arbeidsgivere,
-                    k9FormatSøknad = k9FormatSøknad,
+                    k9FormatSøknad = k9FormatInnsending,
                     dokumenter = dokumenter
                 )
             }
@@ -237,31 +250,32 @@ class SakService(
         k9FormatSøknad: Innsending,
         søknadId: String,
         legacySøknad: LegacySøknadDTO?,
-    ): Innsendelsestype {
+    ): Søknadstype {
         return when (k9FormatSøknad) {
             is Søknad -> {
                 when (val ks = k9FormatSøknad.kildesystem.getOrNull()) {
                     null -> {
                         logger.info("Fant ingen kildesystem for søknad med søknadId $søknadId.")
                         when (legacySøknad?.søknadstype) {
-                            LegacySøknadstype.PP_SYKT_BARN -> Innsendelsestype.SØKNAD
-                            LegacySøknadstype.PP_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.OMS_ETTERSENDELSE -> Innsendelsestype.ETTERSENDELSE
-                            LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Innsendelsestype.ENDRINGSMELDING
-                            null -> Innsendelsestype.UKJENT
+                            LegacySøknadstype.PP_SYKT_BARN -> Søknadstype.SØKNAD
+                            LegacySøknadstype.PP_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                            LegacySøknadstype.PP_LIVETS_SLUTTFASE_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                            LegacySøknadstype.OMS_ETTERSENDELSE -> Søknadstype.ETTERSENDELSE
+                            LegacySøknadstype.PP_SYKT_BARN_ENDRINGSMELDING -> Søknadstype.ENDRINGSMELDING
+                            null -> Søknadstype.UKJENT
                         }
                     }
 
-                    Kildesystem.ENDRINGSDIALOG -> Innsendelsestype.ENDRINGSMELDING
-                    Kildesystem.SØKNADSDIALOG -> Innsendelsestype.SØKNAD
-                    Kildesystem.PUNSJ -> Innsendelsestype.SØKNAD // TODO: Blir dette riktig?
-                    Kildesystem.UTLEDET -> Innsendelsestype.SØKNAD // // TODO: Blir dette riktig?
+                    Kildesystem.ENDRINGSDIALOG -> Søknadstype.ENDRINGSMELDING
+                    Kildesystem.SØKNADSDIALOG -> Søknadstype.SØKNAD
+                    Kildesystem.PUNSJ -> Søknadstype.SØKNAD // TODO: Blir dette riktig?
+                    Kildesystem.UTLEDET -> Søknadstype.SØKNAD // // TODO: Blir dette riktig?
 
                     else -> throw error("Ukjent kildesystem $ks")
                 }
             }
-            is Ettersendelse -> return Innsendelsestype.ETTERSENDELSE
+
+            is Ettersendelse -> return Søknadstype.ETTERSENDELSE
             else -> throw error("Ukjent type av innsending")
         }
     }
@@ -292,12 +306,14 @@ class SakService(
             pleietrengendesBehandlinger
         }
 
-    private fun InnsendingInfo.mapTilK9Format(): Søknad? {
-        innsendingService.hentEttersendelse(journalpostId)
-            ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }
+    private fun InnsendingInfo.mapTilK9Format(): Innsending? {
+        return when (type) {
+            null, InnsendingType.SØKNAD -> søknadService.hentSøknad(journalpostId)
+                ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
-        return innsendingService.hentSøknad(journalpostId)
-            ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+            InnsendingType.ETTERSENDELSE -> søknadService.hentEttersendelse(journalpostId)
+                ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }
+        }
     }
 
     private fun BarnOppslagDTO.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor: List<String>): PleietrengendeDTO {

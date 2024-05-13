@@ -7,7 +7,7 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.innsyn.sak.Saksnummer
-import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.felles.DtoKonstanter
 import no.nav.sifinnsynapi.oppslag.Organisasjon
 import java.net.URL
@@ -60,7 +60,7 @@ data class BehandlingDTO(
 data class SøknadISakDTO(
     val søknadId: UUID,
     val søknadstype: Søknadstype,
-    val k9FormatSøknad: Søknad,
+    val k9FormatSøknad: Innsending,
     val dokumenter: List<DokumentDTO>,
     val arbeidsgivere: List<Organisasjon>? = null,
 )

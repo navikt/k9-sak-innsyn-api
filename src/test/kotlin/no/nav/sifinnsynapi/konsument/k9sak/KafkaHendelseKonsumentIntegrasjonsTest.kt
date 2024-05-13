@@ -362,10 +362,10 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
 
         await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
-            val dao = søknadService.hentEttersendelser(journalpostId).first().ettersendelse
+            val dao = søknadService.hentEttersendelse(journalpostId)?.ettersendelse
             val ettersendelse = JsonUtils.fromString(dao, Ettersendelse::class.java)
 
-            assertNotNull(ettersendelse)
+            Assertions.assertNotNull(ettersendelse)
         }
     }
 
