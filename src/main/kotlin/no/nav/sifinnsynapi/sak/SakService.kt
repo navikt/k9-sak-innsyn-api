@@ -1,7 +1,11 @@
 package no.nav.sifinnsynapi.sak
 
 import jakarta.transaction.Transactional
-import no.nav.k9.innsyn.sak.*
+import no.nav.k9.innsyn.sak.Aksjonspunkt
+import no.nav.k9.innsyn.sak.Behandling
+import no.nav.k9.innsyn.sak.BehandlingStatus
+import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.SøknadInfo
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
