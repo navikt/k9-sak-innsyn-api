@@ -87,11 +87,11 @@ class SaksbehandlingstidUtlederTest {
         return lagBehandling(erUtenlands, collect)
     }
 
-    private fun lagSøknad(it: ZonedDateTime, kilde: Kildesystem?  = null): SøknadInfo {
-        return SøknadInfo(SøknadStatus.MOTTATT, UUID.randomUUID().toString(), it, kilde)
+    private fun lagSøknad(it: ZonedDateTime, kilde: Kildesystem?  = null): InnsendingInfo {
+        return InnsendingInfo(InnsendingStatus.MOTTATT, UUID.randomUUID().toString(), it, kilde, InnsendingType.SØKNAD)
     }
 
-    private fun lagBehandling(erUtenlands: Boolean, søknader: Set<SøknadInfo>): Behandling {
+    private fun lagBehandling(erUtenlands: Boolean, søknader: Set<InnsendingInfo>): Behandling {
         val aksjonspunkter = java.util.Set.of(
             Aksjonspunkt(Aksjonspunkt.Venteårsak.MEDISINSK_DOKUMENTASJON, ZonedDateTime.now())
         )
