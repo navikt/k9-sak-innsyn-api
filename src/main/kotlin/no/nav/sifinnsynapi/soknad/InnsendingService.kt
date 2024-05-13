@@ -26,7 +26,7 @@ import java.util.stream.Stream
 
 
 @Service
-class SøknadService(
+class InnsendingService(
     private val søknadRepository: SøknadRepository,
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService,
@@ -36,7 +36,7 @@ class SøknadService(
 ) {
 
     private companion object {
-        private val logger = LoggerFactory.getLogger(SøknadService::class.java)
+        private val logger = LoggerFactory.getLogger(InnsendingService::class.java)
     }
 
     fun hentSøknad(journalpostId: String): PsbSøknadDAO? {
@@ -143,8 +143,8 @@ class SøknadService(
         arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
     )
 
-    fun hentEttersendelser(journalpostId: String): List<EttersendelseDAO> {
-        return ettersendelseRepository.finnForJournalpost(journalpostId)
+    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
+        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
     }
 
     fun lagreEttersendelse(ettersendelse: EttersendelseDAO) {

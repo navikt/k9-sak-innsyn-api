@@ -23,7 +23,7 @@ import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
-import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.soknad.InnsendingService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -36,7 +36,7 @@ class SakServiceTest {
     val behandlingService = mockk<BehandlingService>()
     val dokumentService = mockk<DokumentService>()
     val oppslagsService = mockk<OppslagsService>()
-    val søknadService = mockk<SøknadService>()
+    val innsendingService = mockk<InnsendingService>()
     val omsorgService = mockk<OmsorgService>()
     val legacyInnsynApiService = mockk<LegacyInnsynApiService>()
 
@@ -45,7 +45,7 @@ class SakServiceTest {
         dokumentService,
         oppslagsService,
         omsorgService,
-        søknadService,
+        innsendingService,
         legacyInnsynApiService
     )
 
@@ -106,7 +106,7 @@ class SakServiceTest {
                 )
             ).stream()
         }
-        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(digitalSøknadJP))
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -143,7 +143,7 @@ class SakServiceTest {
                 )
             ).stream()
         }
-        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto("randomJP1"))
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -179,7 +179,7 @@ class SakServiceTest {
                 )
             ).stream()
         }
-        every { søknadService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(punsjsøknad)) //ikke mulig i praksis
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)

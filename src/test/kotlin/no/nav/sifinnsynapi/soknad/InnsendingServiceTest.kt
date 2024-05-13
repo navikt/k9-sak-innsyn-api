@@ -45,13 +45,13 @@ import java.util.*
 @ActiveProfiles("test")
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK) // Integrasjonstest - Kjører opp hele Spring Context med alle konfigurerte beans.
-internal class SøknadServiceTest {
+internal class InnsendingServiceTest {
 
     @Autowired
     private lateinit var søknadRepository: SøknadRepository
 
     @Autowired
-    private lateinit var søknadService: SøknadService
+    private lateinit var innsendingService: InnsendingService
 
     @Autowired
     private lateinit var omsorgRepository: OmsorgRepository
@@ -235,7 +235,7 @@ internal class SøknadServiceTest {
         )
 
         // forvent at søknadene blir slått sammen.
-        val søknad: Søknad? = søknadService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
+        val søknad: Søknad? = innsendingService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
         Assert.assertNotNull(søknad)
 
         val ytelse = søknad!!.getYtelse<PleiepengerSyktBarn>()
@@ -271,7 +271,7 @@ internal class SøknadServiceTest {
     @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
         every { oppslagsService.hentBarn() } answers { listOf() }
-        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     @Test
@@ -293,7 +293,7 @@ internal class SøknadServiceTest {
             )!!.harOmsorgen
         )
 
-        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
 
     }
 
@@ -302,7 +302,7 @@ internal class SøknadServiceTest {
         omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
-        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).size().isEqualTo(1)
+        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).size().isEqualTo(1)
     }
 
     @Test
@@ -350,7 +350,7 @@ internal class SøknadServiceTest {
         )
 
         await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
-            val bytes = søknadService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
+            val bytes = innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
             Assertions.assertNotNull(bytes)
             assertk.assertThat(bytes).isNotEmpty()
             assertk.assertThat(bytes).size().isGreaterThan(1000)
@@ -400,7 +400,7 @@ internal class SøknadServiceTest {
         )
 
         await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
-            val bytes = søknadService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
+            val bytes = innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
             Assertions.assertNotNull(bytes)
             assertk.assertThat(bytes).isNotEmpty()
             assertk.assertThat(bytes).size().isGreaterThan(1000)

@@ -38,7 +38,7 @@ import java.util.stream.Stream
 @ActiveProfiles("test")
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK) // Integrasjonstest - Kjører opp hele Spring Context med alle konfigurerte beans.
-internal class SøknadServiceMedMockRepoTest {
+internal class InnsendingServiceMedMockRepoTest {
 
     @MockkBean(relaxed = true)
     private lateinit var søknadRepository: SøknadRepository
@@ -47,7 +47,7 @@ internal class SøknadServiceMedMockRepoTest {
     private lateinit var oppslagsService: OppslagsService
 
     @Autowired
-    private lateinit var søknadService: SøknadService
+    private lateinit var innsendingService: InnsendingService
 
     @Autowired
     lateinit var omsorgRepository: OmsorgRepository
@@ -145,7 +145,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenSlåttTilsynsordning =
-            søknadService.slåSammenSøknadsopplysningerPerBarn()
+            innsendingService.slåSammenSøknadsopplysningerPerBarn()
                 .first().søknad.getYtelse<PleiepengerSyktBarn>().tilsynsordning
 
         assertResultet(
@@ -198,7 +198,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertThat(sammenslåttArbeidstid.arbeidstakerList.size).isEqualTo(1)
         assertResultet(
             faktiskArbeidstaker = sammenslåttArbeidstid.arbeidstakerList.first(),
@@ -281,7 +281,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttYtelse =
-            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+            innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
         val resultatArbeidstakere = sortertArbeidstakere(sammenslåttYtelse)
         assertThat(resultatArbeidstakere.size).isEqualTo(4)
 
@@ -370,7 +370,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.frilanserArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -423,7 +423,7 @@ internal class SøknadServiceMedMockRepoTest {
         }
 
         val sammenslåttArbeidstid =
-            søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
+            innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>().arbeidstid
         assertResultet(
             faktiskePerioder = sammenslåttArbeidstid.selvstendigNæringsdrivendeArbeidstidInfo.get().perioder,
             forventedePerioder = mapOf(
@@ -444,7 +444,7 @@ internal class SøknadServiceMedMockRepoTest {
             Stream.empty()
         }
 
-        assertThat(søknadService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     private fun psbSøknadDAO(

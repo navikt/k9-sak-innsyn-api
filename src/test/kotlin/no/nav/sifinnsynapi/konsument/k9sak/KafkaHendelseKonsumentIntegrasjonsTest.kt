@@ -25,7 +25,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.soknad.SøknadRepository
-import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.utils.*
 import org.apache.kafka.clients.producer.Producer
 import org.awaitility.kotlin.await
@@ -75,7 +75,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     lateinit var søknadRepository: SøknadRepository // Repository som brukes til databasekall.
 
     @Autowired
-    lateinit var søknadService: SøknadService
+    lateinit var innsendingService: InnsendingService
 
     @Autowired
     lateinit var restTemplate: TestRestTemplate // Restklient som brukes til å gjøre restkall mot endepunkter i appen.
@@ -189,7 +189,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
-                    søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                    innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
                 }
                     .getOrNull()
             assertNotNull(faktiskPSB)
@@ -247,7 +247,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskPSB =
                 kotlin.runCatching {
-                    søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                    innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
                 }
                     .getOrNull()
             assertThat(faktiskPSB).isNotNull()
@@ -337,7 +337,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
         await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
             val faktiskPSB =
-                søknadService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
+                innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
 
             assertNotNull(faktiskPSB)
         }
@@ -362,10 +362,10 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         k9SakProducer.leggPåTopic(psbSøknadInnholdHendelse, K9_SAK_TOPIC)
 
         await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
-            val dao = søknadService.hentEttersendelser(journalpostId).first().ettersendelse
+            val dao = innsendingService.hentEttersendelse(journalpostId)?.ettersendelse
             val ettersendelse = JsonUtils.fromString(dao, Ettersendelse::class.java)
 
-            assertNotNull(ettersendelse)
+            Assertions.assertNotNull(ettersendelse)
         }
     }
 
