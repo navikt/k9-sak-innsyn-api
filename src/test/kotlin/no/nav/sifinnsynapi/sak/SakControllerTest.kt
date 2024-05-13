@@ -116,11 +116,11 @@ class SakControllerTest {
                         BehandlingDTO(
                             status = BehandlingStatus.OPPRETTET,
                             opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
-                            søknader = listOf(
-                                SøknadISakDTO(
+                            innsendelser = listOf(
+                                InnsendelserISakDTO(
                                     søknadId = søknadId,
-                                    søknadstype = Søknadstype.SØKNAD,
-                                    k9FormatSøknad = defaultSøknad(
+                                    innsendelsestype = Innsendelsestype.SØKNAD,
+                                    k9FormatInnsending = defaultSøknad(
                                         søknadId = søknadId,
                                         søknadsPeriode = Periode("2024-01-01/2024-01-31"),
                                         søkersIdentitetsnummer = "1234567890",

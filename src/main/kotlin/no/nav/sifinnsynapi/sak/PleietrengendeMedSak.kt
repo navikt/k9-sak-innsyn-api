@@ -7,7 +7,7 @@ import no.nav.k9.innsyn.sak.Aksjonspunkt
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.innsyn.sak.Saksnummer
-import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.felles.DtoKonstanter
 import no.nav.sifinnsynapi.oppslag.Organisasjon
 import java.net.URL
@@ -52,20 +52,20 @@ data class BehandlingDTO(
         pattern = DtoKonstanter.DATO_TID_FORMAT,
         timezone = DtoKonstanter.TIDSSONE
     ) val avsluttetTidspunkt: ZonedDateTime? = null,
-    val søknader: List<SøknadISakDTO>,
+    val innsendelser: List<InnsendelserISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
     val utgåendeDokumenter: List<DokumentDTO>,
 )
 
-data class SøknadISakDTO(
+data class InnsendelserISakDTO(
     val søknadId: UUID,
-    val søknadstype: Søknadstype,
-    val k9FormatSøknad: Søknad,
+    val innsendelsestype: Innsendelsestype,
+    val k9FormatInnsending: Innsending? = null,
     val dokumenter: List<DokumentDTO>,
-    val arbeidsgivere: List<Organisasjon>? = null,
+    val arbeidsgivere: List<Organisasjon>? = null
 )
 
-enum class Søknadstype {
+enum class Innsendelsestype {
     SØKNAD, ETTERSENDELSE, ENDRINGSMELDING, UKJENT,
 }
 
