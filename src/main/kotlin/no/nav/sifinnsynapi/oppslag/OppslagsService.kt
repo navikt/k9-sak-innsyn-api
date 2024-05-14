@@ -158,6 +158,10 @@ class OppslagsService(
     }
 
     fun systemoppslagBarn(hentBarnForespørsel: HentBarnForespørsel): List<BarnOppslagDTO> {
+        if (hentBarnForespørsel.identer.isEmpty()) {
+            logger.info("Ingen barn å hente.")
+            return emptyList()
+        }
         logger.info("Henter ${hentBarnForespørsel.identer.size} barn ved systemoppslag...")
         val exchange = oppslagsKlient.exchange(
             systemBarnUrl.toUriString(),
