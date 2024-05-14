@@ -11,6 +11,7 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.finnOrganis
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.tilArbeidstakernavn
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingPDFGenerator
 import no.nav.sifinnsynapi.pdf.PleiepengerArbeidsgiverMelding
@@ -48,20 +49,20 @@ class SøknadService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.hentBarn()
-        if (barnOppslagDTOS.isEmpty()) {
-            logger.info("Fant ingen barn på søker")
-            return listOf( )
-        }
 
-        val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        if (pleietrengendeAktørIder.isEmpty()) {
+        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
+        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
             logger.info("Fant ingen pleietrengende søker har omsorgen for.")
             return listOf()
         }
-        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeAktørIder.size)
 
-        return pleietrengendeAktørIder
+        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
+        if (barnOppslagDTOS.isEmpty()) {
+            return emptyList()
+        }
+        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
+
+        return pleietrengendeSøkerHarOmsorgFor
             .mapNotNull { pleietrengendeAktørId ->
                 val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
                 if (barn != null) {

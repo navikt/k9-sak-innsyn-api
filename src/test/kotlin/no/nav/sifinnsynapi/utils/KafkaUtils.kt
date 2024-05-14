@@ -28,3 +28,10 @@ fun Producer<String, String>.leggPåTopic(hendelse: InnsynHendelse<*>, topic: St
     logger.info("Innsynshendelse lagt på topic: {}.{} med offset {}", recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset())
     return recordMetadata
 }
+
+fun Producer<String, String>.leggPåTopic(hendelse: String, topic: String): RecordMetadata {
+    logger.info("Legger innsynshendelse på topic: {}", hendelse)
+    val recordMetadata = send(ProducerRecord(topic, hendelse)).get()
+    logger.info("Innsynshendelse lagt på topic: {}.{} med offset {}", recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset())
+    return recordMetadata
+}

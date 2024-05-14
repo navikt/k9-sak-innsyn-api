@@ -23,10 +23,12 @@ data class PleietrengendeMedSak(
 data class PleietrengendeDTO(
     val identitetsnummer: String,
     val fødselsdato: LocalDate,
-    val fornavn: String,
-    val mellomnavn: String? = null,
-    val etternavn: String,
     val aktørId: String,
+
+    // Navn vil kunne være null hvis søker ikke har omsorgen for pleietrengende.
+    val fornavn: String? = null,
+    val mellomnavn: String? = null,
+    val etternavn: String? = null,
 )
 
 data class SakDTO(

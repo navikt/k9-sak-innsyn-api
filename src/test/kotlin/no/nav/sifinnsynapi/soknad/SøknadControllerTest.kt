@@ -8,6 +8,8 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.config.Issuers.AZURE
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sifinnsynapi.oppslag.Adressebeskyttelse
+import no.nav.sifinnsynapi.oppslag.AdressebeskyttelseGradering
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
@@ -96,7 +98,10 @@ class SøknadControllerTest {
                     mellomnavn = null,
                     etternavn = "Nordmann",
                     aktørId = "123",
-                    identitetsnummer = "12020567099"
+                    identitetsnummer = "12020567099",
+                    adressebeskyttelse = listOf(
+                        Adressebeskyttelse(gradering = AdressebeskyttelseGradering.STRENGT_FORTROLIG)
+                    )
                 ),
                 søknad = Søknad()
                     .medSøknadId(søknadId)
@@ -113,6 +118,7 @@ class SøknadControllerTest {
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].barn").isMap)
+            .andExpect(jsonPath("$[0].barn.adressebeskyttelse").doesNotExist())
             .andExpect(jsonPath("$[0].søknad").isMap)
             .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
     }

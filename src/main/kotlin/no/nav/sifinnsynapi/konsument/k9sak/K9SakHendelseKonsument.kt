@@ -151,6 +151,7 @@ class K9SakHendelseKonsument(
 
         if (data.søknad != null && data.ettersendelse != null) {
             logger.warn("Både søknad og ettersendelse er satt! Forventet kun ene")
+            throw IllegalStateException("Både søknad og ettersendelse er satt! Forventet kun en.")
         }
 
         if (data.søknad != null) {

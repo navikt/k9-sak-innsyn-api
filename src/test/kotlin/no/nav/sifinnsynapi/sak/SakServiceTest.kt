@@ -17,6 +17,7 @@ import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
@@ -58,7 +59,7 @@ class SakServiceTest {
     @BeforeEach
     fun setUp() {
         every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.hentBarn() } returns listOf(
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
             BarnOppslagDTO(
                 aktørId = barn1AktørId,
                 fødselsdato = LocalDate.parse("2005-02-12"),
@@ -84,7 +85,19 @@ class SakServiceTest {
         val digitalSøknadJP = "journalpostId1"
 
         every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
@@ -109,7 +122,19 @@ class SakServiceTest {
         val digitalSøknadJP = "journalpostId1"
 
         every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(
@@ -133,7 +158,19 @@ class SakServiceTest {
         val punsjsøknad = "journalpostId1"
 
         every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
-        every { behandlingService.hentBehandlinger(any(), any(), any()) } answers {
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
                     setOf(

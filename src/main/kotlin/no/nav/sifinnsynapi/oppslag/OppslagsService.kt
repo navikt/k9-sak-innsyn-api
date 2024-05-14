@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.oppslag
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -58,6 +59,10 @@ class OppslagsService(
         val identerUrl = UriComponentsBuilder
             .fromUriString("/system/hent-identer")
             .build()
+
+        val systemBarnUrl = UriComponentsBuilder
+            .fromUriString("/system/hent-barn")
+            .build()
     }
 
     fun hentSøker(): SøkerOppslagRespons? {
@@ -66,36 +71,6 @@ class OppslagsService(
         logger.info("Fikk response {} for oppslag av søker.", exchange.statusCode)
 
         return exchange.body
-    }
-
-    fun hentBarn(): List<BarnOppslagDTO> {
-        logger.info("Slår opp barn...")
-        val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
-        logger.info("Fikk response {} fra oppslag av barn.", exchange.statusCode)
-
-        return exchange.body?.barn ?: listOf()
-    }
-
-    fun hentIdenter(hentIdenterForespørsel: HentIdenterForespørsel): List<HentIdenterRespons> {
-        return kotlin.runCatching {
-            logger.info("Henter identer...")
-            oppslagsKlient.exchange(
-                identerUrl.toUriString(),
-                HttpMethod.POST,
-                HttpEntity(hentIdenterForespørsel),
-                object : ParameterizedTypeReference<List<HentIdenterRespons>>() {})
-        }.fold(
-            onSuccess = {response: ResponseEntity<List<HentIdenterRespons>> ->
-                logger.info("Fikk response {} for oppslag av hentIdenter.", response.statusCode)
-                response.body!!
-            },
-            onFailure = { error: Throwable ->
-                if (error is RestClientException) {
-                    logger.error("Feilet ved henting av identer. Feilmelding: {}", error.message)
-                }
-                throw error
-            }
-        )
     }
 
     @Recover
@@ -113,7 +88,55 @@ class OppslagsService(
     @Recover
     private fun recover(error: ResourceAccessException): SøkerOppslagRespons? {
         logger.error("{}", error.message)
-        throw IllegalStateException("Timout ved henting av søkers personinformasjon")
+        throw IllegalStateException("Timeout ved henting av søkers personinformasjon")
+    }
+
+    fun hentBarn(): List<BarnOppslagDTO> {
+        logger.info("Slår opp barn...")
+        val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
+        logger.info("Fikk response {} fra oppslag av barn.", exchange.statusCode)
+
+        return exchange.body?.barn ?: listOf()
+    }
+
+    @Recover
+    private fun recoverBarn(error: HttpServerErrorException): List<BarnOppslagDTO> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${barnUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved henting av søkers barn")
+    }
+
+    @Recover
+    private fun recoverBarn(error: HttpClientErrorException): List<BarnOppslagDTO> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved henting av søkers barn")
+    }
+
+    @Recover
+    private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO> {
+        logger.error("{}", error.message)
+        throw IllegalStateException("Timeout ved henting av søkers barn")
+    }
+
+    fun hentIdenter(hentIdenterForespørsel: HentIdenterForespørsel): List<HentIdenterRespons> {
+        return kotlin.runCatching {
+            logger.info("Henter identer...")
+            oppslagsKlient.exchange(
+                identerUrl.toUriString(),
+                HttpMethod.POST,
+                HttpEntity(hentIdenterForespørsel),
+                object : ParameterizedTypeReference<List<HentIdenterRespons>>() {})
+        }.fold(
+            onSuccess = { response: ResponseEntity<List<HentIdenterRespons>> ->
+                logger.info("Fikk response {} for oppslag av hentIdenter.", response.statusCode)
+                response.body!!
+            },
+            onFailure = { error: Throwable ->
+                if (error is RestClientException) {
+                    logger.error("Feilet ved henting av identer. Feilmelding: {}", error.message)
+                }
+                throw error
+            }
+        )
     }
 
     @Recover
@@ -134,29 +157,70 @@ class OppslagsService(
         throw IllegalStateException("Feil ved henting av identer.")
     }
 
-    @Recover
-    private fun recoverBarn(error: HttpServerErrorException): List<BarnOppslagDTO> {
-        logger.error("Error response = '${error.responseBodyAsString}' fra '${barnUrl.toUriString()}'")
-        throw IllegalStateException("Feil ved henting av søkers barn")
+    fun systemoppslagBarn(hentBarnForespørsel: HentBarnForespørsel): List<BarnOppslagDTO> {
+        logger.info("Henter ${hentBarnForespørsel.identer.size} barn ved systemoppslag...")
+        val exchange = oppslagsKlient.exchange(
+            systemBarnUrl.toUriString(),
+            HttpMethod.POST,
+            HttpEntity(hentBarnForespørsel),
+            object : ParameterizedTypeReference<List<SystemoppslagBarn>>() {})
+
+        val barnOppslagDTOS = exchange.body?.map {
+            BarnOppslagDTO(
+                fødselsdato = it.pdlBarn.fødselsdato,
+                fornavn = it.pdlBarn.fornavn,
+                mellomnavn = it.pdlBarn.mellomnavn,
+                etternavn = it.pdlBarn.etternavn,
+                aktørId = it.aktørId.value,
+                identitetsnummer = it.pdlBarn.ident.value,
+                adressebeskyttelse = it.pdlBarn.adressebeskyttelse
+            )
+        }
+
+        if (barnOppslagDTOS.isNullOrEmpty()) {
+            logger.info("Fant ingen barn ved systemoppslag.")
+        }
+
+        val (ikkeAdressebeskyttet, adressebeskyttet) = (barnOppslagDTOS ?: listOf()).partition { it.ikkeErAdressebeskyttet() }
+        if (adressebeskyttet.isNotEmpty()) {
+            logger.info("Filtererte ut ${adressebeskyttet.size} barn med adressebeskyttelse.")
+        }
+
+        return ikkeAdressebeskyttet
     }
 
     @Recover
-    private fun recoverBarn(error: HttpClientErrorException): List<BarnOppslagDTO> {
-        logger.error("Error response = '${error.responseBodyAsString}' fra '${søkerUrl.toUriString()}'")
-        throw IllegalStateException("Feil ved henting av søkers barn")
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: HttpServerErrorException,
+    ): List<BarnOppslagDTO> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${systemBarnUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 
     @Recover
-    private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO> {
-        logger.error("{}", error.message)
-        throw IllegalStateException("Timout ved henting av søkers barn")
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: HttpClientErrorException,
+    ): List<BarnOppslagDTO> {
+        logger.error("Error response = '${error.responseBodyAsString}' fra '${systemBarnUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved systemoppslag av barn")
+    }
+
+    @Recover
+    fun systemoppslagBarn(
+        hentBarnForespørsel: HentBarnForespørsel,
+        error: ResourceAccessException,
+    ): List<BarnOppslagDTO> {
+        logger.error("'${error.message}' ved systemkall mot '${systemBarnUrl.toUriString()}'")
+        throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 }
 
 data class SøkerOppslagRespons(
     @JsonAlias("aktør_id") val aktørId: String,
 
-) {
+    ) {
     override fun toString(): String {
         return "SøkerOppslagRespons(aktør_id='******')"
     }
@@ -168,9 +232,13 @@ data class HentIdenterForespørsel(
     val identGrupper: List<IdentGruppe>,
 )
 
+data class HentBarnForespørsel(
+    val identer: List<String>,
+)
+
 data class HentIdenterRespons(
     val ident: String,
-    val identer: List<Ident>
+    val identer: List<Ident>,
 )
 
 data class Ident(val ident: String, val gruppe: IdentGruppe)
@@ -186,13 +254,55 @@ data class BarnOppslagDTO(
     val etternavn: String,
     @JsonAlias("aktør_id") val aktørId: String,
     val identitetsnummer: String? = null,
+    internal @JsonIgnore val adressebeskyttelse: List<Adressebeskyttelse> = emptyList(),
 ) {
     override fun toString(): String {
         return "BarnOppslagDTO(fødselsdato='******', fornavn='******', mellomnavn='******', etternavn='******', aktør_id='******', identitetsnummer='******')"
     }
+
+    fun ikkeErAdressebeskyttet(): Boolean {
+        return (adressebeskyttelse.isEmpty()) || (adressebeskyttelse.none {
+            it.gradering == AdressebeskyttelseGradering.STRENGT_FORTROLIG_UTLAND
+                    || it.gradering == AdressebeskyttelseGradering.STRENGT_FORTROLIG
+                    || it.gradering == AdressebeskyttelseGradering.FORTROLIG
+        })
+    }
 }
 
-class Organisasjon (
+data class Adressebeskyttelse(
+    val gradering: AdressebeskyttelseGradering,
+)
+
+enum class AdressebeskyttelseGradering {
+    STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG, UGRADERT
+}
+
+data class SystemoppslagBarn(
+    val aktørId: PdlBarnIdent,
+    val pdlBarn: PdlBarn,
+)
+
+data class PdlBarn(
+    val fornavn: String,
+    val mellomnavn: String?,
+    val etternavn: String,
+    val forkortetNavn: String?,
+    val fødselsdato: LocalDate,
+    val ident: PdlBarnIdent,
+    val adressebeskyttelse: List<Adressebeskyttelse> = emptyList(),
+) {
+    override fun toString(): String {
+        return "PdlBarn(fornavn='$*****', mellomnavn='$*****', etternavn='$*****', forkortetNavn='$*****', fødselsdato=$*****, ident=$ident)"
+    }
+}
+
+data class PdlBarnIdent(val value: String) {
+    override fun toString(): String {
+        return "PdlBarnIdent(value='******')"
+    }
+}
+
+class Organisasjon(
     val organisasjonsnummer: String,
-    val navn: String?
+    val navn: String?,
 )
