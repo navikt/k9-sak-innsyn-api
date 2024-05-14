@@ -171,7 +171,7 @@ class SakService(
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .filterKeys { innsendingInfo ->
                 when (innsendingInfo.type) {
-                    InnsendingType.SØKNAD -> innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
+                    null, InnsendingType.SØKNAD -> innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
                     InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(innsendingInfo.journalpostId) != null
                 }
             } // Filtrer bort søknader som ikke finnes
