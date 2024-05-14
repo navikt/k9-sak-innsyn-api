@@ -202,7 +202,7 @@ class SakService(
                     søknadId = UUID.fromString(søknadId),
                     innsendelsestype = innsendelsestype,
                     arbeidsgivere = arbeidsgivere,
-                    k9FormatInnsending = k9FormatInnsending,
+                    k9FormatInnsendelse = k9FormatInnsending,
                     dokumenter = dokumenter
                 )
             }
