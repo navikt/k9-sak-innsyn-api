@@ -121,7 +121,7 @@ class SakControllerTest {
                                 InnsendelserISakDTO(
                                     søknadId = søknadId,
                                     innsendelsestype = Innsendelsestype.SØKNAD,
-                                    k9FormatInnsending = defaultSøknad(
+                                    k9FormatInnsendelse = defaultSøknad(
                                         søknadId = søknadId,
                                         søknadsPeriode = Periode("2024-01-01/2024-01-31"),
                                         søkersIdentitetsnummer = "1234567890",
@@ -158,7 +158,7 @@ class SakControllerTest {
                                 InnsendelserISakDTO(
                                     søknadId = søknadId,
                                     innsendelsestype = Innsendelsestype.ETTERSENDELSE,
-                                    k9FormatInnsending = defaultEttersendelse(
+                                    k9FormatInnsendelse = defaultEttersendelse(
                                         søknadId = søknadId,
                                         søkersIdentitetsnummer = "1234567890",
                                         pleietrengendeIdentitetsnummer = "21121879023",
@@ -254,7 +254,7 @@ class SakControllerTest {
                                       "navn": "Arbeidsgiver AS"
                                     }
                                   ],
-                                  "k9FormatInnsending": {
+                                  "k9FormatInnsendelse": {
                                     "søknadId": "$søknadId",
                                     "versjon": "1.0.0",
                                     "mottattDato": "$mottattDato",
@@ -347,7 +347,7 @@ class SakControllerTest {
                                 {
                                   "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
                                   "innsendelsestype": "ETTERSENDELSE",
-                                  "k9FormatInnsending": {
+                                  "k9FormatInnsendelse": {
                                     "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
                                     "versjon": "0.0.1",
                                     "mottattDato": "2024-02-06T14:50:24.318Z",

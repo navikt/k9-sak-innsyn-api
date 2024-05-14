@@ -60,7 +60,7 @@ data class BehandlingDTO(
 data class InnsendelserISakDTO(
     val søknadId: UUID,
     val innsendelsestype: Innsendelsestype,
-    val k9FormatInnsending: Innsending? = null,
+    val k9FormatInnsendelse: Innsending? = null,
     val dokumenter: List<DokumentDTO>,
     val arbeidsgivere: List<Organisasjon>? = null
 )

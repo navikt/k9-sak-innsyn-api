@@ -120,7 +120,7 @@ class SwaggerConfiguration(
                                       "navn": "Arbeidsgiver AS"
                                     }
                                   ],
-                                  "k9FormatInnsending": {
+                                  "k9FormatInnsendelse": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",
                                     "mottattDato": "2024-02-06T14:50:24.318Z",
@@ -213,7 +213,7 @@ class SwaggerConfiguration(
                                 {
                                   "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
                                   "innsendelsestype": "ETTERSENDELSE",
-                                  "k9FormatInnsending": {
+                                  "k9FormatInnsendelse": {
                                     "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
                                     "versjon": "0.0.1",
                                     "mottattDato": "2024-02-06T14:50:24.318Z",
