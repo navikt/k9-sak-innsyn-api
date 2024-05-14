@@ -304,7 +304,7 @@ class SakService(
 
     private fun InnsendingInfo.mapTilK9Format(): Innsending? {
         return when (type) {
-            InnsendingType.SØKNAD -> innsendingService.hentSøknad(journalpostId)
+            null, InnsendingType.SØKNAD -> innsendingService.hentSøknad(journalpostId)
                 ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
 
             InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(journalpostId)
