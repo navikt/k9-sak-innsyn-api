@@ -167,45 +167,9 @@ class SakService(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
-        val søknaderISak: List<InnsendelserISakDTO> = behandling.innsendinger
+        val innsendelserISak: List<InnsendelserISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .filterKeys { innsendingInfo ->
-                when (innsendingInfo.type) {
-                    null, InnsendingType.SØKNAD -> innsendingService.hentSøknad(innsendingInfo.journalpostId) != null
-                    InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(innsendingInfo.journalpostId) != null
-                }
-            } // Filtrer bort søknader som ikke finnes
-            .map { (innsendingInfo, dokumenter) ->
-                val k9FormatInnsending = innsendingInfo.mapTilK9Format()!!  // verifisert at innsendingInfo finnes ovenfor
-                val søknadId = k9FormatInnsending.søknadId.id
-
-                val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
-                    kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
-                } else {
-                    logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
-                    null
-                }
-
-                val innsendelsestype = utledSøknadsType(
-                    k9FormatSøknad = k9FormatInnsending,
-                    søknadId = søknadId,
-                    legacySøknad = legacySøknad
-                )
-
-                val arbeidsgivere = when (k9FormatInnsending) {
-                    is Søknad -> utledArbeidsgivere(legacySøknad, k9FormatInnsending)
-                    is Ettersendelse -> null
-                    else -> throw error("Ukjent type av innsending")
-                }
-
-                InnsendelserISakDTO(
-                    søknadId = UUID.fromString(søknadId),
-                    innsendelsestype = innsendelsestype,
-                    arbeidsgivere = arbeidsgivere,
-                    k9FormatInnsendelse = k9FormatInnsending,
-                    dokumenter = dokumenter
-                )
-            }
+            .medTilhørendeInnsendelser(søkersDokmentoversikt)
 
         val utgåendeDokumenterISaken = søkersDokmentoversikt
             // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
@@ -215,11 +179,48 @@ class SakService(
             status = behandling.status,
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             avsluttetTidspunkt = behandling.avsluttetTidspunkt,
-            innsendelser = søknaderISak,
+            innsendelser = innsendelserISak,
             utgåendeDokumenter = utgåendeDokumenterISaken,
             aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
         )
     }
+
+    private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =
+        mapNotNull { (innsendingInfo, dokumenter) ->
+            val k9FormatInnsending = innsendingInfo.mapTilK9Format()
+            if (k9FormatInnsending == null) {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den ikke finnes.")
+                return@mapNotNull null
+            }
+
+            val søknadId = k9FormatInnsending.søknadId.id
+            val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
+                kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+            } else {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                null
+            }
+
+            val innsendelsestype = utledSøknadsType(
+                k9FormatSøknad = k9FormatInnsending,
+                søknadId = søknadId,
+                legacySøknad = legacySøknad
+            )
+
+            val arbeidsgivere = when (k9FormatInnsending) {
+                is Søknad -> utledArbeidsgivere(legacySøknad, k9FormatInnsending)
+                is Ettersendelse -> null
+                else -> throw error("Ukjent type av innsending")
+            }
+
+            InnsendelserISakDTO(
+                søknadId = UUID.fromString(søknadId),
+                innsendelsestype = innsendelsestype,
+                arbeidsgivere = arbeidsgivere,
+                k9FormatInnsendelse = k9FormatInnsending,
+                dokumenter = dokumenter
+            )
+        }
 
     private fun List<DokumentDTO>.inneholder(søknad: InnsendingInfo) = any { it.journalpostId == søknad.journalpostId }
 
