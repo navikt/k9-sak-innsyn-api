@@ -42,7 +42,7 @@ class K9SakService(
     private val k9SakKlient: RestTemplate,
 ): ReactiveHealthIndicator {
     private companion object {
-        private val logger: Logger = LoggerFactory.getLogger(OppslagsService::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(K9SakService::class.java)
 
         private val hentSisteGyldigeVedtakForAktorIdUrl = "/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
     }
