@@ -1,4 +1,4 @@
-package no.nav.sifinnsynapi.oppslag
+package no.nav.sifinnsynapi.k9sak
 
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
@@ -18,28 +18,23 @@ import org.springframework.web.client.RestTemplate
 import java.time.Duration
 
 @Configuration
-class OppslagsKlientKonfig(
-    @Value("\${no.nav.gateways.k9-selvbetjening-oppslag}") private val oppslagsUrl: String,
+class K9SakKlientKonfig(
+    @Value("\${no.nav.gateways.k9-sak}") private val k9SakUrl: String,
     oauth2Config: ClientConfigurationProperties,
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
 ) {
 
     private companion object {
-        val logger: Logger = LoggerFactory.getLogger(OppslagsKlientKonfig::class.java)
+        val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
 
-        const val TOKEN_X_K9_SELVBETJENING_OPPSLAG = "tokenx-k9-selvbetjening-oppslag"
-        const val AZURE_K9_SELVBETJENING_OPPSLAG = "azure-k9-selvbetjening-oppslag"
+        const val AZURE_K9_SAK = "azure-k9-sak"
     }
 
-    private val tokenxK9SelvbetjeningOppslagClientProperties =
-        oauth2Config.registration[TOKEN_X_K9_SELVBETJENING_OPPSLAG]
-            ?: throw RuntimeException("could not find oauth2 client config for $TOKEN_X_K9_SELVBETJENING_OPPSLAG")
+    private val azureK9SakClientProperties =
+        oauth2Config.registration[AZURE_K9_SAK]
+            ?: throw RuntimeException("could not find oauth2 client config for $AZURE_K9_SAK")
 
-    private val azureK9SelvbetjeningOppslagClientProperties =
-        oauth2Config.registration[AZURE_K9_SELVBETJENING_OPPSLAG]
-            ?: throw RuntimeException("could not find oauth2 client config for $AZURE_K9_SELVBETJENING_OPPSLAG")
-
-    @Bean(name = ["k9OppslagsKlient"])
+    @Bean(name = ["k9SakKlient"])
     fun restTemplate(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
@@ -48,8 +43,7 @@ class OppslagsKlientKonfig(
             .setConnectTimeout(Duration.ofSeconds(20))
             .setReadTimeout(Duration.ofSeconds(20))
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
-            .rootUri(oppslagsUrl)
+            .rootUri(k9SakUrl)
             .defaultMessageConverters()
             .interceptors(bearerTokenInterceptor(), mdcInterceptor)
             .build()
@@ -59,16 +53,12 @@ class OppslagsKlientKonfig(
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
-                request.uri.path.contains("/system") -> {
-                    oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties).accessToken?.let {
-                        request.headers.setBearerAuth(it)
-                    }?: throw SecurityException("Accesstoken er null")
-                }
+
 
                 else -> {
-                    oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties).accessToken?.let {
+                    oAuth2AccessTokenService.getAccessToken(azureK9SakClientProperties).accessToken?.let {
                         request.headers.setBearerAuth(it)
-                    }?: throw SecurityException("Accesstoken er null")
+                    }?: throw SecurityException("Access token er null")
                 }
             }
             execution.execute(request, body)
