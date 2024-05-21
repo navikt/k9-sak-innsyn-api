@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
-import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
+import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.util.Constants
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
@@ -54,7 +54,7 @@ class LegacyInnsynApiServiceTest {
         fun restTemplate(
             builder: RestTemplateBuilder,
             tokenInterceptor: BearerTokenClientHttpRequestInterceptor,
-            mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor,
+            mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
         ): RestTemplate {
             return builder
                 .setConnectTimeout(Duration.ofSeconds(20))

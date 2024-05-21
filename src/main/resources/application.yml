@@ -3,7 +3,8 @@ no.nav:
     vendor: k9
     product: k9-sak-innsyn-api
   gateways:
-    k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json: # Settes i nais/<cluster>.json
+    k9-selvbetjening-oppslag: # Settes i nais/<cluster>.json
+    k9-sak: # Settes i nais/<cluster>.json
     saf-selvbetjening-base-url: # Settes i nais/<cluster>.json
     sif-innsyn-api-base-url: # Settes i nais/<cluster>.json
 

@@ -7,7 +7,7 @@ import assertk.assertions.isNotNull
 import assertk.assertions.size
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
-import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
+import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.utils.stubSystemoppslagForHentBarn
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ internal class OppslagsServiceTest {
         fun restTemplate(
             builder: RestTemplateBuilder,
             tokenInterceptor: BearerTokenClientHttpRequestInterceptor,
-            mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor,
+            mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
         ): RestTemplate {
             return builder
                 .setConnectTimeout(Duration.ofSeconds(20))

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.actuate.health.ReactiveHealthIndicator
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
@@ -19,6 +21,7 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 
 @Service
@@ -34,7 +37,7 @@ import java.time.LocalDate
 class OppslagsService(
     @Qualifier("k9OppslagsKlient")
     private val oppslagsKlient: RestTemplate,
-) {
+): ReactiveHealthIndicator {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(OppslagsService::class.java)
 
@@ -218,6 +221,15 @@ class OppslagsService(
     ): List<BarnOppslagDTO> {
         logger.error("'${error.message}' ved systemkall mot '${systemBarnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved systemoppslag av barn")
+    }
+
+    override fun health(): Mono<Health> {
+        return try {
+            oppslagsKlient.exchange("/isalive", HttpMethod.GET, null, String::class.java)
+            Mono.just(Health.up().withDetail("k9-selvbetjening-oppslag", "HEALTHY AND ALIVE").build())
+        } catch (exception: HttpServerErrorException) {
+            Mono.just(Health.down(exception).withDetail("k9-selvbetjening-oppslag", "UNHEALTHY AND DEAD").build())
+        }
     }
 }
 
