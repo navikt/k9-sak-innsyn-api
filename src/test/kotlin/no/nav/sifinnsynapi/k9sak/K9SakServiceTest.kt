@@ -27,6 +27,11 @@ internal class K9SakServiceTest {
     @Autowired
     lateinit var k9SakService: K9SakService
 
+    private companion object {
+        private val omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl =
+            "/k9-sak-mock/k9/sak/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
+    }
+
     @Test
     fun `k9-sak svarer som forventet`() {
         val aktør = AktørId("1234")
@@ -80,9 +85,7 @@ internal class K9SakServiceTest {
 
         WireMock.verify(
             3,
-            postRequestedFor(
-                urlEqualTo("/k9-sak-mock/k9/sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak")
-            )
+            postRequestedFor(urlEqualTo(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
         )
     }
 
@@ -114,16 +117,14 @@ internal class K9SakServiceTest {
 
         WireMock.verify(
             1,
-            postRequestedFor(
-                urlEqualTo("/k9-sak-mock/k9/sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak")
-            )
+            postRequestedFor(urlEqualTo(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
         )
     }
 
 
     private fun stubK9Sak(aktørId: AktørId, pleietrengendeAktørId: AktørId, status: Int, responseBody: String) {
         WireMock.stubFor(
-            WireMock.post(WireMock.urlPathMatching("/k9-sak-mock/k9/sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"))
+            WireMock.post(WireMock.urlPathMatching(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
                 .withHeader("Authorization", WireMock.matching(".*"))
                 .withRequestBody(
                     WireMock.equalToJson(

@@ -44,7 +44,7 @@ class K9SakService(
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(K9SakService::class.java)
 
-        private val hentSisteGyldigeVedtakForAktorIdUrl = "/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
+        private val hentSisteGyldigeVedtakForAktorIdUrl = "/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
     }
 
     fun hentSisteGyldigeVedtakForAktorId(
