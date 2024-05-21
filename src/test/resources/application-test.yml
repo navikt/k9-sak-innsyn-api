@@ -1,7 +1,7 @@
 no.nav:
   gateways:
     k9-selvbetjening-oppslag: http://localhost:${wiremock.server.port}/k9-selvbetjening-oppslag-mock
-    k9-sak: http://localhost:${wiremock.server.port}/k9-sak-mock/k9
+    k9-sak: http://localhost:${wiremock.server.port}/k9-sak-mock/k9/sak
     saf-selvbetjening-base-url: http://localhost:${wiremock.server.port}/saf-selvbetjening-graphql-mock
     sif-innsyn-api-base-url: http://localhost:${wiremock.server.port}/sif-innsyn-api-base-url-mock
   security:

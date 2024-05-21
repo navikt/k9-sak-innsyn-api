@@ -7,6 +7,8 @@ import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.actuate.health.ReactiveHealthIndicator
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -20,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
+import reactor.core.publisher.Mono
 import java.net.URI
 import java.time.LocalDate
 
@@ -37,7 +40,7 @@ import java.time.LocalDate
 class K9SakService(
     @Qualifier("k9SakKlient")
     private val k9SakKlient: RestTemplate,
-) {
+): ReactiveHealthIndicator {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(OppslagsService::class.java)
 
@@ -85,6 +88,15 @@ class K9SakService(
         logger.error("Fikk en ResourceAccessException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
         val message = exception.message.orEmpty()
         throw K9SakException(message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    override fun health(): Mono<Health> {
+        return try {
+            k9SakKlient.exchange("/internal/health/isAlive", HttpMethod.GET, null, String::class.java)
+            Mono.just(Health.up().withDetail("k9-sak", "HEALTHY AND ALIVE").build())
+        } catch (exception: HttpServerErrorException) {
+            Mono.just(Health.down(exception).withDetail("k9-sak", "UNHEALTHY AND DEAD").build())
+        }
     }
 }
 
