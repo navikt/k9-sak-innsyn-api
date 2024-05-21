@@ -58,7 +58,7 @@
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening.prod-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "prod-fss:teamdokumenthandtering:safselvbetjening",
 
-    "NO_NAV_GATEWAYS_K9_SAK": "https://k9-sak.prod-fss-pub.nais.io",
+    "NO_NAV_GATEWAYS_K9_SAK": "https://k9-sak.prod-fss-pub.nais.io/k9",
     "K9_SAK_AZURE_AUDIENCE": "api://prod-fss.k9saksbehandling.k9-sak/.default",
 
     "NO_NAV_GATEWAYS_SIF_INNSYN_API_BASE_URL": "http://sif-innsyn-api",
