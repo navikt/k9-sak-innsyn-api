@@ -2,9 +2,7 @@ package no.nav.sifinnsynapi.oppslag
 
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
-import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
-import no.nav.sifinnsynapi.util.Constants.X_CORRELATION_ID
-import no.nav.sifinnsynapi.util.MDCUtil
+import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -18,7 +16,6 @@ import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
-import java.util.*
 
 @Configuration
 class OppslagsKlientKonfig(
@@ -45,7 +42,7 @@ class OppslagsKlientKonfig(
     @Bean(name = ["k9OppslagsKlient"])
     fun restTemplate(
         builder: RestTemplateBuilder,
-        mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor,
+        mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
         return builder
             .setConnectTimeout(Duration.ofSeconds(20))

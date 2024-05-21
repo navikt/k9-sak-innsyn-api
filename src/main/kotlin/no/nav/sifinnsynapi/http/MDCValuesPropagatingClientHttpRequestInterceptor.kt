@@ -17,7 +17,7 @@ import java.io.IOException
 
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
-class MDCValuesPropagatingClienHttpRequesInterceptor : ClientHttpRequestInterceptor {
+class MDCValuesPropagatingClientHttpRequestInterceptor : ClientHttpRequestInterceptor {
     @Throws(IOException::class)
     override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution): ClientHttpResponse {
         propagerFraMDC(request, CORRELATION_ID, NAV_CONSUMER_ID)

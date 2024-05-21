@@ -2,7 +2,7 @@ package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
-import no.nav.sifinnsynapi.http.MDCValuesPropagatingClienHttpRequesInterceptor
+import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -36,7 +36,7 @@ class LegacyInnsynApiClientConfig(
     @Bean(name = ["sifInnsynApiClient"])
     fun restTemplate(
         builder: RestTemplateBuilder,
-        mdcInterceptor: MDCValuesPropagatingClienHttpRequesInterceptor
+        mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor
     ): RestTemplate {
         return builder
             .setConnectTimeout(Duration.ofSeconds(20))
