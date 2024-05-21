@@ -64,5 +64,6 @@
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/v2.0"
   },
   "slack-channel": "sif-alerts",
-  "slack-notify-type": "<!here> | k9-sak-innsyn-api | "
+  "slack-notify-type": "<!here> | k9-sak-innsyn-api | ",
+  "environment": "prod"
 }
