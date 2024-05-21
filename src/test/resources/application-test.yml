@@ -30,7 +30,16 @@ no.nav:
             scope: api://dev-fss:dusseldorf:k9-selvbetjening-oppslag
             authentication:
               client-auth-method: private_key_jwt
-              client-id: dev-gcp:dusseldorf:sif-innsyn-api
+              client-id: dev-gcp:dusseldorf:k9-sak-innsyn-api
+              client-jwk: src/test/resources/private_jwk.json
+
+          azure-k9-sak:
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/oauth2/v2.0/token
+            grant-type: client_credentials
+            scope: api://dev-fss:k9saksbehandling:k9-sak
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: dev-gcp:dusseldorf:k9-sak-innsyn-api
               client-jwk: src/test/resources/private_jwk.json
 
           tokenx-safselvbetjening:

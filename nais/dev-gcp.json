@@ -22,7 +22,8 @@
   },
   "externalHosts": [
     "login.microsoftonline.com",
-    "safselvbetjening-q1.dev-fss-pub.nais.io"
+    "safselvbetjening-q1.dev-fss-pub.nais.io",
+    "k9-sak.dev-fss-pub.nais.io"
   ],
   "inboundRules": [
     {
@@ -60,6 +61,9 @@
     "NO_NAV_GATEWAYS_K9_SELVBETJENING_OPPSLAG": "http://k9-selvbetjening-oppslag",
     "K9_SELVBETJENING_OPPSLAG_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:k9-selvbetjening-oppslag",
     "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://dev-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
+
+    "NO_NAV_GATEWAYS_K9_SAK": "https://k9-sak.dev-fss-pub.nais.io",
+    "K9_SAK_AZURE_AUDIENCE": "api://dev-fss.k9saksbehandling.k9-sak/.default",
 
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening-q1.dev-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "dev-fss:teamdokumenthandtering:safselvbetjening-q1",
