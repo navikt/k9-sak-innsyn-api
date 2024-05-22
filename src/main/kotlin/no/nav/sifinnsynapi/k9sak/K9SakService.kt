@@ -3,7 +3,6 @@ package no.nav.sifinnsynapi.k9sak
 import com.fasterxml.jackson.annotation.JsonFormat
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
-import no.nav.sifinnsynapi.oppslag.OppslagsService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -61,7 +60,7 @@ class K9SakService(
     }
 
     @Recover
-    fun hentSisteGyldigeVedtakForAktorId(
+    private fun hentSisteGyldigeVedtakForAktorId(
         exception: HttpClientErrorException,
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
@@ -71,7 +70,7 @@ class K9SakService(
     }
 
     @Recover
-    fun hentSisteGyldigeVedtakForAktorId(
+    private fun hentSisteGyldigeVedtakForAktorId(
         exception: HttpServerErrorException.InternalServerError,
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
@@ -81,7 +80,7 @@ class K9SakService(
     }
 
     @Recover
-    fun hentSisteGyldigeVedtakForAktorId(
+    private fun hentSisteGyldigeVedtakForAktorId(
         exception: ResourceAccessException,
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
