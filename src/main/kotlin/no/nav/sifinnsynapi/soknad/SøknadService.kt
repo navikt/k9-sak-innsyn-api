@@ -142,13 +142,12 @@ class SøknadService(
         arbeidsgivernavn = funnetOrg.optString(PSBJsonUtils.ORGANISASJONSNAVN, null),
         arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
     )
-
-    fun hentEttersendelser(journalpostId: String): List<EttersendelseDAO> {
-        return ettersendelseRepository.finnForJournalpost(journalpostId)
-    }
-
     fun lagreEttersendelse(ettersendelse: EttersendelseDAO) {
         ettersendelseRepository.save(ettersendelse)
+    }
+
+    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
+        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
     }
 }
 

@@ -9,9 +9,10 @@ import no.nav.k9.innsyn.sak.BehandlingResultat
 import no.nav.k9.innsyn.sak.BehandlingStatus
 import no.nav.k9.innsyn.sak.Fagsak
 import no.nav.k9.innsyn.sak.FagsakYtelseType
+import no.nav.k9.innsyn.sak.InnsendingInfo
+import no.nav.k9.innsyn.sak.InnsendingStatus
+import no.nav.k9.innsyn.sak.InnsendingType
 import no.nav.k9.innsyn.sak.Saksnummer
-import no.nav.k9.innsyn.sak.SøknadInfo
-import no.nav.k9.innsyn.sak.SøknadStatus
 import no.nav.k9.søknad.JsonUtils
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
@@ -171,7 +172,7 @@ class SakServiceITest {
                     pleietrengendeAktørId = barn1AktørId,
                     saksnummer = saksnummer,
                     behandling = JsonUtils.toString(lagBehandling(setOf(
-                        SøknadInfo(SøknadStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
                 )
@@ -230,7 +231,7 @@ class SakServiceITest {
                     pleietrengendeAktørId = barn1AktørId,
                     saksnummer = saksnummer,
                     behandling = JsonUtils.toString(lagBehandling(setOf(
-                        SøknadInfo(SøknadStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
                 )
@@ -288,7 +289,7 @@ class SakServiceITest {
         Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(6)
     }
 
-    private fun lagBehandling(søknadInfos: Set<SøknadInfo>): Behandling {
+    private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
         return Behandling(
             UUID.randomUUID(),
             ZonedDateTime.now(),

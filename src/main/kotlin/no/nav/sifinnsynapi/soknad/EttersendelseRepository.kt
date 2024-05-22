@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.soknad
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import java.util.*
 
 interface EttersendelseRepository : JpaRepository<EttersendelseDAO, String> {
     @Query("""
@@ -9,5 +10,5 @@ interface EttersendelseRepository : JpaRepository<EttersendelseDAO, String> {
             where e.journalpostId = :journalpostId  
             order by e.oppdatertDato asc 
     """)
-    fun finnForJournalpost(journalpostId: String): List<EttersendelseDAO>
+    fun finnForJournalpost(journalpostId: String): Optional<EttersendelseDAO>
 }
