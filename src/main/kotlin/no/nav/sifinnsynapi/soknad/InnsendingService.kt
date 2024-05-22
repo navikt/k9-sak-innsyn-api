@@ -143,12 +143,12 @@ class InnsendingService(
         arbeidstakernavn = getJSONObject(PSBJsonUtils.SØKER).tilArbeidstakernavn()
     )
 
-    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
-        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
-    }
-
     fun lagreEttersendelse(ettersendelse: EttersendelseDAO) {
         ettersendelseRepository.save(ettersendelse)
+    }
+
+    fun hentEttersendelse(journalpostId: String): EttersendelseDAO? {
+        return ettersendelseRepository.finnForJournalpost(journalpostId).orElse(null)
     }
 }
 

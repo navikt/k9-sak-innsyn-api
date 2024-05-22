@@ -171,6 +171,7 @@ class SakService(
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .medTilhørendeInnsendelser(søkersDokmentoversikt)
 
+
         val utgåendeDokumenterISaken = søkersDokmentoversikt
             // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
             .filter { it.journalposttype == Journalposttype.UTGÅENDE }
