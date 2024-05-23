@@ -39,7 +39,7 @@ import java.time.LocalDate
 class K9SakService(
     @Qualifier("k9SakKlient")
     private val k9SakKlient: RestTemplate,
-): ReactiveHealthIndicator {
+) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(K9SakService::class.java)
 
@@ -88,15 +88,6 @@ class K9SakService(
         val message = exception.message.orEmpty()
         throw K9SakException(message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    override fun health(): Mono<Health> {
-        return try {
-            k9SakKlient.exchange("/internal/health/isAlive", HttpMethod.GET, null, String::class.java)
-            Mono.just(Health.up().withDetail("k9-sak", "HEALTHY AND ALIVE").build())
-        } catch (exception: HttpServerErrorException) {
-            Mono.just(Health.down(exception).withDetail("k9-sak", "UNHEALTHY AND DEAD").build())
-        }
-    }
 }
 
 data class HentSisteGyldigeVedtakForAktorIdDto(
@@ -106,9 +97,9 @@ data class HentSisteGyldigeVedtakForAktorIdDto(
 
 data class HentSisteGyldigeVedtakForAktorIdResponse(
     val harInnvilgedeBehandlinger: Boolean,
-    val saksnummer: Saksnummer,
+    val saksnummer: Saksnummer?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    val vedtaksdato: LocalDate
+    val vedtaksdato: LocalDate?
 )
 
 class K9SakException(
