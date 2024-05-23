@@ -58,6 +58,31 @@ internal class K9SakServiceTest {
     }
 
     @Test
+    fun `k9-sak svarer med ingen behandling funnet`() {
+        val aktør = AktørId("1234")
+        val pleietrengendeAktør = AktørId("2345")
+
+        stubK9Sak(
+            aktør, pleietrengendeAktør, 200,
+            // language=JSON
+            """
+            { 
+              "harInnvilgedeBehandlinger": false,            
+              "saksnummer": null,
+              "vedtaksdato": null
+            }
+            """.trimIndent()
+        )
+
+        k9SakService.hentSisteGyldigeVedtakForAktorId(
+            HentSisteGyldigeVedtakForAktorIdDto(
+                aktør,
+                pleietrengendeAktør
+            )
+        )
+    }
+
+    @Test
     fun `server exceptions blir håndtert`() {
         val aktør = AktørId("1234")
         val pleietrengendeAktør = AktørId("2345")
