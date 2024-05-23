@@ -71,7 +71,7 @@ class K9SakService(
 
     @Recover
     private fun hentSisteGyldigeVedtakForAktorId(
-        exception: HttpServerErrorException.InternalServerError,
+        exception: HttpServerErrorException,
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
         logger.error("Fikk en HttpServerErrorException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
