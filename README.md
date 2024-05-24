@@ -162,6 +162,14 @@ Om man ønsker å bruke postman må man selv, lage en cookie og sette tokenet ma
 selvbetjening-idtoken=eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp.eyJzdWIiOiIwMTAxMDExMjM0NSIsImFjc.FBmVFuHI9d8akrVdAxi1dRg03qKV4EGk;
 Path=/; Domain=localhost; Expires=Fri, 18 Jun 2021 08:46:13 GMT;
 
+### Kjøre mot VTP lokalt
+
+1. Kjør opp VTP via f.eks. k9-verdikjedetest repoet
+2. Kjør k9-sak-innsyn-api databasen via docker-compose 
+` docker-compose -f docker-compose-vtp.yml up db --no-deps -d`
+3. Start SifInnsynApiApplication med profilen `vtp` og env variabler fra `docker-compose-env/vtp.env`. Variablene kan limes rett inn i Intellij Run Configuration. Alternativ, bruk docker-compose fila til å starte k9-sak-innsyn-api `docker-compose-vtp.yml`
+
+
 # 10. Drift og støtte
 
 ## Feilsøking
