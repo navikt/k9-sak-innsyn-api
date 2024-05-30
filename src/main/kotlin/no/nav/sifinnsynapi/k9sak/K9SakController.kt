@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @IkkeAktivertIProduksjon
 @RestController
 @RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4"])
+    ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
 )
 class K9SakController(
     private val k9SakService: K9SakService,
