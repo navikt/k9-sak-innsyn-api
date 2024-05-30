@@ -78,7 +78,7 @@ class SakService(
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
-        return pleietrengendeMedBehandlinger
+        val antallSaker = pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
@@ -100,6 +100,8 @@ class SakService(
                     )
                 }
             }
+        logger.info("Fant ${antallSaker.size} saker med {} behandlinger.", antallSaker.flatMap { it.sak.behandlinger }.size)
+        return antallSaker
     }
 
     private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
