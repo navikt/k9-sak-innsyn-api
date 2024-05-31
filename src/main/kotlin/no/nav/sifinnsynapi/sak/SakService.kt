@@ -198,6 +198,7 @@ class SakService(
 
             //Deaktivert til ettersendelse går i prod.
             if (k9FormatInnsending is Ettersendelse) {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
                 return@mapNotNull null
             }
 
