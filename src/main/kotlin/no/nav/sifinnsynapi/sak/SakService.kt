@@ -172,6 +172,7 @@ class SakService(
         val innsendelserISak: List<SøknadISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .medTilhørendeInnsendelser(søkersDokmentoversikt)
+            .requireNoNulls() // Kaster exception hvis noen søknader er null.
 
         val utgåendeDokumenterISaken = søkersDokmentoversikt
             // TODO: Filtrerer på dokumenter som har matchende journalpostId med behandlingen og er utgående for å koble dokumenter til behandlingen.
