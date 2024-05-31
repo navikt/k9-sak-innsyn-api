@@ -172,6 +172,7 @@ class SakService(
         val innsendelserISak: List<InnsendelserISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
             .medTilhørendeInnsendelser(søkersDokmentoversikt)
+            .requireNoNulls() // Kaster exception hvis noen søknader er null.
 
 
         val utgåendeDokumenterISaken = søkersDokmentoversikt
@@ -193,6 +194,12 @@ class SakService(
             val k9FormatInnsending = innsendingInfo.mapTilK9Format()
             if (k9FormatInnsending == null) {
                 logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den ikke finnes.")
+                return@mapNotNull null
+            }
+
+            //Deaktivert til ettersendelse går i prod.
+            if (k9FormatInnsending is Ettersendelse) {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
                 return@mapNotNull null
             }
 
