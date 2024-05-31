@@ -196,6 +196,12 @@ class SakService(
                 return@mapNotNull null
             }
 
+            //Deaktivert til ettersendelse går i prod.
+            if (k9FormatInnsending is Ettersendelse) {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
+                return@mapNotNull null
+            }
+
             val søknadId = k9FormatInnsending.søknadId.id
             val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
                 kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
