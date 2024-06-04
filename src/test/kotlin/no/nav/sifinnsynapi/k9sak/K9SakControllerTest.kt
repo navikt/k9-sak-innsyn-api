@@ -6,8 +6,6 @@ import no.nav.k9.sak.typer.Saksnummer
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.config.SecurityConfiguration
-import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Test
@@ -40,9 +38,6 @@ class K9SakControllerTest {
     @MockkBean
     lateinit var k9SakService: K9SakService
 
-    @MockkBean
-    lateinit var oppslagsService: OppslagsService
-
     @Test
     fun `fungerer fint`() {
         every { k9SakService.hentSisteGyldigeVedtakForAktorId(any()) } returns HentSisteGyldigeVedtakForAktorIdResponse(
@@ -50,7 +45,6 @@ class K9SakControllerTest {
             saksnummer = Saksnummer("123456"),
             vedtaksdato = LocalDate.now()
         )
-        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = "123456")
 
         mockMvc.post("/k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak") {
             contentType = MediaType.APPLICATION_JSON
@@ -90,40 +84,8 @@ class K9SakControllerTest {
     }
 
     @Test
-    fun `forventer å feile dersom aktørId mangler`() {
-        every { oppslagsService.hentSøker() } throws IllegalStateException("Fant ikke aktørId for innlogget bruker")
-
-        mockMvc.post("/k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak") {
-            contentType = MediaType.APPLICATION_JSON
-            headers { setBearerAuth(mockOAuth2Server.hentToken("123456789").serialize()) }
-            content = """
-                {
-                    "pleietrengendeAktørId": "123456"
-                }
-            """.trimIndent()
-        }.andExpect {
-            status { isInternalServerError() }
-            content {
-                json(
-                    """
-                    {
-                      "type": "/problem-details/internal-server-error",
-                      "title": "Et uventet feil har oppstått",
-                      "status": 500,
-                      "detail": "Fant ikke aktørId for innlogget bruker",
-                      "instance": "http://localhost/k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
-                    }
-                    """.trimIndent()
-                )
-            }
-        }
-    }
-
-    @Test
     fun `forventer feil når kall mot k9 feiler`() {
         every { k9SakService.hentSisteGyldigeVedtakForAktorId(any()) } throws K9SakException("Ugyldig pleietrengendeAktørId", HttpStatus.BAD_REQUEST)
-
-        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = "123456")
 
         mockMvc.post("/k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak") {
             contentType = MediaType.APPLICATION_JSON
