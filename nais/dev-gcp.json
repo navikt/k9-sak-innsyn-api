@@ -63,7 +63,7 @@
     "K9_SELVBETJENING_OPPSLAG_AZURE_AUDIENCE": "api://dev-gcp.dusseldorf.k9-selvbetjening-oppslag/.default",
 
     "NO_NAV_GATEWAYS_K9_SAK": "https://k9-sak.dev-fss-pub.nais.io/k9/sak",
-    "K9_SAK_AZURE_AUDIENCE": "api://dev-fss.k9saksbehandling.k9-sak/.default",
+    "K9_SAK_TOKENX_AUDIENCE": "dev-fss:k9saksbehandling:k9-sak",
 
     "NO_NAV_GATEWAYS_SAF_SELVBETJENING_BASE_URL": "https://safselvbetjening-q1.dev-fss-pub.nais.io",
     "SAFSELVBETJENING_TOKEN_X_AUDIENCE": "dev-fss:teamdokumenthandtering:safselvbetjening-q1",
