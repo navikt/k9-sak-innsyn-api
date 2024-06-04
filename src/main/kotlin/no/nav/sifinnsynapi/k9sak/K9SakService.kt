@@ -6,8 +6,6 @@ import no.nav.sifinnsynapi.common.AktørId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.actuate.health.Health
-import org.springframework.boot.actuate.health.ReactiveHealthIndicator
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -21,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
-import reactor.core.publisher.Mono
 import java.net.URI
 import java.time.LocalDate
 
@@ -91,7 +88,6 @@ class K9SakService(
 }
 
 data class HentSisteGyldigeVedtakForAktorIdDto(
-    val aktørId: AktørId,
     val pleietrengendeAktørId: AktørId
 )
 

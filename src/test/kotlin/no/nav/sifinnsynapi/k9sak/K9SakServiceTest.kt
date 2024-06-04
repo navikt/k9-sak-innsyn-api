@@ -3,9 +3,16 @@ package no.nav.sifinnsynapi.k9sak
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
 import no.nav.k9.sak.typer.Saksnummer
+import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenResponse
+import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.common.AktørId
+import no.nav.sifinnsynapi.utils.hentToken
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,18 +34,30 @@ internal class K9SakServiceTest {
     @Autowired
     lateinit var k9SakService: K9SakService
 
+    @Autowired
+    lateinit var mockOAuth2Server: MockOAuth2Server
+
+    @MockkBean
+    lateinit var oAuth2AccessTokenService: OAuth2AccessTokenService
+
+
     private companion object {
         private val omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl =
             "/k9-sak-mock/k9/sak/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
     }
 
+    @BeforeEach
+    fun setUp() {
+        var token = mockOAuth2Server.hentToken("123456789", audience = "dev-fss:k9saksbehandling:k9-sak").serialize()
+        every { oAuth2AccessTokenService.getAccessToken(any()) } returns OAuth2AccessTokenResponse(token)
+    }
+
     @Test
     fun `k9-sak svarer som forventet`() {
-        val aktør = AktørId("1234")
         val pleietrengendeAktør = AktørId("2345")
 
         stubK9Sak(
-            aktør, pleietrengendeAktør, 200,
+            pleietrengendeAktør, 200,
             // language=JSON
             """
             { 
@@ -51,7 +70,6 @@ internal class K9SakServiceTest {
 
         k9SakService.hentSisteGyldigeVedtakForAktorId(
             HentSisteGyldigeVedtakForAktorIdDto(
-                aktør,
                 pleietrengendeAktør
             )
         )
@@ -59,11 +77,10 @@ internal class K9SakServiceTest {
 
     @Test
     fun `k9-sak svarer med ingen behandling funnet`() {
-        val aktør = AktørId("1234")
         val pleietrengendeAktør = AktørId("2345")
 
         stubK9Sak(
-            aktør, pleietrengendeAktør, 200,
+            pleietrengendeAktør, 200,
             // language=JSON
             """
             { 
@@ -76,7 +93,6 @@ internal class K9SakServiceTest {
 
         k9SakService.hentSisteGyldigeVedtakForAktorId(
             HentSisteGyldigeVedtakForAktorIdDto(
-                aktør,
                 pleietrengendeAktør
             )
         )
@@ -84,11 +100,10 @@ internal class K9SakServiceTest {
 
     @Test
     fun `server exceptions blir håndtert`() {
-        val aktør = AktørId("1234")
         val pleietrengendeAktør = AktørId("2345")
 
         stubK9Sak(
-            aktør, pleietrengendeAktør, 500,
+            pleietrengendeAktør, 500,
             // language=JSON
             """
             {
@@ -102,7 +117,6 @@ internal class K9SakServiceTest {
         assertThrows<K9SakException> {
             k9SakService.hentSisteGyldigeVedtakForAktorId(
                 HentSisteGyldigeVedtakForAktorIdDto(
-                    aktør,
                     pleietrengendeAktør
                 )
             )
@@ -116,11 +130,10 @@ internal class K9SakServiceTest {
 
     @Test
     fun `klient exceptions blir håndtert`() {
-        val aktør = AktørId("1234")
         val pleietrengendeAktør = AktørId("2345")
 
         stubK9Sak(
-            aktør, pleietrengendeAktør, 401,
+            pleietrengendeAktør, 401,
             // language=JSON
             """
             {
@@ -134,7 +147,6 @@ internal class K9SakServiceTest {
         assertThrows<K9SakException> {
             k9SakService.hentSisteGyldigeVedtakForAktorId(
                 HentSisteGyldigeVedtakForAktorIdDto(
-                    aktør,
                     pleietrengendeAktør
                 )
             )
@@ -147,7 +159,7 @@ internal class K9SakServiceTest {
     }
 
 
-    private fun stubK9Sak(aktørId: AktørId, pleietrengendeAktørId: AktørId, status: Int, responseBody: String) {
+    private fun stubK9Sak(pleietrengendeAktørId: AktørId, status: Int, responseBody: String) {
         WireMock.stubFor(
             WireMock.post(WireMock.urlPathMatching(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
                 .withHeader("Authorization", WireMock.matching(".*"))
@@ -156,7 +168,6 @@ internal class K9SakServiceTest {
                         //language=json
                         """
                     {
-                      "aktørId": "${aktørId.aktørId}",
                       "pleietrengendeAktørId": "${pleietrengendeAktørId.aktørId}"
                     }
                 """.trimIndent()

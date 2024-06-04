@@ -27,12 +27,12 @@ class K9SakKlientKonfig(
     private companion object {
         val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
 
-        const val AZURE_K9_SAK = "azure-k9-sak"
+        const val TOKENX_K9_SAK = "tokenx-k9-sak"
     }
 
-    private val azureK9SakClientProperties =
-        oauth2Config.registration[AZURE_K9_SAK]
-            ?: throw RuntimeException("could not find oauth2 client config for $AZURE_K9_SAK")
+    private val tokenXK9SakClientProperties =
+        oauth2Config.registration[TOKENX_K9_SAK]
+            ?: throw RuntimeException("could not find oauth2 client config for $TOKENX_K9_SAK")
 
     @Bean(name = ["k9SakKlient"])
     fun restTemplate(
@@ -54,9 +54,8 @@ class K9SakKlientKonfig(
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
 
-
                 else -> {
-                    oAuth2AccessTokenService.getAccessToken(azureK9SakClientProperties).accessToken?.let {
+                    oAuth2AccessTokenService.getAccessToken(tokenXK9SakClientProperties).accessToken?.let {
                         request.headers.setBearerAuth(it)
                     }?: throw SecurityException("Access token er null")
                 }
