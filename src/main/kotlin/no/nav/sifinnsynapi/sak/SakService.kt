@@ -189,11 +189,29 @@ class SakService(
         )
     }
 
+    private fun Innsending.skalIgnorereInnsendelse(innsendingInfo: InnsendingInfo): Boolean {
+        return when {
+            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
+                true
+            }
+            this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
+                true
+            }
+            else -> false
+        }
+    }
+
     private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =
         mapNotNull { (innsendingInfo, dokumenter) ->
             val k9FormatInnsending = innsendingInfo.mapTilK9Format()
             if (k9FormatInnsending == null) {
                 logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den ikke finnes.")
+                return@mapNotNull null
+            }
+
+            if (k9FormatInnsending.skalIgnorereInnsendelse(innsendingInfo)) {
                 return@mapNotNull null
             }
 
