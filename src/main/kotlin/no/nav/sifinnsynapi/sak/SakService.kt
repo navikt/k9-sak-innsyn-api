@@ -100,7 +100,10 @@ class SakService(
                     )
                 }
             }
-        logger.info("Fant ${antallSaker.size} saker med {} behandlinger.", antallSaker.flatMap { it.sak.behandlinger }.size)
+        logger.info(
+            "Fant ${antallSaker.size} saker med {} behandlinger.",
+            antallSaker.flatMap { it.sak.behandlinger }.size
+        )
         return antallSaker
     }
 
@@ -188,16 +191,26 @@ class SakService(
         )
     }
 
-    private fun Innsending.skalIgnorereInnsendelse(innsendingInfo: InnsendingInfo): Boolean {
+    private fun Innsending.skalIgnorereInnsendelse(
+        innsendingInfo: InnsendingInfo,
+        søkersDokmentoversikt: List<DokumentDTO>,
+    ): Boolean {
         return when {
             this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
                 logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
                 true
             }
+
+            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                true
+            }
+
             this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
                 logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
                 true
             }
+
             else -> false
         }
     }
@@ -210,17 +223,12 @@ class SakService(
                 return@mapNotNull null
             }
 
-            if (k9FormatInnsending.skalIgnorereInnsendelse(innsendingInfo)) {
+            if (k9FormatInnsending.skalIgnorereInnsendelse(innsendingInfo, søkersDokmentoversikt)) {
                 return@mapNotNull null
             }
 
             val søknadId = k9FormatInnsending.søknadId.id
-            val legacySøknad = if (søkersDokmentoversikt.inneholder(innsendingInfo)) {
-                kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
-            } else {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
-                null
-            }
+            val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
 
             val søknadsType = utledSøknadsType(
                 k9FormatSøknad = k9FormatInnsending,
