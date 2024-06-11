@@ -40,6 +40,11 @@
       "app": "tokenx-token-generator",
       "namespace": "aura",
       "cluster": "dev-gcp"
+    },
+    {
+      "app": "omsorgspengesoknad",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
     }
   ],
   "database": {
