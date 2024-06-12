@@ -34,6 +34,11 @@
       "app": "sif-innsyn-api",
       "namespace": "dusseldorf",
       "cluster": "prod-gcp"
+    },
+    {
+      "app": "omsorgspengesoknad",
+      "namespace": "dusseldorf",
+      "cluster": "prod-gcp"
     }
   ],
   "database": {
