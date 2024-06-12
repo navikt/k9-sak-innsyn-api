@@ -208,12 +208,10 @@ class SakService(
                 true
             }
 
-            // Dersom innsendingen er en ettersendelse skal innsendingen ignoreres.
-            // FIXME: Dette er en midlertidig løsning for å ignorere ettersendelser i prod. Fjern denne når ettersendelse er aktivert i prod.
-            /*this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
+            this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
                 logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
                 true
-            }*/
+            }
 
             else -> false
         }
