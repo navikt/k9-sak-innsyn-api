@@ -100,6 +100,16 @@ class SwaggerConfiguration(
                         },
                         "sak": {
                           "saksnummer": "ABC123",
+                          "utledetStatus": {
+                            "status": "OPPRETTET",
+                            "aksjonspunkter": [
+                              {
+                                "venteårsak": "INNTEKTSMELDING",
+                                "tidsfrist": "2024-01-01"
+                              }
+                            ],
+                            "saksbehandlingsFrist": "2024-01-01"
+                          },
                           "saksbehandlingsFrist": "2024-01-01",
                           "fagsakYtelseType": {
                             "kode": "PSB",

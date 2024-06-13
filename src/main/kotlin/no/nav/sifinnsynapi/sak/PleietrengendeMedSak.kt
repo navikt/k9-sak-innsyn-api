@@ -33,11 +33,18 @@ data class PleietrengendeDTO(
 
 data class SakDTO(
     val saksnummer: Saksnummer,
+    val utledetStatus: UtledetStatus,
     val saksbehandlingsFrist: LocalDate? = null,
     @Deprecated("bruk ytelseType")
     val fagsakYtelseType: no.nav.k9.kodeverk.behandling.FagsakYtelseType,
     val ytelseType: FagsakYtelseType,
     val behandlinger: List<BehandlingDTO>,
+)
+
+data class UtledetStatus(
+    val status: BehandlingStatus,
+    val aksjonspunkter: List<AksjonspunktDTO>,
+    val saksbehandlingsFrist: LocalDate? = null,
 )
 
 data class BehandlingDTO(
