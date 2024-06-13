@@ -13,7 +13,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
-import no.nav.sifinnsynapi.soknad.SøknadService
+import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
@@ -29,7 +29,7 @@ import java.util.*
 
 @Service
 class K9SakHendelseKonsument(
-    private val søknadService: SøknadService,
+    private val innsendingService: InnsendingService,
     private val behandlingService: BehandlingService,
     private val omsorgService: OmsorgService,
     @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean,
@@ -137,7 +137,7 @@ class K9SakHendelseKonsument(
 
         val journalpostId = data.journalpostId
         logger.trace("Trekker tilbake søknad med journalpostId = {} ...", journalpostId)
-        if (søknadService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
+        if (innsendingService.trekkSøknad(journalpostId)) logger.trace("Søknad er trukket tilbake", journalpostId)
         else throw IllegalStateException("Søknad ble ikke trukket tilbake.")
     }
 
@@ -156,11 +156,11 @@ class K9SakHendelseKonsument(
 
         if (data.søknad != null) {
             logger.info("Lagerer søknad")
-            søknadService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
+            innsendingService.lagreSøknad(innsynHendelse.somPsbSøknadDAO())
         }
         if (data.ettersendelse != null) {
             logger.info("Lagrer ettersendelse")
-            søknadService.lagreEttersendelse(innsynHendelse.somEttersendelseDAO())
+            innsendingService.lagreEttersendelse(innsynHendelse.somEttersendelseDAO())
         }
 
         logger.trace("PsbSøknadsinnhold lagret.")

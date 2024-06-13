@@ -54,7 +54,7 @@ class SøknadControllerTest {
     lateinit var mockOAuth2Server: MockOAuth2Server
 
     @MockkBean(relaxed = true)
-    lateinit var søknadService: SøknadService
+    lateinit var innsendingService: InnsendingService
 
     @BeforeAll
     internal fun setUp() {
@@ -64,7 +64,7 @@ class SøknadControllerTest {
     @Test
     fun `internal server error gir 500 med forventet problem-details`() {
         every {
-            søknadService.slåSammenSøknadsopplysningerPerBarn()
+            innsendingService.slåSammenSøknadsopplysningerPerBarn()
         } throws Exception("Ooops, noe gikk galt...")
 
         //language=json
@@ -89,7 +89,7 @@ class SøknadControllerTest {
     fun `Gitt 200 respons, forvent korrekt format på liste av søknader med tokenx token`() {
         val søknadId = UUID.randomUUID().toString()
         every {
-            søknadService.slåSammenSøknadsopplysningerPerBarn()
+            innsendingService.slåSammenSøknadsopplysningerPerBarn()
         } returns listOf(
             SøknadDTO(
                 barn = BarnOppslagDTO(
@@ -176,7 +176,7 @@ class SøknadControllerTest {
     @Test
     fun `forvent generert filnavn med mellomrom`() {
         every {
-            søknadService.hentArbeidsgiverMeldingFil(any(), any())
+            innsendingService.hentArbeidsgiverMeldingFil(any(), any())
         } returns "some byteArray".toByteArray()
 
         val forventetFilnavn = "Bekreftelse_til_arbeidsgiver_12345678.pdf"

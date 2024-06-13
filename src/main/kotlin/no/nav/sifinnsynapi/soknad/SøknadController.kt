@@ -1,6 +1,5 @@
 package no.nav.sifinnsynapi.soknad
 
-import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.sifinnsynapi.Routes.SØKNAD
@@ -24,7 +23,7 @@ import java.util.*
     ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4"])
 )
 class SøknadController(
-    private val søknadService: SøknadService
+    private val innsendingService: InnsendingService
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(SøknadController::class.java)
@@ -34,7 +33,7 @@ class SøknadController(
     @ResponseStatus(OK)
     fun hentSøknader(): List<SøknadDTO> {
         logger.info("Forsøker å hente søknadsopplynsinger...")
-        val slåSammenSøknadsopplysningerPerBarn = søknadService.slåSammenSøknadsopplysningerPerBarn()
+        val slåSammenSøknadsopplysningerPerBarn = innsendingService.slåSammenSøknadsopplysningerPerBarn()
         if (slåSammenSøknadsopplysningerPerBarn.isEmpty()) {
             logger.info("Tomt resultat fra søknadsammenslåing")
         }
@@ -47,7 +46,7 @@ class SøknadController(
         @PathVariable søknadId: UUID,
         @RequestParam organisasjonsnummer: String
     ): ResponseEntity<Resource> {
-        val resource = ByteArrayResource(søknadService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer))
+        val resource = ByteArrayResource(innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer))
 
         val filnavn = "Bekreftelse_til_arbeidsgiver_$organisasjonsnummer"
 

@@ -110,17 +110,17 @@ class SwaggerConfiguration(
                               "status": "OPPRETTET",
                               "opprettetTidspunkt": "2024-02-06T00:00:00.000Z",
                               "avsluttetTidspunkt": null,
-                              "søknader": [
+                              "innsendelser": [
                                 {
                                   "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
-                                  "søknadstype": "SØKNAD",
+                                  "innsendelsestype": "SØKNAD",
                                   "arbeidsgivere": [
                                     {
                                       "organisasjonsnummer": "123456789",
                                       "navn": "Arbeidsgiver AS"
                                     }
                                   ],
-                                  "k9FormatSøknad": {
+                                  "k9FormatInnsendelse": {
                                     "søknadId": "10ed495f-83f2-46c1-a7bb-58d55fd1b1b2",
                                     "versjon": "1.0.0",
                                     "mottattDato": "2024-02-06T14:50:24.318Z",
@@ -209,6 +209,42 @@ class SwaggerConfiguration(
                                       ]
                                     }
                                   ]
+                                },
+                                {
+                                  "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                  "innsendelsestype": "ETTERSENDELSE",
+                                  "k9FormatInnsendelse": {
+                                    "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                    "versjon": "0.0.1",
+                                    "mottattDato": "2024-02-06T14:50:24.318Z",
+                                    "søker": {
+                                      "norskIdentitetsnummer": "1234567890"
+                                    },
+                                    "ytelse": "PLEIEPENGER_SYKT_BARN",
+                                    "pleietrengende": {
+                                      "norskIdentitetsnummer": "21121879023"
+                                    },
+                                    "type": "LEGEERKLÆRING"
+                                  },
+                                  "dokumenter": [
+                                    {
+                                      "journalpostId": "123456789",
+                                      "dokumentInfoId": "123456789",
+                                      "saksnummer": "ABC123",
+                                      "tittel": "Ettersendelse for Søknad om pleiepenger",
+                                      "dokumentType": "PLEIEPENGER_SYKT_BARN_ETTERSENDELSE",
+                                      "filtype": "PDFA",
+                                      "harTilgang": true,
+                                      "url": "http://localhost:8080/saker/123456789",
+                                      "relevanteDatoer": [
+                                        {
+                                          "dato": "2024-02-06T14:50:24.318Z",
+                                          "datotype": "DATO_OPPRETTET"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "arbeidsgivere": null
                                 }
                               ],
                                "utgåendeDokumenter": [

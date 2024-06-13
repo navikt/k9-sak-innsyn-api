@@ -52,20 +52,20 @@ data class BehandlingDTO(
         pattern = DtoKonstanter.DATO_TID_FORMAT,
         timezone = DtoKonstanter.TIDSSONE
     ) val avsluttetTidspunkt: ZonedDateTime? = null,
-    val søknader: List<SøknadISakDTO>,
+    val innsendelser: List<InnsendelserISakDTO>,
     val aksjonspunkter: List<AksjonspunktDTO>,
     val utgåendeDokumenter: List<DokumentDTO>,
 )
 
-data class SøknadISakDTO(
+data class InnsendelserISakDTO(
     val søknadId: UUID,
-    val søknadstype: Søknadstype,
-    val k9FormatSøknad: Innsending,
+    val innsendelsestype: Innsendelsestype,
+    val k9FormatInnsendelse: Innsending? = null,
     val dokumenter: List<DokumentDTO>,
-    val arbeidsgivere: List<Organisasjon>? = null,
+    val arbeidsgivere: List<Organisasjon>? = null
 )
 
-enum class Søknadstype {
+enum class Innsendelsestype {
     SØKNAD, ETTERSENDELSE, ENDRINGSMELDING, UKJENT,
 }
 
