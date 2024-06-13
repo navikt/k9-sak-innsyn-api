@@ -80,32 +80,25 @@ class SakService(
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
         val antallSaker = pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
+
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
                     val fagsak = behandling.fagsak
                     val ytelseType = fagsak.ytelseType
                     logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
-                    UtledetStatus(
-                        status = behandling.status,
-                        aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO(),
-                        saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
-                    )
+                    val utledetStatus = utledStatus(behandlinger)
+
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            utledetStatus = UtledetStatus(
-                                status = behandling.status,
-                                aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO(),
-                                saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
-                            ),
+                            utledetStatus = utledetStatus,
                             fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
                             saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
-
-                            behandlinger = behandlinger.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt)
+                            behandlinger = behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
                         )
                     )
                 }
@@ -115,6 +108,25 @@ class SakService(
             antallSaker.flatMap { it.sak.behandlinger }.size
         )
         return antallSaker
+    }
+
+    private fun utledStatus(
+        behandlinger: List<Behandling>,
+    ): UtledetStatus {
+        val sisteBehandling = behandlinger.sortedByDescending { it.opprettetTidspunkt }.first()
+
+        val inneholderKunEttersendelser = behandlinger.flatMap { it.innsendinger }.all { it.type == InnsendingType.ETTERSENDELSE }
+        val behandlingStatus = when {
+            // Dersom alle behandlinger er ettersendelser, settes status til AVSLUTTET.
+            inneholderKunEttersendelser -> BehandlingStatus.AVSLUTTET
+            // Ellers settes status til status på siste behandling.
+            else -> sisteBehandling.status
+        }
+        return UtledetStatus(
+            status = behandlingStatus,
+            aksjonspunkter = sisteBehandling.aksjonspunkter.somAksjonspunktDTO(),
+            saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+        )
     }
 
     private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
@@ -133,7 +145,7 @@ class SakService(
         return åpenBehandling?.let { SaksbehandlingstidUtleder.utled(it) }?.toLocalDate()
     }
 
-    private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
+    private fun MutableList<Behandling>.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         mapNotNull { behandling ->
             logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
             if (skalIgnorereBehandling(behandling, søkersDokmentoversikt)) {
