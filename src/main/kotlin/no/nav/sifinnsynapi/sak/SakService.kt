@@ -86,10 +86,20 @@ class SakService(
                     val ytelseType = fagsak.ytelseType
                     logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
+                    UtledetStatus(
+                        status = behandling.status,
+                        aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO(),
+                        saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+                    )
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+                            utledetStatus = UtledetStatus(
+                                status = behandling.status,
+                                aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO(),
+                                saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+                            ),
                             fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
