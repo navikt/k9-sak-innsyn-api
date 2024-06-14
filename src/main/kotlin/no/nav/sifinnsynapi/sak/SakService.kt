@@ -87,7 +87,15 @@ class SakService(
                     val ytelseType = fagsak.ytelseType
                     logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
-                    val utledetStatus = utledStatus(behandlinger)
+                    val behandlingerMedTilhørendeInnsendelser = behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+
+                    if (behandlingerMedTilhørendeInnsendelser.isEmpty()) {
+                        logger.info("Ignorerer fagsak ${fagsak.saksnummer.verdi} fordi vi ikke hadde noen behandlinger å vise.")
+                        return@mapNotNull null
+                    }
+
+                    val saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+                    val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
 
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
@@ -97,8 +105,8 @@ class SakService(
                             fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
-                            saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
-                            behandlinger = behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+                            saksbehandlingsFrist = saksbehandlingsFrist,
+                            behandlinger = behandlingerMedTilhørendeInnsendelser
                         )
                     )
                 }
@@ -111,21 +119,23 @@ class SakService(
     }
 
     private fun utledStatus(
-        behandlinger: List<Behandling>,
+        behandlinger: List<BehandlingDTO>,
+        saksbehandlingsFrist: LocalDate?,
     ): UtledetStatus {
         val sisteBehandling = behandlinger.sortedByDescending { it.opprettetTidspunkt }.first()
 
-        val inneholderKunEttersendelser = behandlinger.flatMap { it.innsendinger }.all { it.type == InnsendingType.ETTERSENDELSE }
+        val inneholderKunEttersendelser = behandlinger.flatMap { it.innsendelser }.all { it.innsendelsestype ==  Innsendelsestype.ETTERSENDELSE }
         val behandlingStatus = when {
-            // Dersom alle behandlinger er ettersendelser, settes status til AVSLUTTET.
+            // Dersom behandlingene kun inneholder ettersendelser, settes status til AVSLUTTET.
             inneholderKunEttersendelser -> BehandlingStatus.AVSLUTTET
+
             // Ellers settes status til status på siste behandling.
             else -> sisteBehandling.status
         }
         return UtledetStatus(
             status = behandlingStatus,
-            aksjonspunkter = sisteBehandling.aksjonspunkter.somAksjonspunktDTO(),
-            saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+            aksjonspunkter = sisteBehandling.aksjonspunkter,
+            saksbehandlingsFrist = saksbehandlingsFrist
         )
     }
 

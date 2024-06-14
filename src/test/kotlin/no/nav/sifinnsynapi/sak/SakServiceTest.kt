@@ -120,6 +120,7 @@ class SakServiceTest {
     @Test
     fun `ignorerer behandling hvis søknad mangler i oversikt over relevante dokumenter`() {
         val digitalSøknadJP = "journalpostId1"
+        val digitalSøknadJPMedTilhørendeDokument = "journalpostId2"
 
         every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
 
@@ -138,23 +139,74 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
+                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD),
+                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJPMedTilhørendeDokument, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     )
                 )
             ).stream()
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
-        every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto("randomJP1"))
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto("randomJP1"),
+            lagDokumentDto(digitalSøknadJPMedTilhørendeDokument)
+        )
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
 
         assertThat(sak).hasSize(1)
         val behandlinger = sak.first().sak.behandlinger
-        assertThat(behandlinger).hasSize(0)
+        assertThat(behandlinger).hasSize(1)
     }
 
     @Test
-    fun `ignorerer behandling hvis alle søknader har kildesystem punsj`() {
+    fun `Behandling skal ignorere søknader har kildesystem punsj`() {
+        val punsjsøknad = "journalpostId1"
+        val digitalSøknad = "journalpostId2"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(InnsendingStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ, InnsendingType.SØKNAD)
+                    )
+                ),
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknad, ZonedDateTime.now(), Kildesystem.SØKNADSDIALOG, InnsendingType.SØKNAD)
+                    )
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(punsjsøknad),
+            lagDokumentDto(digitalSøknad)
+        ) //ikke mulig i praksis
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+
+        // Hvis saken ikke inneholder noen behandlinger, så skal den ikke vises.
+        assertThat(sak).hasSize(1)
+        val behandlinger = sak.first().sak.behandlinger
+        assertThat(behandlinger).hasSize(1)
+    }
+
+    @Test
+    fun `Skal ikke vise noen sak hvis alle behandlinger er filtrert ut`() {
         val punsjsøknad = "journalpostId1"
 
         every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
@@ -184,9 +236,8 @@ class SakServiceTest {
 
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
 
-        assertThat(sak).hasSize(1)
-        val behandlinger = sak.first().sak.behandlinger
-        assertThat(behandlinger).hasSize(0)
+        // Hvis saken ikke inneholder noen behandlinger, så skal den ikke vises.
+        assertThat(sak).hasSize(0)
     }
 
 
