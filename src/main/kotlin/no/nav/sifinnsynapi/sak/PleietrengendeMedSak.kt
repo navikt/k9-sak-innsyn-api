@@ -66,10 +66,11 @@ data class BehandlingDTO(
 
 data class InnsendelserISakDTO(
     val søknadId: UUID,
+    val mottattTidspunkt: ZonedDateTime,
     val innsendelsestype: Innsendelsestype,
     val k9FormatInnsendelse: Innsending? = null,
     val dokumenter: List<DokumentDTO>,
-    val arbeidsgivere: List<Organisasjon>? = null
+    val arbeidsgivere: List<Organisasjon>? = null,
 )
 
 enum class Innsendelsestype {

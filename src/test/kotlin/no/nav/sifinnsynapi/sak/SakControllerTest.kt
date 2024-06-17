@@ -166,7 +166,8 @@ class SakControllerTest {
                                             organisasjonsnummer = "123456789",
                                             navn = "Arbeidsgiver AS"
                                         )
-                                    )
+                                    ),
+                                    mottattTidspunkt = mottattDato
                                 ),
                                 InnsendelserISakDTO(
                                     søknadId = søknadId,
@@ -196,7 +197,8 @@ class SakControllerTest {
                                             )
                                         )
                                     ),
-                                    arbeidsgivere = null
+                                    arbeidsgivere = null,
+                                    mottattTidspunkt = mottattDato
                                 ),
                             ),
                             aksjonspunkter = aksjonspunkter,
@@ -266,6 +268,7 @@ class SakControllerTest {
                               "innsendelser": [
                                 {
                                   "søknadId": "$søknadId",
+                                  "mottattTidspunkt": "$mottattDato",
                                   "innsendelsestype": "SØKNAD",
                                   "arbeidsgivere": [
                                     {
@@ -365,6 +368,7 @@ class SakControllerTest {
                                 },
                                 {
                                   "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                  "mottattTidspunkt": "2024-02-06T14:50:24.318Z",
                                   "innsendelsestype": "ETTERSENDELSE",
                                   "k9FormatInnsendelse": {
                                     "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",

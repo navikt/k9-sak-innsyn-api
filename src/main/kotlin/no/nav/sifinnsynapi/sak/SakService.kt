@@ -87,7 +87,8 @@ class SakService(
                     val ytelseType = fagsak.ytelseType
                     logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
-                    val behandlingerMedTilhørendeInnsendelser = behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+                    val behandlingerMedTilhørendeInnsendelser =
+                        behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
 
                     if (behandlingerMedTilhørendeInnsendelser.isEmpty()) {
                         logger.info("Ignorerer fagsak ${fagsak.saksnummer.verdi} fordi vi ikke hadde noen behandlinger å vise.")
@@ -123,11 +124,13 @@ class SakService(
         saksbehandlingsFrist: LocalDate?,
     ): UtledetStatus {
         val sisteBehandling = behandlinger.sortedByDescending { it.opprettetTidspunkt }.first()
+        val innsendelser = sisteBehandling.innsendelser.sortedByDescending { it.mottattTidspunkt }
 
-        val inneholderKunEttersendelser = behandlinger.flatMap { it.innsendelser }.all { it.innsendelsestype ==  Innsendelsestype.ETTERSENDELSE }
+        val inneholderKunEttersendelser = innsendelser.all { it.innsendelsestype == Innsendelsestype.ETTERSENDELSE }
+        val sisteInnsendelseErEttersendelse = innsendelser.firstOrNull { it.innsendelsestype == Innsendelsestype.ETTERSENDELSE } != null
         val behandlingStatus = when {
-            // Dersom behandlingene kun inneholder ettersendelser, settes status til AVSLUTTET.
-            inneholderKunEttersendelser -> BehandlingStatus.AVSLUTTET
+            // Dersom behandlingene kun inneholder ettersendelser eller siste innsendelse er ettersendelse, settes status til AVSLUTTET.
+            inneholderKunEttersendelser || sisteInnsendelseErEttersendelse -> BehandlingStatus.AVSLUTTET
 
             // Ellers settes status til status på siste behandling.
             else -> sisteBehandling.status
@@ -279,6 +282,7 @@ class SakService(
 
             InnsendelserISakDTO(
                 søknadId = UUID.fromString(søknadId),
+                mottattTidspunkt = innsendingInfo.mottattTidspunkt,
                 innsendelsestype = innsendelsestype,
                 arbeidsgivere = arbeidsgivere,
                 k9FormatInnsendelse = k9FormatInnsending,
