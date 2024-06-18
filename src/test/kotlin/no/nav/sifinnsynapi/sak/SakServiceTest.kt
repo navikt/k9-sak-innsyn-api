@@ -115,7 +115,9 @@ class SakServiceTest {
                             null,
                             InnsendingType.SØKNAD
                         )
-                    )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
                 )
             ).stream()
         }
@@ -166,7 +168,9 @@ class SakServiceTest {
                             null,
                             InnsendingType.SØKNAD
                         )
-                    )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
                 )
             ).stream()
         }
@@ -212,7 +216,9 @@ class SakServiceTest {
                             Kildesystem.PUNSJ,
                             InnsendingType.SØKNAD
                         )
-                    )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
                 ),
                 lagBehandlingDAO(
                     setOf(
@@ -223,7 +229,9 @@ class SakServiceTest {
                             Kildesystem.SØKNADSDIALOG,
                             InnsendingType.SØKNAD
                         )
-                    )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
                 )
             ).stream()
         }
@@ -270,7 +278,9 @@ class SakServiceTest {
                             Kildesystem.PUNSJ,
                             InnsendingType.SØKNAD
                         )
-                    )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
                 )
             ).stream()
         }
@@ -284,7 +294,7 @@ class SakServiceTest {
     }
 
     @Test
-    fun `Saken skal ha opprettet status hvis siste innsendelse i behandligen er en søknad`() {
+    fun `Saken skal vises som avsluttet hvis siste behandling kun inneholder ettersendelse`() {
         val søknad1JournalpostId = "journalpostId1"
         val søknad2JournalpostId = "journalpostId2"
         val ettersendelseJournalpostId = "journalpostId3"
@@ -305,7 +315,9 @@ class SakServiceTest {
         every { behandlingService.hentBehandlinger(any(), any()) } answers {
             listOf(
                 lagBehandlingDAO(
-                    setOf(
+                    opprettetTidspunkt = ZonedDateTime.now().minusHours(1),
+                    behandlingStatus = BehandlingStatus.AVSLUTTET,
+                    søknadInfos = setOf(
                         InnsendingInfo(
                             InnsendingStatus.MOTTATT,
                             søknad1JournalpostId,
@@ -319,13 +331,19 @@ class SakServiceTest {
                             LocalDate.parse("2024-05-24").atStartOfDay(ZoneId.systemDefault()),
                             Kildesystem.SØKNADSDIALOG,
                             InnsendingType.ETTERSENDELSE
-                        ),
+                        )
+                    ),
+                ),
+                lagBehandlingDAO(
+                    opprettetTidspunkt = ZonedDateTime.now(),
+                    behandlingStatus = BehandlingStatus.OPPRETTET,
+                    søknadInfos = setOf(
                         InnsendingInfo(
                             InnsendingStatus.MOTTATT,
-                            søknad2JournalpostId,
-                            LocalDate.parse("2024-05-25").atStartOfDay(ZoneId.systemDefault()),
+                            ettersendelseJournalpostId,
+                            LocalDate.parse("2024-05-24").atStartOfDay(ZoneId.systemDefault()),
                             Kildesystem.SØKNADSDIALOG,
-                            InnsendingType.SØKNAD
+                            InnsendingType.ETTERSENDELSE
                         )
                     )
                 )
@@ -343,7 +361,7 @@ class SakServiceTest {
         val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
 
         assertThat(sak).hasSize(1)
-        assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.OPPRETTET)
+        assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.AVSLUTTET)
     }
 
     private fun lagDokumentDto(journalpostId: String) = DokumentDTO(
@@ -390,27 +408,31 @@ class SakServiceTest {
         .pleietrengende(Pleietrengende(NorskIdentitetsnummer.of("11111111111")))
         .build()
 
-    private fun lagBehandlingDAO(søknadInfos: Set<InnsendingInfo>): BehandlingDAO {
+    private fun lagBehandlingDAO(
+        søknadInfos: Set<InnsendingInfo>, opprettetTidspunkt: ZonedDateTime?, behandlingStatus: BehandlingStatus,
+    ): BehandlingDAO {
         return BehandlingDAO(
             UUID.randomUUID(),
             hovedSøkerAktørId,
             barn1AktørId,
             "sak1234",
-            JsonUtils.toString(lagBehandling(søknadInfos)),
+            JsonUtils.toString(lagBehandling(søknadInfos, opprettetTidspunkt, behandlingStatus)),
             FagsakYtelseType.PLEIEPENGER_SYKT_BARN
         )
     }
 
-    private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
+    private fun lagBehandling(
+        søknadInfos: Set<InnsendingInfo>, opprettetTidspunkt: ZonedDateTime?, behandlingStatus: BehandlingStatus,
+    ): Behandling {
         return Behandling(
             UUID.randomUUID(),
-            ZonedDateTime.now(),
+            opprettetTidspunkt,
             ZonedDateTime.now(),
             BehandlingResultat.INNVILGET,
-            BehandlingStatus.OPPRETTET,
+            behandlingStatus,
             søknadInfos,
             setOf(
-                Aksjonspunkt(Aksjonspunkt.Venteårsak.INNTEKTSMELDING, ZonedDateTime.now())
+                Aksjonspunkt(Aksjonspunkt.Venteårsak.INNTEKTSMELDING, opprettetTidspunkt)
             ),
             false,
             Fagsak(
