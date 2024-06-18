@@ -2,8 +2,13 @@ package no.nav.sifinnsynapi.sak
 
 import assertk.assertThat
 import assertk.assertions.hasSize
+import assertk.assertions.isEqualTo
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.k9.ettersendelse.Ettersendelse
+import no.nav.k9.ettersendelse.EttersendelseType
+import no.nav.k9.ettersendelse.Pleietrengende
+import no.nav.k9.ettersendelse.Ytelse
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
@@ -22,12 +27,14 @@ import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.InnsendingService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -101,7 +108,13 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalSøknadJP,
+                            ZonedDateTime.now(),
+                            null,
+                            InnsendingType.SØKNAD
+                        )
                     )
                 )
             ).stream()
@@ -139,8 +152,20 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJP, ZonedDateTime.now(), null, InnsendingType.SØKNAD),
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknadJPMedTilhørendeDokument, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalSøknadJP,
+                            ZonedDateTime.now(),
+                            null,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalSøknadJPMedTilhørendeDokument,
+                            ZonedDateTime.now(),
+                            null,
+                            InnsendingType.SØKNAD
+                        )
                     )
                 )
             ).stream()
@@ -180,12 +205,24 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ, InnsendingType.SØKNAD)
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            punsjsøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.PUNSJ,
+                            InnsendingType.SØKNAD
+                        )
                     )
                 ),
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, digitalSøknad, ZonedDateTime.now(), Kildesystem.SØKNADSDIALOG, InnsendingType.SØKNAD)
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalSøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.SØKNAD
+                        )
                     )
                 )
             ).stream()
@@ -226,7 +263,13 @@ class SakServiceTest {
             listOf(
                 lagBehandlingDAO(
                     setOf(
-                        InnsendingInfo(InnsendingStatus.MOTTATT, punsjsøknad, ZonedDateTime.now(), Kildesystem.PUNSJ, InnsendingType.SØKNAD)
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            punsjsøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.PUNSJ,
+                            InnsendingType.SØKNAD
+                        )
                     )
                 )
             ).stream()
@@ -240,6 +283,58 @@ class SakServiceTest {
         assertThat(sak).hasSize(0)
     }
 
+    @Test
+    fun `Saken skal ha avsluttet status hvis siste innsendelse i behandligen er ettersendelse`() {
+        val søknadJournalpostId = "journalpostId1"
+        val ettersendelseJournalpostId = "journalpostId2"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            søknadJournalpostId,
+                            LocalDate.parse("2024-05-23").atStartOfDay(ZoneId.systemDefault()),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            ettersendelseJournalpostId,
+                            LocalDate.parse("2024-05-24").atStartOfDay(ZoneId.systemDefault()),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.ETTERSENDELSE
+                        )
+                    )
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknadJournalpostId)
+        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(ettersendelseJournalpostId)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(søknadJournalpostId),
+            lagDokumentDto(ettersendelseJournalpostId)
+        ) //ikke mulig i praksis
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+
+        assertThat(sak).hasSize(1)
+        assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.AVSLUTTET)
+    }
 
     private fun lagDokumentDto(journalpostId: String) = DokumentDTO(
         journalpostId,
@@ -261,6 +356,13 @@ class SakServiceTest {
         søknad = JsonUtils.toString(lagSøknad())
     )
 
+    private fun lagEttersendelse(ettersendelseJournalpostId: String): EttersendelseDAO = EttersendelseDAO(
+        journalpostId = ettersendelseJournalpostId,
+        søkerAktørId = "sak1234",
+        pleietrengendeAktørId = "søknadId",
+        ettersendelse = JsonUtils.toString(lagEttersendelse())
+    )
+
     private fun lagSøknad() = Søknad(
         SøknadId.of(UUID.randomUUID().toString()),
         Versjon.of("1.0.0"),
@@ -268,6 +370,15 @@ class SakServiceTest {
         Søker(NorskIdentitetsnummer.of("22222222222")),
         PleiepengerSyktBarn()
     )
+
+    private fun lagEttersendelse() = Ettersendelse.builder()
+        .søknadId(SøknadId.of(UUID.randomUUID().toString()))
+        .mottattDato(ZonedDateTime.now())
+        .type(EttersendelseType.LEGEERKLÆRING)
+        .ytelse(Ytelse.PLEIEPENGER_SYKT_BARN)
+        .søker(Søker(NorskIdentitetsnummer.of("22222222222")))
+        .pleietrengende(Pleietrengende(NorskIdentitetsnummer.of("11111111111")))
+        .build()
 
     private fun lagBehandlingDAO(søknadInfos: Set<InnsendingInfo>): BehandlingDAO {
         return BehandlingDAO(
@@ -277,8 +388,8 @@ class SakServiceTest {
             "sak1234",
             JsonUtils.toString(lagBehandling(søknadInfos)),
             FagsakYtelseType.PLEIEPENGER_SYKT_BARN
-            )
-        }
+        )
+    }
 
     private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
         return Behandling(
@@ -293,7 +404,10 @@ class SakServiceTest {
             ),
             false,
             Fagsak(
-                Saksnummer("ABC123"), AktørId("11111111111"), AktørId("22222222222"), FagsakYtelseType.PLEIEPENGER_SYKT_BARN
+                Saksnummer("ABC123"),
+                AktørId("11111111111"),
+                AktørId("22222222222"),
+                FagsakYtelseType.PLEIEPENGER_SYKT_BARN
             )
         )
     }

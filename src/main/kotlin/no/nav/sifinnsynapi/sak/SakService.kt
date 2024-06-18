@@ -127,7 +127,7 @@ class SakService(
         val innsendelser = sisteBehandling.innsendelser.sortedByDescending { it.mottattTidspunkt }
 
         val inneholderKunEttersendelser = innsendelser.all { it.innsendelsestype == Innsendelsestype.ETTERSENDELSE }
-        val sisteInnsendelseErEttersendelse = innsendelser.firstOrNull { it.innsendelsestype == Innsendelsestype.ETTERSENDELSE } != null
+        val sisteInnsendelseErEttersendelse = innsendelser.firstOrNull()?.innsendelsestype == Innsendelsestype.ETTERSENDELSE
         val behandlingStatus = when {
             // Dersom behandlingene kun inneholder ettersendelser eller siste innsendelse er ettersendelse, settes status til AVSLUTTET.
             inneholderKunEttersendelser || sisteInnsendelseErEttersendelse -> BehandlingStatus.AVSLUTTET
