@@ -336,6 +336,69 @@ class SakServiceTest {
         assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.AVSLUTTET)
     }
 
+    @Test
+    fun `Saken skal ha opprettet status hvis siste innsendelse i behandligen er en søknad`() {
+        val søknad1JournalpostId = "journalpostId1"
+        val søknad2JournalpostId = "journalpostId2"
+        val ettersendelseJournalpostId = "journalpostId3"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            søknad1JournalpostId,
+                            LocalDate.parse("2024-05-23").atStartOfDay(ZoneId.systemDefault()),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            ettersendelseJournalpostId,
+                            LocalDate.parse("2024-05-24").atStartOfDay(ZoneId.systemDefault()),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.ETTERSENDELSE
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            søknad2JournalpostId,
+                            LocalDate.parse("2024-05-25").atStartOfDay(ZoneId.systemDefault()),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.SØKNAD
+                        )
+                    )
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknad1JournalpostId)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknad2JournalpostId)
+        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(ettersendelseJournalpostId)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(søknad1JournalpostId),
+            lagDokumentDto(søknad2JournalpostId),
+            lagDokumentDto(ettersendelseJournalpostId)
+        ) //ikke mulig i praksis
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+
+        assertThat(sak).hasSize(1)
+        assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.OPPRETTET)
+    }
+
     private fun lagDokumentDto(journalpostId: String) = DokumentDTO(
         journalpostId,
         "dokumentInfo1",
