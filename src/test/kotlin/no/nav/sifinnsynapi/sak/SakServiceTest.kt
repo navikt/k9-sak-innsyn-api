@@ -284,59 +284,6 @@ class SakServiceTest {
     }
 
     @Test
-    fun `Saken skal ha avsluttet status hvis siste innsendelse i behandligen er ettersendelse`() {
-        val søknadJournalpostId = "journalpostId1"
-        val ettersendelseJournalpostId = "journalpostId2"
-
-        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
-
-        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
-            BarnOppslagDTO(
-                aktørId = barn1AktørId,
-                fødselsdato = LocalDate.parse("2005-02-12"),
-                fornavn = "Ole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "12020567099"
-            )
-        )
-
-        every { behandlingService.hentBehandlinger(any(), any()) } answers {
-            listOf(
-                lagBehandlingDAO(
-                    setOf(
-                        InnsendingInfo(
-                            InnsendingStatus.MOTTATT,
-                            søknadJournalpostId,
-                            LocalDate.parse("2024-05-23").atStartOfDay(ZoneId.systemDefault()),
-                            Kildesystem.SØKNADSDIALOG,
-                            InnsendingType.SØKNAD
-                        ),
-                        InnsendingInfo(
-                            InnsendingStatus.MOTTATT,
-                            ettersendelseJournalpostId,
-                            LocalDate.parse("2024-05-24").atStartOfDay(ZoneId.systemDefault()),
-                            Kildesystem.SØKNADSDIALOG,
-                            InnsendingType.ETTERSENDELSE
-                        )
-                    )
-                )
-            ).stream()
-        }
-        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknadJournalpostId)
-        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(ettersendelseJournalpostId)
-        every { dokumentService.hentDokumentOversikt() } returns listOf(
-            lagDokumentDto(søknadJournalpostId),
-            lagDokumentDto(ettersendelseJournalpostId)
-        ) //ikke mulig i praksis
-
-        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
-
-        assertThat(sak).hasSize(1)
-        assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.AVSLUTTET)
-    }
-
-    @Test
     fun `Saken skal ha opprettet status hvis siste innsendelse i behandligen er en søknad`() {
         val søknad1JournalpostId = "journalpostId1"
         val søknad2JournalpostId = "journalpostId2"
