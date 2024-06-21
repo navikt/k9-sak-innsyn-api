@@ -80,34 +80,22 @@ class SakService(
         // Returnerer hver pleietrengende med tilhørende sak, behandlinger, søknader og dokumenter.
         val antallSaker = pleietrengendeMedBehandlinger
             .mapNotNull { (pleietrengendeDTO, behandlinger) ->
-
                 // Alle behandlinger har samme saksnummer og fagsakYtelseType for pleietrengende
                 behandlinger.firstOrNull()?.let { behandling: Behandling ->
                     val fagsak = behandling.fagsak
                     val ytelseType = fagsak.ytelseType
                     logger.info("Behandlinger som inngår fagsak har saksnummer ${fagsak.saksnummer} og ytelseType $ytelseType.")
 
-                    val behandlingerMedTilhørendeInnsendelser =
-                        behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
-
-                    if (behandlingerMedTilhørendeInnsendelser.isEmpty()) {
-                        logger.info("Ignorerer fagsak ${fagsak.saksnummer.verdi} fordi vi ikke hadde noen behandlinger å vise.")
-                        return@mapNotNull null
-                    }
-
-                    val saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
-                    val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
-
                     PleietrengendeMedSak(
                         pleietrengende = pleietrengendeDTO,
                         sak = SakDTO(
                             saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
-                            utledetStatus = utledetStatus,
                             fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
                             // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
-                            saksbehandlingsFrist = saksbehandlingsFrist,
-                            behandlinger = behandlingerMedTilhørendeInnsendelser
+                            saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling(),
+
+                            behandlinger = behandlinger.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt)
                         )
                     )
                 }
@@ -117,30 +105,6 @@ class SakService(
             antallSaker.flatMap { it.sak.behandlinger }.size
         )
         return antallSaker
-    }
-
-    private fun utledStatus(
-        behandlinger: List<BehandlingDTO>,
-        saksbehandlingsFrist: LocalDate?,
-    ): UtledetStatus {
-        val sisteBehandling = behandlinger.sortedByDescending { it.opprettetTidspunkt }.first()
-        val innsendelser = sisteBehandling.innsendelser.sortedByDescending { it.mottattTidspunkt }
-
-        val inneholderKunEttersendelser = innsendelser.all { it.innsendelsestype == Innsendelsestype.ETTERSENDELSE }
-
-        val behandlingStatus = when {
-            // Dersom behandlingene kun inneholder ettersendelser eller siste innsendelse er ettersendelse, settes status til AVSLUTTET.
-            inneholderKunEttersendelser -> BehandlingStatus.AVSLUTTET
-
-
-            // Ellers settes status til status på siste behandling.
-            else -> sisteBehandling.status
-        }
-        return UtledetStatus(
-            status = behandlingStatus,
-            aksjonspunkter = sisteBehandling.aksjonspunkter,
-            saksbehandlingsFrist = saksbehandlingsFrist
-        )
     }
 
     private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
@@ -159,7 +123,7 @@ class SakService(
         return åpenBehandling?.let { SaksbehandlingstidUtleder.utled(it) }?.toLocalDate()
     }
 
-    private fun MutableList<Behandling>.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
+    private fun MutableList<Behandling>.behandlingerMedTilhørendeSøknader(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         mapNotNull { behandling ->
             logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
             if (skalIgnorereBehandling(behandling, søkersDokmentoversikt)) {
@@ -167,32 +131,6 @@ class SakService(
             }
             mapBehandling(behandling, søkersDokmentoversikt)
         }
-
-    private fun Innsending.skalIgnorereInnsendelse(
-        innsendingInfo: InnsendingInfo,
-        søkersDokmentoversikt: List<DokumentDTO>,
-    ): Boolean {
-        return when {
-            // Dersom innsendingen er en søknad og kildesystem er punsj, skal innsendingen ignoreres.
-            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
-                true
-            }
-
-            // Dersom innsendingen ikke finnes i søkers dokumentoversikt, skal innsendingen ignoreres.
-            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
-                true
-            }
-
-            /*this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
-                true
-            }*/
-
-            else -> false
-        }
-    }
 
     private fun skalIgnorereBehandling(
         behandling: Behandling,
@@ -204,17 +142,11 @@ class SakService(
         val behandlingsId = behandling.behandlingsId
         val saksnummer = behandling.fagsak.saksnummer
 
-        // Filtrerer bort ettersendelser for å kunne sjekke kun punsjet opplysninger.
-        val innsendingerUtenEttersendelse =
-            behandling.innsendinger.filterNot { it.type == InnsendingType.ETTERSENDELSE }
-
-        if (innsendingerUtenEttersendelse.isEmpty()) {
+        if (behandling.innsendinger.isEmpty()) {
             logger.info("Ignorerer behandling={} for sak={} fordi søknader er tom", behandlingsId, saksnummer)
             return true
         }
-
-        val kunInneholderPunsjetSøknader = behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }
-        if (kunInneholderPunsjetSøknader) {
+        if (behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj",
                 behandlingsId,
@@ -223,7 +155,7 @@ class SakService(
             return true
         }
 
-        if (søkersDokmentoversikt.none { dok -> innsendingerUtenEttersendelse.any { s -> dok.journalpostId == s.journalpostId } }) {
+        if (søkersDokmentoversikt.none { dok -> behandling.innsendinger.any { s -> dok.journalpostId == s.journalpostId } }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder ingen støttet dokument fra dokumentoversikt. " +
                         "Sannsynligvis skyldes det at søknad innholder kun punsj, men før kildesystem ble innført ",
@@ -260,6 +192,32 @@ class SakService(
         )
     }
 
+    private fun Innsending.skalIgnorereInnsendelse(
+        innsendingInfo: InnsendingInfo,
+        søkersDokmentoversikt: List<DokumentDTO>,
+    ): Boolean {
+        return when {
+            // Dersom innsendingen er en søknad og kildesystem er punsj, skal innsendingen ignoreres.
+            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
+                true
+            }
+
+            // Dersom innsendingen ikke finnes i søkers dokumentoversikt, skal innsendingen ignoreres.
+            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                true
+            }
+
+            this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
+                true
+            }
+
+            else -> false
+        }
+    }
+
     private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =
         mapNotNull { (innsendingInfo, dokumenter) ->
             val k9FormatInnsending = innsendingInfo.mapTilK9Format()
@@ -289,7 +247,6 @@ class SakService(
 
             InnsendelserISakDTO(
                 søknadId = UUID.fromString(søknadId),
-                mottattTidspunkt = innsendingInfo.mottattTidspunkt,
                 innsendelsestype = innsendelsestype,
                 arbeidsgivere = arbeidsgivere,
                 k9FormatInnsendelse = k9FormatInnsending,
