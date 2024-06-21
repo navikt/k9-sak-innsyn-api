@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.k9sak
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import kotlinx.coroutines.NonCancellable.message
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
 import org.slf4j.Logger
