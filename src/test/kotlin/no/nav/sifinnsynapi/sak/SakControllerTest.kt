@@ -96,6 +96,14 @@ class SakControllerTest {
         val søknadId = UUID.fromString("e9514b88-ace4-4faa-b894-a9ef66b53e79")
         val mottattDato = ZonedDateTime.parse("2024-02-06T14:50:24.318Z")
         val tidsfrist = ZonedDateTime.parse("2024-02-05T14:50:24.318Z")
+        val status = BehandlingStatus.OPPRETTET
+        val aksjonspunkter = listOf(
+            AksjonspunktDTO(
+                venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING,
+                tidsfrist = tidsfrist
+            )
+        )
+        val saksbehandlingsFrist = LocalDate.parse("2024-01-01")
         every {
             sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
         } returns listOf(
@@ -110,12 +118,17 @@ class SakControllerTest {
                 ),
                 sak = SakDTO(
                     saksnummer = Saksnummer("ABC123"),
-                    saksbehandlingsFrist = LocalDate.parse("2024-01-01"),
+                    utledetStatus = UtledetStatus(
+                        status = status,
+                        aksjonspunkter = aksjonspunkter,
+                        saksbehandlingsFrist = saksbehandlingsFrist
+                    ),
+                    saksbehandlingsFrist = saksbehandlingsFrist,
                     fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(FagsakYtelseType.PLEIEPENGER_SYKT_BARN.kode),
                     ytelseType = FagsakYtelseType.PLEIEPENGER_SYKT_BARN,
                     behandlinger = listOf(
                         BehandlingDTO(
-                            status = BehandlingStatus.OPPRETTET,
+                            status = status,
                             opprettetTidspunkt = LocalDate.parse("2024-02-06").atStartOfDay(ZoneId.of("UTC")),
                             innsendelser = listOf(
                                 InnsendelserISakDTO(
@@ -153,7 +166,8 @@ class SakControllerTest {
                                             organisasjonsnummer = "123456789",
                                             navn = "Arbeidsgiver AS"
                                         )
-                                    )
+                                    ),
+                                    mottattTidspunkt = mottattDato
                                 ),
                                 InnsendelserISakDTO(
                                     søknadId = søknadId,
@@ -183,15 +197,11 @@ class SakControllerTest {
                                             )
                                         )
                                     ),
-                                    arbeidsgivere = null
+                                    arbeidsgivere = null,
+                                    mottattTidspunkt = mottattDato
                                 ),
                             ),
-                            aksjonspunkter = listOf(
-                                AksjonspunktDTO(
-                                    venteårsak = Aksjonspunkt.Venteårsak.INNTEKTSMELDING,
-                                    tidsfrist = tidsfrist
-                                )
-                            ),
+                            aksjonspunkter = aksjonspunkter,
                             utgåendeDokumenter = listOf(
                                 DokumentDTO(
                                     journalpostId = "123456789",
@@ -219,6 +229,7 @@ class SakControllerTest {
 
         val token = mockOAuth2Server.hentToken().serialize()
 
+        // Husk å oppdatere no.nav.sifinnsynapi.config.SwaggerConfiguration.SAKER_RESPONSE_EKSEMPEL ved endringer.
         //language=json
         val forventetJsonResponse = """
                     [
@@ -233,6 +244,16 @@ class SakControllerTest {
                         },
                         "sak": {
                           "saksnummer": "ABC123",
+                          "utledetStatus": {
+                            "status": "OPPRETTET",
+                            "aksjonspunkter": [
+                              {
+                                "venteårsak": "INNTEKTSMELDING",
+                                "tidsfrist": "$tidsfrist"
+                              }
+                            ],
+                            "saksbehandlingsFrist": "2024-01-01"
+                          },
                           "saksbehandlingsFrist": "2024-01-01",
                           "fagsakYtelseType": {
                             "kode": "PSB",
@@ -247,6 +268,7 @@ class SakControllerTest {
                               "innsendelser": [
                                 {
                                   "søknadId": "$søknadId",
+                                  "mottattTidspunkt": "$mottattDato",
                                   "innsendelsestype": "SØKNAD",
                                   "arbeidsgivere": [
                                     {
@@ -346,6 +368,7 @@ class SakControllerTest {
                                 },
                                 {
                                   "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
+                                  "mottattTidspunkt": "2024-02-06T14:50:24.318Z",
                                   "innsendelsestype": "ETTERSENDELSE",
                                   "k9FormatInnsendelse": {
                                     "søknadId": "e9514b88-ace4-4faa-b894-a9ef66b53e79",
