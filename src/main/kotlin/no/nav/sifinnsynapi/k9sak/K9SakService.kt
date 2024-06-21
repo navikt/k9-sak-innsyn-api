@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.k9sak
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import kotlinx.coroutines.NonCancellable.message
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
 import org.slf4j.Logger
@@ -62,8 +63,11 @@ class K9SakService(
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
         logger.error("Fikk en HttpClientErrorException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak. Error response = '${exception.responseBodyAsString}'")
-        val message = exception.responseBodyAsString.ifEmpty { exception.message.orEmpty() }
-        throw K9SakException(message, HttpStatus.valueOf(exception.statusCode.value()))
+        return HentSisteGyldigeVedtakForAktorIdResponse(
+            harInnvilgedeBehandlinger = false,
+            saksnummer = null,
+            vedtaksdato = null,
+        )
     }
 
     @Recover
@@ -72,8 +76,11 @@ class K9SakService(
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
         logger.error("Fikk en HttpServerErrorException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
-        val message = exception.responseBodyAsString.ifEmpty { exception.message.orEmpty() }
-        throw K9SakException(message, HttpStatus.valueOf(exception.statusCode.value()))
+        return HentSisteGyldigeVedtakForAktorIdResponse(
+            harInnvilgedeBehandlinger = false,
+            saksnummer = null,
+            vedtaksdato = null,
+        )
     }
 
     @Recover
@@ -82,8 +89,11 @@ class K9SakService(
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
         logger.error("Fikk en ResourceAccessException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
-        val message = exception.message.orEmpty()
-        throw K9SakException(message, HttpStatus.INTERNAL_SERVER_ERROR)
+        return HentSisteGyldigeVedtakForAktorIdResponse(
+            harInnvilgedeBehandlinger = false,
+            saksnummer = null,
+            vedtaksdato = null,
+        )
     }
 }
 
