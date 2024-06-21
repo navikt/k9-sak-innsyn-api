@@ -168,6 +168,32 @@ class SakService(
             mapBehandling(behandling, søkersDokmentoversikt)
         }
 
+    private fun Innsending.skalIgnorereInnsendelse(
+        innsendingInfo: InnsendingInfo,
+        søkersDokmentoversikt: List<DokumentDTO>,
+    ): Boolean {
+        return when {
+            // Dersom innsendingen er en søknad og kildesystem er punsj, skal innsendingen ignoreres.
+            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
+                true
+            }
+
+            // Dersom innsendingen ikke finnes i søkers dokumentoversikt, skal innsendingen ignoreres.
+            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
+                true
+            }
+
+            /*this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
+                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
+                true
+            }*/
+
+            else -> false
+        }
+    }
+
     private fun skalIgnorereBehandling(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
@@ -178,11 +204,17 @@ class SakService(
         val behandlingsId = behandling.behandlingsId
         val saksnummer = behandling.fagsak.saksnummer
 
-        if (behandling.innsendinger.isEmpty()) {
+        // Filtrerer bort ettersendelser for å kunne sjekke kun punsjet opplysninger.
+        val innsendingerUtenEttersendelse =
+            behandling.innsendinger.filterNot { it.type == InnsendingType.ETTERSENDELSE }
+
+        if (innsendingerUtenEttersendelse.isEmpty()) {
             logger.info("Ignorerer behandling={} for sak={} fordi søknader er tom", behandlingsId, saksnummer)
             return true
         }
-        if (behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }) {
+
+        val kunInneholderPunsjetSøknader = behandling.innsendinger.all { it.kildesystem == Kildesystem.PUNSJ }
+        if (kunInneholderPunsjetSøknader) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder kun punsj",
                 behandlingsId,
@@ -191,7 +223,7 @@ class SakService(
             return true
         }
 
-        if (søkersDokmentoversikt.none { dok -> behandling.innsendinger.any { s -> dok.journalpostId == s.journalpostId } }) {
+        if (søkersDokmentoversikt.none { dok -> innsendingerUtenEttersendelse.any { s -> dok.journalpostId == s.journalpostId } }) {
             logger.info(
                 "Ignorerer behandling={} for sak={} fordi søknader innholder ingen støttet dokument fra dokumentoversikt. " +
                         "Sannsynligvis skyldes det at søknad innholder kun punsj, men før kildesystem ble innført ",
@@ -226,32 +258,6 @@ class SakService(
             utgåendeDokumenter = utgåendeDokumenterISaken,
             aksjonspunkter = behandling.aksjonspunkter.somAksjonspunktDTO()
         )
-    }
-
-    private fun Innsending.skalIgnorereInnsendelse(
-        innsendingInfo: InnsendingInfo,
-        søkersDokmentoversikt: List<DokumentDTO>,
-    ): Boolean {
-        return when {
-            // Dersom innsendingen er en søknad og kildesystem er punsj, skal innsendingen ignoreres.
-            this is Søknad && this.kildesystem == Kildesystem.PUNSJ -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi den er fra punsj.")
-                true
-            }
-
-            // Dersom innsendingen ikke finnes i søkers dokumentoversikt, skal innsendingen ignoreres.
-            !søkersDokmentoversikt.inneholder(innsendingInfo) -> {
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med søknadId=$søknadId fordi den ikke finnes i søkers dokumentoversikt.")
-                true
-            }
-
-            /*this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
-                true
-            }*/
-
-            else -> false
-        }
     }
 
     private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =

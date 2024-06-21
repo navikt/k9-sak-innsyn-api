@@ -251,6 +251,179 @@ class SakServiceTest {
     }
 
     @Test
+    fun `Behandling skal ignorere dersom det kun finnes punsjet søknad og ettersendelse`() {
+        val punsjsøknad = "journalpostId1"
+        val digitalSøknad = "journalpostId3"
+        val digitalEttersendelse = "journalpostId2"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            punsjsøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.PUNSJ,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalEttersendelse,
+                            ZonedDateTime.now(),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.ETTERSENDELSE
+                        )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
+        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(digitalEttersendelse)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(digitalSøknad),
+            lagDokumentDto(digitalEttersendelse)
+        )
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+
+        // Hvis saken ikke inneholder noen behandlinger, så skal den ikke vises.
+        assertThat(sak).hasSize(0)
+    }
+
+    @Test
+    fun `Behandling skal ikke ignoreres dersom det finnes punsjet søknad og, digtal søknad og ettersendelse`() {
+        val punsjsøknad = "journalpostId1"
+        val digitalSøknad = "journalpostId3"
+        val digitalEttersendelse = "journalpostId2"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            punsjsøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.PUNSJ,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalSøknad,
+                            ZonedDateTime.now(),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalEttersendelse,
+                            ZonedDateTime.now(),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.ETTERSENDELSE
+                        )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
+        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(digitalEttersendelse)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(digitalSøknad),
+            lagDokumentDto(digitalEttersendelse)
+        )
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+        assertThat(sak).hasSize(1)
+    }
+
+    @Test
+    fun `Behandling skal ignoreres dersom det er punsjet søknad uten kildesystem og har kun ettersendelse`() {
+        val punsjsøknad = "journalpostId1"
+        val digitalEttersendelse = "journalpostId2"
+
+        every { omsorgService.hentPleietrengendeSøkerHarOmsorgFor(any()) } returns listOf(barn1AktørId)
+
+        every { oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = listOf(barn1AktørId))) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            )
+        )
+
+        every { behandlingService.hentBehandlinger(any(), any()) } answers {
+            listOf(
+                lagBehandlingDAO(
+                    setOf(
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            punsjsøknad,
+                            ZonedDateTime.now(),
+                            null,
+                            InnsendingType.SØKNAD
+                        ),
+                        InnsendingInfo(
+                            InnsendingStatus.MOTTATT,
+                            digitalEttersendelse,
+                            ZonedDateTime.now(),
+                            Kildesystem.SØKNADSDIALOG,
+                            InnsendingType.ETTERSENDELSE
+                        )
+                    ),
+                    ZonedDateTime.now(),
+                    BehandlingStatus.OPPRETTET
+                )
+            ).stream()
+        }
+        every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
+        every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(digitalEttersendelse)
+        every { dokumentService.hentDokumentOversikt() } returns listOf(
+            lagDokumentDto(digitalEttersendelse)
+        )
+
+        val sak = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+
+        // Hvis saken ikke inneholder noen behandlinger, så skal den ikke vises.
+        assertThat(sak).hasSize(0)
+    }
+
+    @Test
     fun `Skal ikke vise noen sak hvis alle behandlinger er filtrert ut`() {
         val punsjsøknad = "journalpostId1"
 
