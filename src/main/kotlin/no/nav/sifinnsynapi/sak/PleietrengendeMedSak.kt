@@ -33,11 +33,18 @@ data class PleietrengendeDTO(
 
 data class SakDTO(
     val saksnummer: Saksnummer,
+    val utledetStatus: UtledetStatus,
     val saksbehandlingsFrist: LocalDate? = null,
     @Deprecated("bruk ytelseType")
     val fagsakYtelseType: no.nav.k9.kodeverk.behandling.FagsakYtelseType,
     val ytelseType: FagsakYtelseType,
     val behandlinger: List<BehandlingDTO>,
+)
+
+data class UtledetStatus(
+    val status: BehandlingStatus,
+    val aksjonspunkter: List<AksjonspunktDTO>,
+    val saksbehandlingsFrist: LocalDate? = null,
 )
 
 data class BehandlingDTO(
@@ -59,10 +66,11 @@ data class BehandlingDTO(
 
 data class InnsendelserISakDTO(
     val søknadId: UUID,
+    val mottattTidspunkt: ZonedDateTime,
     val innsendelsestype: Innsendelsestype,
     val k9FormatInnsendelse: Innsending? = null,
     val dokumenter: List<DokumentDTO>,
-    val arbeidsgivere: List<Organisasjon>? = null
+    val arbeidsgivere: List<Organisasjon>? = null,
 )
 
 enum class Innsendelsestype {
