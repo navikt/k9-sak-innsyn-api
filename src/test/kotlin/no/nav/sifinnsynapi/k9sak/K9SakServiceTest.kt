@@ -12,6 +12,8 @@ import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.utils.hentToken
+import org.junit.Assert
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -114,17 +116,21 @@ internal class K9SakServiceTest {
             """.trimIndent()
         )
 
-        assertThrows<K9SakException> {
-            k9SakService.hentSisteGyldigeVedtakForAktorId(
-                HentSisteGyldigeVedtakForAktorIdDto(
-                    pleietrengendeAktør
-                )
+        val resultat = k9SakService.hentSisteGyldigeVedtakForAktorId(
+            HentSisteGyldigeVedtakForAktorIdDto(
+                pleietrengendeAktør
             )
-        }
+        )
 
         WireMock.verify(
             3,
             postRequestedFor(urlEqualTo(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
+        )
+
+        Assertions.assertEquals(
+            resultat, HentSisteGyldigeVedtakForAktorIdResponse(
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+            )
         )
     }
 
@@ -144,17 +150,21 @@ internal class K9SakServiceTest {
             """.trimIndent()
         )
 
-        assertThrows<K9SakException> {
-            k9SakService.hentSisteGyldigeVedtakForAktorId(
-                HentSisteGyldigeVedtakForAktorIdDto(
-                    pleietrengendeAktør
-                )
+        val resultat = k9SakService.hentSisteGyldigeVedtakForAktorId(
+            HentSisteGyldigeVedtakForAktorIdDto(
+                pleietrengendeAktør
             )
-        }
+        )
 
         WireMock.verify(
             1,
             postRequestedFor(urlEqualTo(omsorgsdagerKroniskSyktBarnHarGyldigVedtakUrl))
+        )
+
+        Assertions.assertEquals(
+            resultat, HentSisteGyldigeVedtakForAktorIdResponse(
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+            )
         )
     }
 
