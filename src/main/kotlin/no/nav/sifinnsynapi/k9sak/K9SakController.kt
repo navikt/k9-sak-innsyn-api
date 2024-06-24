@@ -4,7 +4,6 @@ import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.common.AktørId
-import no.nav.sifinnsynapi.common.IkkeAktivertIProduksjon
 import no.nav.sifinnsynapi.config.Issuers
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 
-@IkkeAktivertIProduksjon
 @RestController
 @RequiredIssuers(
     ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
