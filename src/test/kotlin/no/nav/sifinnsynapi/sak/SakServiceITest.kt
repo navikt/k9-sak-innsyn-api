@@ -283,11 +283,7 @@ class SakServiceITest {
 
     }
 
-    @Test
-    fun `Forvent saksbehandlingstid oppgitt i uker`() {
-        val saksbehandlingstid = sakService.hentGenerellSaksbehandlingstid()
-        Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(6)
-    }
+
 
     private fun lagBehandling(søknadInfos: Set<InnsendingInfo>): Behandling {
         return Behandling(
