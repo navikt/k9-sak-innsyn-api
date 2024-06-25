@@ -30,6 +30,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -535,6 +536,12 @@ class SakServiceTest {
 
         assertThat(sak).hasSize(1)
         assertThat(sak.first().sak.utledetStatus.status).isEqualTo(BehandlingStatus.AVSLUTTET)
+    }
+
+    @Test
+    fun `Forvent saksbehandlingstid oppgitt i uker`() {
+        val saksbehandlingstid = sakService.hentGenerellSaksbehandlingstid()
+        Assertions.assertThat(saksbehandlingstid.saksbehandlingstidUker).isEqualTo(5)
     }
 
     private fun lagDokumentDto(journalpostId: String) = DokumentDTO(
