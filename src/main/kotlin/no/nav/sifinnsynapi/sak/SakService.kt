@@ -185,11 +185,6 @@ class SakService(
                 true
             }
 
-            /*this is Ettersendelse -> { //Deaktivert til ettersendelse går i prod.
-                logger.info("Ignorerer innsending(${innsendingInfo.type}) med journalpostId=${innsendingInfo.journalpostId} fordi ettersendelse er ikke aktivert i prod.")
-                true
-            }*/
-
             else -> false
         }
     }
