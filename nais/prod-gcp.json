@@ -39,6 +39,11 @@
       "app": "omsorgspengesoknad",
       "namespace": "dusseldorf",
       "cluster": "prod-gcp"
+    },
+    {
+      "app": "k9-brukerdialog-prosessering",
+      "namespace": "dusseldorf",
+      "cluster": "prod-gcp"
     }
   ],
   "database": {
