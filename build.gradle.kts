@@ -175,5 +175,3 @@ val graphqlGenerateOtherClient by tasks.creating(GraphQLGenerateClientTask::clas
     schemaFile.set(file("${project.projectDir}/src/main/resources/safselvbetjening/saf-selvbetjening-sdl.graphqls"))
     packageName.set("no.nav.sifinnsynapi.safselvbetjening.generated")
 }
-
-
