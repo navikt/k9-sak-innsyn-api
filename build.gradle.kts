@@ -2,7 +2,7 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.5"
+    id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
     id("com.expediagroup.graphql") version "7.1.4"
     kotlin("jvm") version "2.0.0"
@@ -24,7 +24,7 @@ val graphQLKotlinVersion = "7.1.4"
 val springCloudVersion = "4.1.4"
 val springdocVersion = "2.6.0"
 val logstashLogbackEncoderVersion = "8.0"
-val tokenSupportVersion = "4.1.7"
+val tokenSupportVersion = "5.0.1"
 val k9FormatVersion = "9.3.1"
 val retryVersion = "2.0.7"
 val zalandoVersion = "0.27.0"
