@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.2.5"
-    id("io.spring.dependency-management") version "1.1.5"
-    id("com.expediagroup.graphql") version "7.1.1"
-    kotlin("jvm") version "1.9.24"
-    kotlin("plugin.spring") version "1.9.24"
-    kotlin("plugin.jpa") version "1.9.24"
+    id("io.spring.dependency-management") version "1.1.6"
+    id("com.expediagroup.graphql") version "7.1.4"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.spring") version "2.0.0"
+    kotlin("plugin.jpa") version "2.0.0"
 }
 
 group = "no.nav"
@@ -20,21 +20,21 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "7.1.1"
-val springCloudVersion = "4.1.2"
-val springdocVersion = "2.5.0"
-val logstashLogbackEncoderVersion = "7.4"
+val graphQLKotlinVersion = "7.1.4"
+val springCloudVersion = "4.1.4"
+val springdocVersion = "2.6.0"
+val logstashLogbackEncoderVersion = "8.0"
 val tokenSupportVersion = "4.1.7"
 val k9FormatVersion = "9.3.1"
-val retryVersion = "2.0.6"
+val retryVersion = "2.0.7"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.3"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.2.1"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
-val mockkVersion = "1.13.11"
-val guavaVersion = "33.2.0-jre"
+val mockkVersion = "1.13.12"
+val guavaVersion = "33.2.1-jre"
 val orgJsonVersion = "20240303"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
@@ -42,7 +42,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.19.8"
+val testcontainersVersion ="1.20.1"
 
 repositories {
     mavenCentral()
@@ -175,5 +175,3 @@ val graphqlGenerateOtherClient by tasks.creating(GraphQLGenerateClientTask::clas
     schemaFile.set(file("${project.projectDir}/src/main/resources/safselvbetjening/saf-selvbetjening-sdl.graphqls"))
     packageName.set("no.nav.sifinnsynapi.safselvbetjening.generated")
 }
-
-
