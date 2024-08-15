@@ -289,6 +289,7 @@ class SakControllerTest {
                                         "norskIdentitetsnummer": "21121879023",
                                         "fødselsdato": null
                                       },
+                                      "erSammenMedBarnet": null,
                                       "søknadsperiode": [
                                         "2024-01-01/2024-01-31"
                                       ],
