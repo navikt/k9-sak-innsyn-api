@@ -13,6 +13,7 @@ import no.nav.sifinnsynapi.oppslag.HentIdenterRespons
 import no.nav.sifinnsynapi.oppslag.Ident
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.sikkerhet.AuthorizationConfig
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
@@ -41,7 +42,7 @@ import java.util.*
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test.
-@Import(CallIdGenerator::class, SecurityConfiguration::class)
+@Import(CallIdGenerator::class, SecurityConfiguration::class, AuthorizationConfig::class)
 @WebMvcTest(controllers = [DriftController::class])
 @ActiveProfiles("test")
 class DriftControllerTest {

@@ -5,6 +5,7 @@ no.nav:
     saf-selvbetjening-base-url: http://localhost:${wiremock.server.port}/saf-selvbetjening-graphql-mock
     sif-innsyn-api-base-url: http://localhost:${wiremock.server.port}/sif-innsyn-api-base-url-mock
   security:
+    k9-drift-gruppe: testdrift
     jwt:
       issuer:
         tokenx:
