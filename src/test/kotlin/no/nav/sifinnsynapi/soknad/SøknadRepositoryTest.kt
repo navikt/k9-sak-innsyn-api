@@ -58,6 +58,13 @@ class SøknadRepositoryTest {
     }
 
     @Test
+    fun `oppdater aktørid`() {
+        assertNotNull(repository.save(lagSøknadDAO()))
+        assertk.assertThat(repository.oppdaterAktørIdForSøker("12345678911","12345678910"))
+            .isEqualTo(1)
+    }
+
+    @Test
     fun `hent 1000 søknader som en strøm`() {
         IntStream.range(0, 1000).forEach {
             repository.save(lagSøknadDAO(journalpostId = it.toString()))

@@ -3,8 +3,9 @@ package no.nav.sifinnsynapi.drift
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
-import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.sak.behandling.BehandlingRepository
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadRepository
@@ -16,10 +17,12 @@ import java.util.stream.Stream
 
 @Service
 class DriftService(
-    private val repo: SøknadRepository,
+    private val søknadRepository: SøknadRepository,
     private val omsorgService: OmsorgService,
-    private val oppslagsService: OppslagsService,
-) {
+    private val behandlingRepository: BehandlingRepository,
+    private val omsorgRepository: OmsorgRepository,
+
+    ) {
 
     private companion object {
         private val logger = LoggerFactory.getLogger(DriftService::class.java)
@@ -36,10 +39,11 @@ class DriftService(
 
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
-                val alleSøknader = repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
-                    .map { it: PsbSøknadDAO -> it.kunPleietrengendeDataFraAndreSøkere(søkerAktørId) }
-                    .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
-                    .toList()
+                val alleSøknader =
+                    søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+                        .map { it: PsbSøknadDAO -> it.kunPleietrengendeDataFraAndreSøkere(søkerAktørId) }
+                        .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
+                        .toList()
 
                 slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId, ekskluderteSøknadIder)?.somDebugDTO(
                     pleietrengendeAktørId,
@@ -54,7 +58,7 @@ class DriftService(
         pleietrengendeAktørId: String,
         ekskluderteSøknadIder: List<String>,
     ): Søknad? {
-        return repo.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream
                     .map { psbSøknadDAO: PsbSøknadDAO ->
@@ -80,6 +84,14 @@ class DriftService(
             søkerAktørId -> søknad
             else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
         }
+    }
+
+    fun oppdaterAktørId(gyldig: String, utgått: String): Int {
+        var antallRader = 0
+        antallRader += søknadRepository.oppdaterAktørIdForSøker(gyldig, utgått)
+        antallRader += behandlingRepository.oppdaterAktørIdForSøker(gyldig, utgått)
+        antallRader += omsorgRepository.oppdaterAktørIdForSøker(gyldig, utgått)
+        return antallRader
     }
 }
 
