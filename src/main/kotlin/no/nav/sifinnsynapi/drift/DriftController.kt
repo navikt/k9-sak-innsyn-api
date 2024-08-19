@@ -10,14 +10,22 @@ import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
+import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.config.Issuers
+import no.nav.sifinnsynapi.forvaltning.AktørBytteRequest
+import no.nav.sifinnsynapi.forvaltning.AktørBytteRespons
 import no.nav.sifinnsynapi.oppslag.HentIdenterForespørsel
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.sikkerhet.AuthorizationService
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
+import org.springframework.http.ResponseEntity
+import org.springframework.web.ErrorResponseException
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -33,7 +41,9 @@ class DriftController(
     private val driftService: DriftService,
     private val auditlogger: Auditlogger,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
-    private val oppslagsService: OppslagsService
+    private val oppslagsService: OppslagsService,
+    private val authorizationService: AuthorizationService
+
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
@@ -67,6 +77,44 @@ class DriftController(
             )
         }
         return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder, debugForespørsel.ekskluderteSøknadIder)
+    }
+
+
+    @PostMapping(
+        "/forvaltning/oppdaterAktoerId",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
+    fun oppdaterAktoerId(@RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
+        if (!authorizationService.harTilgangTilDriftRolle()) {
+            val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
+            problemDetail.detail = "Mangler driftsrolle"
+            throw ErrorResponseException(HttpStatus.FORBIDDEN, problemDetail, null)
+        }
+
+        val identTilInnloggetBruker: String = tokenValidationContextHolder
+            .getTokenValidationContext()
+            .firstValidToken
+            ?.jwtTokenClaims
+            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+
+        val antallOppdaterte = driftService.oppdaterAktørId(
+            aktørBytteRequest.gyldigAktør,
+            aktørBytteRequest.utgåttAktør
+        )
+
+        if (antallOppdaterte > 0) {
+            auditLogg(
+                uri = "/debug$SØKNAD",
+                innloggetIdent = identTilInnloggetBruker,
+                berørtBrukerIdent = aktørBytteRequest.gyldigAktør,
+                eventClassId = EventClassId.AUDIT_SEARCH
+            )
+
+        }
+
+        return ResponseEntity.ok(AktørBytteRespons(antallOppdaterte))
     }
 
     fun hentAktørId(norskIdentitetsnummer: String): String {
