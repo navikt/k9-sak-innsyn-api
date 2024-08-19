@@ -1,16 +1,12 @@
 package no.nav.sifinnsynapi.drift
 
-import no.nav.k9.felles.log.audit.Auditdata
-import no.nav.k9.felles.log.audit.AuditdataHeader
-import no.nav.k9.felles.log.audit.CefField
-import no.nav.k9.felles.log.audit.CefFieldName
-import no.nav.k9.felles.log.audit.EventClassId
+import jakarta.validation.Valid
+import no.nav.k9.felles.log.audit.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
-import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.forvaltning.AktørBytteRequest
 import no.nav.sifinnsynapi.forvaltning.AktørBytteRespons
@@ -49,7 +45,11 @@ class DriftController(
         val logger = LoggerFactory.getLogger(DriftController::class.java)
     }
 
-    @PostMapping("/debug$SØKNAD", produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        "/debug$SØKNAD",
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
     @ResponseStatus(OK)
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
         val identTilInnloggetBruker: String = tokenValidationContextHolder
@@ -76,7 +76,11 @@ class DriftController(
                 eventClassId = EventClassId.AUDIT_SEARCH
             )
         }
-        return driftService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, pleietrengendeAktørIder, debugForespørsel.ekskluderteSøknadIder)
+        return driftService.slåSammenSøknadsopplysningerPerBarn(
+            søkerAktørId,
+            pleietrengendeAktørIder,
+            debugForespørsel.ekskluderteSøknadIder
+        )
     }
 
 
@@ -86,7 +90,7 @@ class DriftController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
-    fun oppdaterAktoerId(@RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
+    fun oppdaterAktoerId(@Valid @RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
         if (!authorizationService.harTilgangTilDriftRolle()) {
             val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
             problemDetail.detail = "Mangler driftsrolle"
@@ -106,7 +110,7 @@ class DriftController(
 
         if (antallOppdaterte > 0) {
             auditLogg(
-                uri = "/debug$SØKNAD",
+                uri = "/forvaltning/oppdaterAktoerId",
                 innloggetIdent = identTilInnloggetBruker,
                 berørtBrukerIdent = aktørBytteRequest.gyldigAktør,
                 eventClassId = EventClassId.AUDIT_SEARCH
