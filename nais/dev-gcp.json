@@ -82,7 +82,8 @@
     "SIF_INNSYN_API_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:sif-innsyn-api",
 
     "SWAGGER_ENABLED": "true",
-    "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0"
+    "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0",
+    "K9_DRIFT_GRUPPE_ID": "0bc9661c-975c-4adb-86d1-a97172490662"
   },
   "slack-channel": "sif-alerts-dev",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | ",
