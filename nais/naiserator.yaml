@@ -73,6 +73,10 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
+  observability:
+    autoInstrumentation:
+      enabled: {{observabilityEnabled}}
+      runtime: java
   env:
   {{#each env}}
    - name: {{@key}}

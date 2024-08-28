@@ -62,6 +62,7 @@
   },
   "azureTenant": "trygdeetaten.no",
   "kafkaPool": "nav-dev",
+  "observabilityEnabled": "true",
   "env": {
     "SERVER_PORT": "8080",
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",

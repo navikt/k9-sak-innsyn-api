@@ -55,6 +55,7 @@
     "highAvailability": "true"
   },
   "kafkaPool": "nav-prod",
+  "observabilityEnabled": "false",
   "env": {
     "SERVER_PORT": "8080",
     "SPRING_APPLICATION_NAME": "k9-sak-innsyn-api",
