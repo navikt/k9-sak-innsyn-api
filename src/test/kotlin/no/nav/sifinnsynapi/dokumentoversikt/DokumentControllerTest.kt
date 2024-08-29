@@ -8,7 +8,7 @@ import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
-import org.junit.Assert
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -49,7 +49,7 @@ internal class DokumentControllerTest {
 
     @BeforeAll
     internal fun setUp() {
-        Assert.assertNotNull(mockOAuth2Server)
+        assertNotNull(mockOAuth2Server)
     }
 
     @Test

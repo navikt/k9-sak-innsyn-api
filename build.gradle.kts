@@ -18,6 +18,9 @@ configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
+    testCompileOnly {
+        exclude(group="junit", module = "junit")
+    }
 }
 
 val graphQLKotlinVersion = "7.1.4"

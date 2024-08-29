@@ -2,7 +2,7 @@ package no.nav.sifinnsynapi.sak.behandling
 
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.søknad.felles.Kildesystem
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat
 import java.time.LocalDate
 import java.time.Period
