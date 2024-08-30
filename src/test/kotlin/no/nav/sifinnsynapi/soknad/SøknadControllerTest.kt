@@ -13,7 +13,7 @@ import no.nav.sifinnsynapi.oppslag.AdressebeskyttelseGradering
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
-import org.junit.Assert.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

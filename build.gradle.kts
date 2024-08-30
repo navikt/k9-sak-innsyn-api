@@ -18,6 +18,9 @@ configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
+    testCompileOnly {
+        exclude(group="junit", module = "junit")
+    }
 }
 
 val graphQLKotlinVersion = "7.1.4"
@@ -25,7 +28,7 @@ val springCloudVersion = "4.1.4"
 val springdocVersion = "2.6.0"
 val logstashLogbackEncoderVersion = "8.0"
 val tokenSupportVersion = "4.1.7"
-val k9FormatVersion = "9.5.0"
+val k9FormatVersion = "9.5.2"
 val retryVersion = "2.0.7"
 val zalandoVersion = "0.27.0"
 val postgresqlVersion = "42.7.3"

@@ -23,9 +23,9 @@ import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.json.JSONObject
-import org.junit.Assert
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -236,7 +236,7 @@ internal class InnsendingServiceTest {
 
         // forvent at søknadene blir slått sammen.
         val søknad: Søknad? = innsendingService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
-        Assert.assertNotNull(søknad)
+        assertNotNull(søknad)
 
         val ytelse = søknad!!.getYtelse<PleiepengerSyktBarn>()
         val sammenslåttTilsynsordning = ytelse.tilsynsordning
@@ -351,7 +351,7 @@ internal class InnsendingServiceTest {
 
         await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
             val bytes = innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
-            Assertions.assertNotNull(bytes)
+            assertNotNull(bytes)
             assertk.assertThat(bytes).isNotEmpty()
             assertk.assertThat(bytes).size().isGreaterThan(1000)
         }
@@ -401,7 +401,7 @@ internal class InnsendingServiceTest {
 
         await.atMost(Duration.ofSeconds(10)).ignoreException(LegacySøknadNotFoundException::class.java).untilAsserted {
             val bytes = innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer)
-            Assertions.assertNotNull(bytes)
+            assertNotNull(bytes)
             assertk.assertThat(bytes).isNotEmpty()
             assertk.assertThat(bytes).size().isGreaterThan(1000)
         }

@@ -29,8 +29,8 @@ import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.utils.*
 import org.apache.kafka.clients.producer.Producer
 import org.awaitility.kotlin.await
-import org.junit.Assert.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

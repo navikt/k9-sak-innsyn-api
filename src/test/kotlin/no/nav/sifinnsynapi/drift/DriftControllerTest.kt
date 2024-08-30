@@ -18,7 +18,7 @@ import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.intellij.lang.annotations.Language
-import org.junit.Assert.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

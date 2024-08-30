@@ -2,7 +2,7 @@ package no.nav.sifinnsynapi.sak.behandling
 
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.søknad.felles.Kildesystem
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat
 import java.time.LocalDate
 import java.time.Period
@@ -25,7 +25,7 @@ class SaksbehandlingstidUtlederTest {
         )
         val saksbehandlingsfrist = SaksbehandlingstidUtleder.utled(behandling,(null))
 
-        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteMottattTidspunkt.plusWeeks(6))
+        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteMottattTidspunkt.plusWeeks(4))
     }
 
     @Test
@@ -55,7 +55,7 @@ class SaksbehandlingstidUtlederTest {
             lagSøknad(tidligsteMottattTidspunkt.plusMonths(20), Kildesystem.SØKNADSDIALOG)
         ))
         val saksbehandlingsfrist = SaksbehandlingstidUtleder.utled(behandling)
-        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteSøknadsTidspunkt.plusWeeks(6))
+        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteSøknadsTidspunkt.plusWeeks(4))
 
     }
 

@@ -6,8 +6,8 @@ import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import org.junit.Assert.*
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
