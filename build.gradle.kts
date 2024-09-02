@@ -2,12 +2,12 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.5"
+    id("org.springframework.boot") version "3.3.3"
     id("io.spring.dependency-management") version "1.1.6"
-    id("com.expediagroup.graphql") version "7.1.4"
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.spring") version "2.0.0"
-    kotlin("plugin.jpa") version "2.0.0"
+    id("com.expediagroup.graphql") version "8.0.0"
+    kotlin("jvm") version "2.0.20"
+    kotlin("plugin.spring") version "2.0.20"
+    kotlin("plugin.jpa") version "2.0.20"
 }
 
 group = "no.nav"
@@ -23,21 +23,21 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "7.1.4"
+val graphQLKotlinVersion = "8.0.0"
 val springCloudVersion = "4.1.4"
 val springdocVersion = "2.6.0"
 val logstashLogbackEncoderVersion = "8.0"
-val tokenSupportVersion = "4.1.7"
+val tokenSupportVersion = "5.0.3"
 val k9FormatVersion = "9.5.2"
-val retryVersion = "2.0.7"
+val retryVersion = "2.0.8"
 val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.3"
+val postgresqlVersion = "42.7.4"
 val hibernateTypes52Version = "2.20.0"
-val awailitilityKotlinVersion = "4.2.1"
+val awailitilityKotlinVersion = "4.2.2"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
 val mockkVersion = "1.13.12"
-val guavaVersion = "33.2.1-jre"
+val guavaVersion = "33.3.0-jre"
 val orgJsonVersion = "20240303"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
@@ -59,7 +59,7 @@ repositories {
     }
 }
 dependencies {
-    implementation("org.yaml:snakeyaml:2.2") {
+    implementation("org.yaml:snakeyaml:2.3") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
@@ -113,6 +113,7 @@ dependencies {
     // Database
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 
