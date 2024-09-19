@@ -55,6 +55,11 @@
       "app": "k9-brukerdialog-prosessering",
       "namespace": "dusseldorf",
       "cluster": "dev-gcp"
+    },
+    {
+      "app": "sif-demo-app",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
     }
   ],
   "database": {
