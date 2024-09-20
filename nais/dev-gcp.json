@@ -27,6 +27,11 @@
   ],
   "inboundRules": [
     {
+      "app": "sif-demo-app",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
+    },
+    {
       "app": "dine-pleiepenger",
       "namespace": "dusseldorf",
       "cluster": "dev-gcp"
