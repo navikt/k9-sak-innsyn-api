@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.3.4"
     id("io.spring.dependency-management") version "1.1.6"
-    id("com.expediagroup.graphql") version "8.0.0"
+    id("com.expediagroup.graphql") version "8.1.0"
     kotlin("jvm") version "2.0.20"
     kotlin("plugin.spring") version "2.0.20"
     kotlin("plugin.jpa") version "2.0.20"
@@ -23,7 +23,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "8.0.0"
+val graphQLKotlinVersion = "8.1.0"
 val springCloudVersion = "4.1.4"
 val springdocVersion = "2.6.0"
 val logstashLogbackEncoderVersion = "8.0"
@@ -45,7 +45,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.20.1"
+val testcontainersVersion ="1.20.2"
 
 repositories {
     mavenCentral()
