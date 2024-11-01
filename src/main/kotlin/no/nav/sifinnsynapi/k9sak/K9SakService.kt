@@ -3,9 +3,11 @@ package no.nav.sifinnsynapi.k9sak
 import com.fasterxml.jackson.annotation.JsonFormat
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
+import no.nav.sifinnsynapi.k9sak.opplaeringsinstitusjon.Opplæringsinstitusjon
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -41,6 +43,7 @@ class K9SakService(
         private val logger: Logger = LoggerFactory.getLogger(K9SakService::class.java)
 
         private val hentSisteGyldigeVedtakForAktorIdUrl = "/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
+        private val hentOpplæringsinstitusjonerUrl = "/api/opplæringsinsititusjon/alle"
     }
 
     fun hentSisteGyldigeVedtakForAktorId(
@@ -93,6 +96,16 @@ class K9SakService(
             saksnummer = null,
             vedtaksdato = null,
         )
+    }
+
+    suspend fun hentOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
+        val response = k9SakKlient.exchange(
+            hentOpplæringsinstitusjonerUrl,
+            HttpMethod.GET,
+            HttpEntity(Unit),
+            object: ParameterizedTypeReference<List<Opplæringsinstitusjon>>() {}
+        )
+        return response.body ?: emptyList()
     }
 }
 
