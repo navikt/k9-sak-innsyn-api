@@ -57,7 +57,7 @@
       "cluster": "dev-gcp"
     },
     {
-      "app": "sif-demo-app",
+      "app": "opplaringspenger",
       "namespace": "dusseldorf",
       "cluster": "dev-gcp"
     }
