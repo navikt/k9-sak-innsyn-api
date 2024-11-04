@@ -43,7 +43,7 @@ class K9SakService(
         private val logger: Logger = LoggerFactory.getLogger(K9SakService::class.java)
 
         private val hentSisteGyldigeVedtakForAktorIdUrl = "/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
-        private val hentOpplæringsinstitusjonerUrl = "/api/opplæringsinsititusjon/alle"
+        private val hentOpplæringsinstitusjonerUrl = "/api/opplæringsinstitusjon/alle"
     }
 
     fun hentSisteGyldigeVedtakForAktorId(
