@@ -57,7 +57,7 @@
       "cluster": "dev-gcp"
     },
     {
-      "app": "opplaringspenger",
+      "app": "opplaringspenger-soknad",
       "namespace": "dusseldorf",
       "cluster": "dev-gcp"
     }
