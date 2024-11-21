@@ -27,7 +27,7 @@ val graphQLKotlinVersion = "8.2.1"
 val springCloudVersion = "4.1.4"
 val springdocVersion = "2.6.0"
 val logstashLogbackEncoderVersion = "8.0"
-val tokenSupportVersion = "5.0.5"
+val tokenSupportVersion = "5.0.11"
 val k9FormatVersion = "9.5.2"
 val retryVersion = "2.0.10"
 val zalandoVersion = "0.27.0"
@@ -45,7 +45,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.20.3"
+val testcontainersVersion ="1.20.4"
 
 repositories {
     mavenCentral()
