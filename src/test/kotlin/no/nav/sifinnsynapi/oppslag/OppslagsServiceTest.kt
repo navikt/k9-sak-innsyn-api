@@ -50,8 +50,8 @@ internal class OppslagsServiceTest {
             mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
         ): RestTemplate {
             return builder
-                .setConnectTimeout(Duration.ofSeconds(20))
-                .setReadTimeout(Duration.ofSeconds(20))
+                .connectTimeout(Duration.ofSeconds(20))
+                .readTimeout(Duration.ofSeconds(20))
                 .defaultHeader(Constants.X_CORRELATION_ID, UUID.randomUUID().toString())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, anyString())

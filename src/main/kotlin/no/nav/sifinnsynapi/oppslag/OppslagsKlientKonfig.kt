@@ -45,8 +45,8 @@ class OppslagsKlientKonfig(
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
         return builder
-            .setConnectTimeout(Duration.ofSeconds(20))
-            .setReadTimeout(Duration.ofSeconds(20))
+            .connectTimeout(Duration.ofSeconds(20))
+            .readTimeout(Duration.ofSeconds(20))
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)
@@ -60,13 +60,13 @@ class OppslagsKlientKonfig(
             when {
                 request.uri.path == "/isalive" -> {} // ignorer
                 request.uri.path.contains("/system") -> {
-                    oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties).accessToken?.let {
+                    oAuth2AccessTokenService.getAccessToken(azureK9SelvbetjeningOppslagClientProperties).access_token?.let {
                         request.headers.setBearerAuth(it)
                     }?: throw SecurityException("Accesstoken er null")
                 }
 
                 else -> {
-                    oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties).accessToken?.let {
+                    oAuth2AccessTokenService.getAccessToken(tokenxK9SelvbetjeningOppslagClientProperties).access_token?.let {
                         request.headers.setBearerAuth(it)
                     }?: throw SecurityException("Accesstoken er null")
                 }

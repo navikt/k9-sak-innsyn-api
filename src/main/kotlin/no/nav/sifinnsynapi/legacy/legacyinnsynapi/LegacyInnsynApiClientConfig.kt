@@ -39,8 +39,8 @@ class LegacyInnsynApiClientConfig(
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor
     ): RestTemplate {
         return builder
-            .setConnectTimeout(Duration.ofSeconds(20))
-            .setReadTimeout(Duration.ofSeconds(20))
+            .connectTimeout(Duration.ofSeconds(20))
+            .readTimeout(Duration.ofSeconds(20))
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(sifInnsynApiBaseUrl)
             .defaultMessageConverters()
@@ -50,7 +50,7 @@ class LegacyInnsynApiClientConfig(
 
     private fun bearerTokenInterceptor(): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution ->
-            oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties).accessToken?.let {
+            oAuth2AccessTokenService.getAccessToken(tokenxSifInnsynApiClientProperties).access_token?.let {
                 request.headers.setBearerAuth(it)
             } ?: throw SecurityException("Accesstoken er null")
             execution.execute(request, body)
