@@ -13,11 +13,13 @@ import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingNavNoPDFGenerator
 import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingPDFGenerator
 import no.nav.sifinnsynapi.pdf.PleiepengerArbeidsgiverMelding
 import no.nav.sifinnsynapi.pdf.SøknadsPeriode
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -31,8 +33,10 @@ class InnsendingService(
     private val omsorgService: OmsorgService,
     private val oppslagsService: OppslagsService,
     private val legacyInnsynApiService: LegacyInnsynApiService,
+    private val ettersendelseRepository: EttersendelseRepository,
     private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator,
-    private val ettersendelseRepository: EttersendelseRepository
+    private val arbeidsgiverMeldingNavNoPDFGenerator: ArbeidsgiverMeldingNavNoPDFGenerator,
+    @Value("\${no.nav.inntektsmelding.ny-im-aktivert}") val erNyImAktivert: Boolean = false
 ) {
 
     private companion object {
@@ -123,11 +127,20 @@ class InnsendingService(
                 val pleiepengesøknadJson = JSONObject(søknad.søknad)
                 val funnetOrg: JSONObject = pleiepengesøknadJson.finnOrganisasjon(søknadId.toString(), organisasjonsnummer)
 
-                arbeidsgiverMeldingPDFGenerator.genererPDF(
-                    pleiepengesøknadJson.tilPleiepengerAreidsgivermelding(
-                        funnetOrg
+                if (erNyImAktivert) {
+                    logger.info("Ny inntektsmelding er aktivert, genererer PDF med nytt template.")
+                    arbeidsgiverMeldingNavNoPDFGenerator.genererPDF(
+                        pleiepengesøknadJson.tilPleiepengerAreidsgivermelding(
+                            funnetOrg
+                        )
                     )
-                )
+                } else {
+                    arbeidsgiverMeldingPDFGenerator.genererPDF(
+                        pleiepengesøknadJson.tilPleiepengerAreidsgivermelding(
+                            funnetOrg
+                        )
+                    )
+                }
             }
 
             else -> throw NotSupportedArbeidsgiverMeldingException(søknadId.toString(), søknad.søknadstype)

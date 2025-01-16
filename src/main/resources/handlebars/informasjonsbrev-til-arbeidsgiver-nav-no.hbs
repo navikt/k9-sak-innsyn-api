@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="NO">
+
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bekreftelse til Arbeidsgiver</title>
+    <meta name="subject" content="Informasjonsbrev til Arbeidsgiver"/>
+    <meta name="author" content="nav.no"/>
+    <meta name="description" content="Bekreftelse til Arbeidsgiver {{soknad_mottatt_dag}} {{ soknad_mottatt }}"/>
+    <bookmarks>
+        <bookmark name="Informasjon" href="#informasjon"/>
+        <bookmark name="Instruksjon" href="#instruksjon"/>
+    </bookmarks>
+    {{#block 'style-common' }}
+    {{/block}}
+</head>
+
+<body>
+<div class="innholdscontainer">
+    <span id="header"></span>
+
+    <section id="informasjon">
+        <h1>Til {{arbeidsgiver_navn}}</h1>
+        <p><strong>{{arbeidstaker_navn}}</strong> har søkt om pleiepenger for perioden</p>
+        <ul>
+            <li>
+                <strong>{{periode.fom}} - {{periode.tom}}</strong>
+            </li>
+        </ul>
+
+        <p>
+            Hvis vi trenger inntektsmelding for å behandle søknaden, vil du få varsel om dette via Altinn og på
+            Min side – arbeidsgiver på nav.no. Du kan da logge inn på nav.no for å sende inn en forhåndsutfylt
+            inntektsmelding.
+        </p>
+
+        <p>
+            Det er også mulig å sende inntektsmelding fra Altinn og lønns- og personalsystem, men du må da være
+            observant på at vi får riktig informasjon om første fraværsdag, organisasjonsnummer og eventuelt
+            arbeidsforholds-id.
+        </p>
+
+        <p>
+            Som hovedregel trenger vi inntektsmelding hvis dette er første søknad, eller hvis det har vært et
+            opphold på minst 4 uker. Hvis det har vært et kortere opphold mellom pleiepengeperiodene, der den
+            ansatte har hatt en varig lønnsendring, trenger vi også ny inntektsmelding.
+        </p>
+    </section>
+
+    <section id="spørsmål">
+        <h2>Har dere spørsmål?</h2>
+        <p>Dere finner mer informasjon på <a href="https://nav.no/arbeidsgiver">nav.no/arbeidsgiver</a></p>
+
+        <p>På <a href="https://nav.no/kontakt">nav.no/kontakt</a> kan dere chatte med oss.</p>
+
+        <p>Dere kan også ringe oss på telefon 55 55 33 36, hverdager 09.00-15.00.</p>
+    </section>
+</div>
+
+<!-- FOOTER -->
+<p id="footer">
+    <span class="tidspunkt">{{ tidspunkt }}</span>
+    <span class="sidetall">side <span id="pagenumber"></span> av <span id="pagecount"></span></span>
+</p>
+</body>
+
+</html>
