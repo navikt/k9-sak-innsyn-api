@@ -34,3 +34,7 @@ kafka:
         key-store-location: file:${KAFKA_KEYSTORE_PATH}
         key-store-password: ${KAFKA_CREDSTORE_PASSWORD}
         key-store-type: PKCS12
+
+no.nav:
+  inntektsmelding:
+    ny-im-aktivert: true

@@ -5,15 +5,12 @@ import org.springframework.stereotype.Service
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 
-@Deprecated(
-    "Etter at ny inntektsmelding gjennom nav.no er aktivert, ønsker vi ikke å bruke denne lenger",
-    ReplaceWith("ArbeidsgiverMeldingNavNoPDFGenerator")
-)
 @Service
-class ArbeidsgiverMeldingPDFGenerator : PDFGenerator<PleiepengerArbeidsgiverMelding>() {
+class ArbeidsgiverMeldingNavNoPDFGenerator : PDFGenerator<PleiepengerArbeidsgiverMelding>() {
 
     override val templateNavn: String
-        get() = "informasjonsbrev-til-arbeidsgiver"
+        get() = "informasjonsbrev-til-arbeidsgiver-nav-no"
+
 
     override fun PleiepengerArbeidsgiverMelding.tilMap(): Map<String, Any?> = mapOf(
         "arbeidsgiver_navn" to arbeidsgivernavn?.storForbokstav(),
