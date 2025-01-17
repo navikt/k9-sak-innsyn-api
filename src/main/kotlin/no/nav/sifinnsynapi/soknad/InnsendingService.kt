@@ -36,7 +36,7 @@ class InnsendingService(
     private val ettersendelseRepository: EttersendelseRepository,
     private val arbeidsgiverMeldingPDFGenerator: ArbeidsgiverMeldingPDFGenerator,
     private val arbeidsgiverMeldingNavNoPDFGenerator: ArbeidsgiverMeldingNavNoPDFGenerator,
-    @Value("\${no.nav.inntektsmelding.ny-im-aktivert:false}") val erNyImAktivert: Boolean
+    @Value("\${no.nav.inntektsmelding.ny-im-aktivert}") private val erNyImAktivert: Boolean
 ) {
 
     private companion object {
