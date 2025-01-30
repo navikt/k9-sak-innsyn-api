@@ -9,7 +9,7 @@ no.nav:
     sif-innsyn-api-base-url: # Settes i nais/<cluster>.json
 
   inntektsmelding:
-    ny-im-aktivert: false
+    ny-im-aktivert: true
 
   security:
     k9-drift-gruppe: ${K9_DRIFT_GRUPPE_ID}
