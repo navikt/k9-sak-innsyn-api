@@ -2,7 +2,7 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.4.2"
+    id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.3.0"
     kotlin("jvm") version "2.1.10"
@@ -25,9 +25,9 @@ configurations {
 
 val graphQLKotlinVersion = "8.3.0"
 val springCloudVersion = "4.2.0"
-val springdocVersion = "2.8.4"
+val springdocVersion = "2.8.5"
 val logstashLogbackEncoderVersion = "8.0"
-val tokenSupportVersion = "5.0.16"
+val tokenSupportVersion = "5.0.17"
 val k9FormatVersion = "9.5.2"
 val retryVersion = "2.0.11"
 val zalandoVersion = "0.27.0"
@@ -45,7 +45,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.20.4"
+val testcontainersVersion ="1.20.5"
 
 repositories {
     mavenCentral()
@@ -59,7 +59,7 @@ repositories {
     }
 }
 dependencies {
-    implementation("org.yaml:snakeyaml:2.3") {
+    implementation("org.yaml:snakeyaml:2.4") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
