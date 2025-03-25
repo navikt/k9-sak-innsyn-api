@@ -1,4 +1,4 @@
-FROM amazoncorretto:22-alpine3.20
+FROM amazoncorretto:24-alpine3.20
 
 COPY build/libs/*.jar app.jar
 
