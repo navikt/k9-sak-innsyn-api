@@ -44,6 +44,11 @@
       "app": "k9-brukerdialog-prosessering",
       "namespace": "dusseldorf",
       "cluster": "prod-gcp"
+    },
+    {
+      "app": "opplaringspenger-soknad",
+      "namespace": "dusseldorf",
+      "cluster": "prod-gcp"
     }
   ],
   "database": {
