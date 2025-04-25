@@ -2,9 +2,9 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.4.4"
+    id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "8.4.0"
+    id("com.expediagroup.graphql") version "8.6.2"
     kotlin("jvm") version "2.1.20"
     kotlin("plugin.spring") version "2.1.20"
     kotlin("plugin.jpa") version "2.1.20"
@@ -23,10 +23,10 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "8.4.0"
+val graphQLKotlinVersion = "8.6.2"
 val springCloudVersion = "4.2.1"
 val springdocVersion = "2.8.6"
-val logstashLogbackEncoderVersion = "8.0"
+val logstashLogbackEncoderVersion = "8.1"
 val tokenSupportVersion = "5.0.24"
 val k9FormatVersion = "9.5.2"
 val retryVersion = "2.0.11"
@@ -36,8 +36,8 @@ val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
-val mockkVersion = "1.13.17"
-val guavaVersion = "33.4.6-jre"
+val mockkVersion = "1.14.0"
+val guavaVersion = "33.4.8-jre"
 val orgJsonVersion = "20250107"
 val k9FellesVersion = "2.0.8"
 val k9FormidlingVersion = "1.0.7"
@@ -45,7 +45,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.20.6"
+val testcontainersVersion ="1.21.0"
 
 repositories {
     mavenCentral()
