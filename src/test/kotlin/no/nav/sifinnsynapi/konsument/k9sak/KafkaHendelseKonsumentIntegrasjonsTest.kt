@@ -192,7 +192,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                     innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
                 }
                     .getOrNull()
-            assertNotNull(faktiskPSB)
+            assertThat(faktiskPSB).isNotNull()
 
             assertThat(faktiskPSB!!.arbeidstid.arbeidstakerList.size)
                 .isEqualTo(forventetPSB.arbeidstid.arbeidstakerList.size)
@@ -285,7 +285,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
             val faktiskOmsorg =
                 kotlin.runCatching { omsorgService.hentOmsorg(hovedSøkerAktørId, barn1AktørId) }.getOrNull()
 
-            assertNotNull(faktiskOmsorg)
+            assertThat(faktiskOmsorg).isNotNull()
             assertTrue(faktiskOmsorg!!.harOmsorgen)
         }
     }
@@ -309,7 +309,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val faktiskOmsorg = omsorgService.harOmsorgen(hovedSøkerAktørId, barn1AktørId)
-            assertNotNull(faktiskOmsorg)
+            assertThat(faktiskOmsorg).isNotNull()
             assertFalse(faktiskOmsorg)
         }
     }
@@ -339,7 +339,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
             val faktiskPSB =
                 innsendingService.slåSammenSøknadsopplysningerPerBarn().first().søknad.getYtelse<PleiepengerSyktBarn>()
 
-            assertNotNull(faktiskPSB)
+            assertThat(faktiskPSB).isNotNull()
         }
 
         k9SakProducer.leggPåTopic(defaultSøknadTrukket(journalpostId = journalpostId), K9_SAK_TOPIC)
