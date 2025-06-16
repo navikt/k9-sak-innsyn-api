@@ -1,5 +1,7 @@
 package no.nav.sifinnsynapi.omsorg
 
+import assertk.assertThat
+import assertk.assertions.isNotNull
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -57,7 +59,7 @@ internal class OmsorgServiceTest {
             pleietrengendeAktørId = pleietrengendeAktørId
         )
 
-        assertNotNull(harOmsorgen)
+        assertThat(harOmsorgen).isNotNull()
         assertTrue { harOmsorgen }
     }
 
@@ -80,7 +82,7 @@ internal class OmsorgServiceTest {
             søkerAktørId = søkerAktørId,
             pleietrengendeAktørId = pleietrengendeAktørId
         )
-        assertNotNull(harOmsorgen)
+        assertThat(harOmsorgen).isNotNull()
         assertFalse { harOmsorgen }
     }
 
@@ -103,7 +105,7 @@ internal class OmsorgServiceTest {
             søkerAktørId = søkerAktørId,
             pleietrengendeAktørId = pleietrengendeAktørId
         )
-        assertNotNull(harOmsorgen)
+        assertThat(harOmsorgen).isNotNull()
         assertFalse { harOmsorgen }
 
         assertTrue { omsorgService.oppdaterOmsorg(søkerAktørId, pleietrengendeAktørId, true) }
