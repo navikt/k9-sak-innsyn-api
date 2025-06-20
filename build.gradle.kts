@@ -2,9 +2,9 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.0"
+    id("org.springframework.boot") version "3.5.2"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "8.8.0"
+    id("com.expediagroup.graphql") version "8.8.1"
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.spring") version "2.1.21"
     kotlin("plugin.jpa") version "2.1.21"
@@ -23,7 +23,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "8.8.0"
+val graphQLKotlinVersion = "8.8.1"
 val springCloudVersion = "4.3.0"
 val springdocVersion = "2.8.9"
 val logstashLogbackEncoderVersion = "8.1"
@@ -45,7 +45,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.21.1"
+val testcontainersVersion ="1.21.2"
 
 repositories {
     mavenCentral()
