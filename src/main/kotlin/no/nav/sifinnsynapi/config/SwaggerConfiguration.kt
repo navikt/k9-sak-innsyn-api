@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.security.OAuthFlows
 import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
+import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.Bean
@@ -24,6 +25,38 @@ class SwaggerConfiguration(
     @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String
 ) : EnvironmentAware {
     private var env: Environment? = null
+
+    @Bean
+    fun k9SakOpenApi(): GroupedOpenApi {
+        val packagesToscan = arrayOf(
+            "no.nav.sifinnsynapi.k9sak",
+        )
+        return GroupedOpenApi.builder()
+            .group("k9-sak").packagesToScan(*packagesToscan)
+            .build()
+    }
+
+    @Bean
+    fun driftOpenApi(): GroupedOpenApi {
+        val packagesToscan = arrayOf(
+            "no.nav.sifinnsynapi.drift",
+        )
+        return GroupedOpenApi.builder()
+            .group("drift").packagesToScan(*packagesToscan)
+            .build()
+    }
+
+    @Bean
+    fun k9SakInnsynOpenApi(): GroupedOpenApi {
+        val packagesToscan = arrayOf(
+            "no.nav.sifinnsynapi.soknad",
+            "no.nav.sifinnsynapi.sak",
+            "no.nav.sifinnsynapi.dokumentoversikt"
+        )
+        return GroupedOpenApi.builder()
+            .group("innsyn").packagesToScan(*packagesToscan)
+            .build()
+    }
 
     @Bean
     fun openAPI(): OpenAPI {
