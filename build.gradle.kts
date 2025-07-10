@@ -46,7 +46,7 @@ val k9SakVersion = "4.1.8"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.4.0"
 
-val testcontainersVersion ="1.21.2"
+val testcontainersVersion ="1.21.3"
 
 repositories {
     mavenCentral()
