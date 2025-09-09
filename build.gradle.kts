@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.4"
+    id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.spring") version "2.2.0"
-    kotlin("plugin.jpa") version "2.2.0"
+    kotlin("jvm") version "2.2.10"
+    kotlin("plugin.spring") version "2.2.10"
+    kotlin("plugin.jpa") version "2.2.10"
 }
 
 group = "no.nav"
@@ -26,7 +26,7 @@ configurations {
 
 val graphQLKotlinVersion = "8.8.1"
 val springCloudVersion = "4.3.0"
-val springdocVersion = "2.8.9"
+val springdocVersion = "2.8.13"
 val logstashLogbackEncoderVersion = "8.1"
 val tokenSupportVersion = "5.0.33"
 val k9FormatVersion = "12.5.5"
@@ -44,7 +44,7 @@ val k9FellesVersion = "5.1.1"
 val k9FormidlingVersion = "10.1.7"
 val k9SakVersion = "5.4.20"
 val openhtmltopdfVersion = "1.0.10"
-val handlebarsVersion = "4.4.0"
+val handlebarsVersion = "4.5.0"
 
 val testcontainersVersion ="1.21.3"
 
@@ -60,7 +60,7 @@ repositories {
     }
 }
 dependencies {
-    implementation("org.yaml:snakeyaml:2.4") {
+    implementation("org.yaml:snakeyaml:2.5") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
