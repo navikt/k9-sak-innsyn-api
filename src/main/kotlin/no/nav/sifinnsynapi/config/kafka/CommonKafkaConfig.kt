@@ -106,7 +106,7 @@ class CommonKafkaConfig {
             clientId: String,
             consumerFactory: ConsumerFactory<String, String>,
             retryInterval: Long,
-            transactionManager: PlatformTransactionManager,
+            transactionManager: KafkaTransactionManager<String, String>,
             kafkaTemplate: KafkaTemplate<String, String>,
             logger: Logger,
             activeProfiles: Array<String>
@@ -126,7 +126,7 @@ class CommonKafkaConfig {
             // VTP kafka broker støtter ikke transaksjoner
             if (!activeProfiles.contains("vtp")) {
             // https://docs.spring.io/spring-kafka/docs/2.5.2.RELEASE/reference/html/#chained-transaction-manager
-                factory.containerProperties.transactionManager = transactionManager
+                factory.containerProperties.kafkaAwareTransactionManager = transactionManager
             }
 
 
