@@ -6,9 +6,9 @@ plugins {
     id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.10"
-    kotlin("plugin.spring") version "2.2.10"
-    kotlin("plugin.jpa") version "2.2.10"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.spring") version "2.2.20"
+    kotlin("plugin.jpa") version "2.2.20"
 }
 
 group = "no.nav"
