@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.5"
+    id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.10"
-    kotlin("plugin.spring") version "2.2.10"
-    kotlin("plugin.jpa") version "2.2.10"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.spring") version "2.2.20"
+    kotlin("plugin.jpa") version "2.2.20"
 }
 
 group = "no.nav"
@@ -32,13 +32,13 @@ val tokenSupportVersion = "5.0.33"
 val k9FormatVersion = "12.5.7"
 val retryVersion = "2.0.12"
 val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.7"
+val postgresqlVersion = "42.7.8"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "4.0.2"
-val mockkVersion = "1.14.5"
-val guavaVersion = "33.4.8-jre"
+val mockkVersion = "1.14.6"
+val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20250517"
 val k9FellesVersion = "5.1.1"
 val k9FormidlingVersion = "10.1.7"
