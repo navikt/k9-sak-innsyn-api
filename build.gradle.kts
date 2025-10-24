@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.6"
+    id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.20"
-    kotlin("plugin.spring") version "2.2.20"
-    kotlin("plugin.jpa") version "2.2.20"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
+    kotlin("plugin.jpa") version "2.2.21"
 }
 
 group = "no.nav"
