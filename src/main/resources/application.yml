@@ -7,6 +7,7 @@ no.nav:
     k9-sak: # Settes i nais/<cluster>.json
     saf-selvbetjening-base-url: # Settes i nais/<cluster>.json
     sif-innsyn-api-base-url: # Settes i nais/<cluster>.json
+    enhetsregister-base-url: # Settes i nais/<cluster>.json
 
   inntektsmelding:
     ny-im-aktivert: true
