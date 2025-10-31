@@ -10,14 +10,11 @@ kafka:
       auto-offset-reset: earliest
     properties:
       security:
-        protocol: SASL_SSL
+        protocol: SSL
       ssl:
         trust-store-location: file:${KAFKA_TRUSTSTORE_PATH}
         trust-store-password: ${KAFKA_CREDSTORE_PASSWORD}
         trust-store-type: JKS
         key-store-location: file:${KAFKA_KEYSTORE_PATH}
-        key-store-password: ${KAFKA_OVERRIDE_KEYSTORE_PASSWORD}
+        key-store-password: ${KAFKA_CREDSTORE_PASSWORD}
         key-store-type: PKCS12
-      sasl:
-        mechanism: PLAIN
-        jaasConfig: org.apache.kafka.common.security.scram.ScramLoginModule required username="vtp" password="vtp";
