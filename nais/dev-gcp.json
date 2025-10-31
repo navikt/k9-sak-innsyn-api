@@ -23,7 +23,8 @@
   "externalHosts": [
     "login.microsoftonline.com",
     "safselvbetjening.dev-fss-pub.nais.io",
-    "k9-sak.dev-fss-pub.nais.io"
+    "k9-sak.dev-fss-pub.nais.io",
+    "ereg-services-q2.dev-fss-pub.nais.io"
   ],
   "inboundRules": [
     {
@@ -91,6 +92,8 @@
 
     "NO_NAV_GATEWAYS_SIF_INNSYN_API_BASE_URL": "http://sif-innsyn-api",
     "SIF_INNSYN_API_TOKEN_X_AUDIENCE": "dev-gcp:dusseldorf:sif-innsyn-api",
+
+    "NO_NAV_GATEWAYS_ENHETSREGISTER_BASE_URL": "https://ereg-services-q2.dev-fss-pub.nais.io",
 
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0",
