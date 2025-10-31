@@ -214,8 +214,8 @@ class K9SakHendelseKonsument(
     }
 
     private fun settOppMdcInntektsmelding(inntektsmelding: Inntektsmelding) {
-        MDCUtil.toMDC(Constants.JOURNALPOST_ID, inntektsmelding.journalpostId)
-        MDCUtil.toMDC(Constants.SAKSNUMMER, inntektsmelding.saksnummer)
+        MDCUtil.toMDC(Constants.JOURNALPOST_ID, inntektsmelding.journalpostId.journalpostId())
+        MDCUtil.toMDC(Constants.SAKSNUMMER, inntektsmelding.saksnummer.verdi)
     }
 
     private fun settOppMdcBehandling(behandling: Behandling) {
