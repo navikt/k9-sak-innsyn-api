@@ -4,6 +4,7 @@ import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
+import no.nav.k9.innsyn.inntektsmelding.Inntektsmelding
 import no.nav.k9.innsyn.sak.Behandling
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
@@ -11,9 +12,11 @@ import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.sak.inntektsmelding.InntektsmeldingDAO
+import no.nav.sifinnsynapi.sak.inntektsmelding.InntektsmeldingService
 import no.nav.sifinnsynapi.soknad.EttersendelseDAO
-import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
@@ -33,6 +36,7 @@ class K9SakHendelseKonsument(
     private val behandlingService: BehandlingService,
     private val omsorgService: OmsorgService,
     @Value("\${topic.listener.k9-sak.dry-run}") private val dryRun: Boolean,
+    private val inntektsmeldingService: InntektsmeldingService,
 ) {
 
     companion object {
@@ -76,6 +80,11 @@ class K9SakHendelseKonsument(
                             innsynHendelse as InnsynHendelse<Behandling>
                             logger.info("DRY RUN - caster hendelse til InnsynHendelse<Behandling>")
                         }
+
+                        is Inntektsmelding -> {
+                            innsynHendelse as InnsynHendelse<Inntektsmelding>
+                            logger.info("DRY RUN - caster hendelse til InnsynHendelse<Inntektsmelding>")
+                        }
                     }
                 } catch (e: Exception) {
                     logger.error("DRY RUN - konsumering av innsynshendelse feilet.", e)
@@ -92,6 +101,7 @@ class K9SakHendelseKonsument(
                         is Omsorg -> håndterOmsorg(innsynHendelse as InnsynHendelse<Omsorg>)
                         is SøknadTrukket -> håndterSøknadTrukket(innsynHendelse as InnsynHendelse<SøknadTrukket>)
                         is Behandling -> håndterBehandling(innsynHendelse as InnsynHendelse<Behandling>)
+                        is Inntektsmelding -> håndterInntektsmelding(innsynHendelse as InnsynHendelse<Inntektsmelding>)
                     }
                 } finally {
                     slettMDC()
@@ -100,7 +110,16 @@ class K9SakHendelseKonsument(
         }
     }
 
+    private fun håndterInntektsmelding(innsynHendelse: InnsynHendelse<Inntektsmelding>) {
+        val inntektsmelding: Inntektsmelding = innsynHendelse.data
+        settOppMdcInntektsmelding(inntektsmelding)
+        logger.info("Innsynhendelse mappet til Inntektsmelding.")
+        logger.trace("Lagrer Inntektsmelding med journalpostId: {}...", inntektsmelding.journalpostId)
 
+
+        inntektsmeldingService.lagreInntektsmelding(innsynHendelse.somInntektsmelingDAO())
+        logger.trace("Inntektsmelding lagret.")
+    }
 
 
     private fun håndterBehandling(innsynHendelse: InnsynHendelse<Behandling>) {
@@ -112,8 +131,13 @@ class K9SakHendelseKonsument(
 
         val resultat = gyldigBehandling(innsynHendelse)
         if (!resultat.ok) {
-            logger.warn("Behandling={} med saksnummer={} opprettet={} fra k9-sak er ugyldig og vil bli ignorert: {} ",
-                behandling.behandlingsId, behandling.fagsak.saksnummer, behandling.opprettetTidspunkt, resultat.forklaring)
+            logger.warn(
+                "Behandling={} med saksnummer={} opprettet={} fra k9-sak er ugyldig og vil bli ignorert: {} ",
+                behandling.behandlingsId,
+                behandling.fagsak.saksnummer,
+                behandling.opprettetTidspunkt,
+                resultat.forklaring
+            )
             return
         }
         behandlingService.lagreBehandling(innsynHendelse.somBehandlingDAO())
@@ -189,6 +213,11 @@ class K9SakHendelseKonsument(
         }
     }
 
+    private fun settOppMdcInntektsmelding(inntektsmelding: Inntektsmelding) {
+        MDCUtil.toMDC(Constants.JOURNALPOST_ID, inntektsmelding.journalpostId)
+        MDCUtil.toMDC(Constants.SAKSNUMMER, inntektsmelding.saksnummer)
+    }
+
     private fun settOppMdcBehandling(behandling: Behandling) {
         MDCUtil.toMDC(Constants.BEHANDLING_ID, behandling.behandlingsId)
         MDCUtil.toMDC(Constants.SAKSNUMMER, behandling.fagsak.saksnummer.verdi)
@@ -213,6 +242,17 @@ class K9SakHendelseKonsument(
         MDC.remove(Constants.SØKNAD_ID)
     }
 }
+
+private fun InnsynHendelse<Inntektsmelding>.somInntektsmelingDAO() = InntektsmeldingDAO(
+    journalpostId = data.journalpostId.journalpostId,
+    søkerAktørId = data.søkerAktørId.id,
+    saksnummer = data.saksnummer.verdi,
+    inntektsmelding = JsonUtils.toString(data),
+    ytelsetype = data.fagsakYtelseType,
+    status = data.status,
+    opprettetDato = ZonedDateTime.now(UTC),
+    oppdatertDato = oppdateringstidspunkt
+)
 
 private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
     return BehandlingDAO(
