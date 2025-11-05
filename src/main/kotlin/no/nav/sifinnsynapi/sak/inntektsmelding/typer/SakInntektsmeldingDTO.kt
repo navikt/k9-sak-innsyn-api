@@ -1,13 +1,12 @@
-package no.nav.sifinnsynapi.sak.inntektsmelding
+package no.nav.sifinnsynapi.sak.inntektsmelding.typer
 
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class SakInntektsmeldingDTO(
     val ytelseType: YtekseTypeDTO,
-    val status: InntektsmeldingStatusDto,
+    val status: InntektsmeldingStatusDTO,
     val saksnummer: String,
     val innsendingstidspunkt: LocalDateTime,
     val kildesystem: String,

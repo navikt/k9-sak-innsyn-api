@@ -1,4 +1,4 @@
-package no.nav.sifinnsynapi.sak.inntektsmelding
+package no.nav.sifinnsynapi.sak.inntektsmelding.typer
 
 data class ArbeidsgiverDTO(
     val organisasjon: ArbeidsgiverOrganisasjonDTO?,
