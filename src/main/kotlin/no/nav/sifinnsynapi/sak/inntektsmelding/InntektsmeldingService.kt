@@ -1,12 +1,14 @@
 package no.nav.sifinnsynapi.sak.inntektsmelding
 
-import no.nav.k9.innsyn.inntektsmelding.Arbeidsgiver
-import no.nav.k9.innsyn.inntektsmelding.Inntektsmelding
-import no.nav.k9.innsyn.inntektsmelding.InntektsmeldingStatus
+import no.nav.k9.innsyn.inntektsmelding.*
+import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.*
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.innsyn.sak.Saksnummer
 import no.nav.k9.søknad.JsonUtils
+import no.nav.k9.søknad.felles.type.Periode
 import no.nav.sifinnsynapi.enhetsregisteret.EnhetsregisterService
 import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.sak.inntektsmelding.typer.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -34,24 +36,145 @@ class InntektsmeldingService(
         )
             .map { inntektsmeldingDAO -> inntektsmeldingDAO.somSakInntektsmeldingDTO() }
             .toList()
-
     }
 
     private fun InntektsmeldingDAO.somSakInntektsmeldingDTO(): SakInntektsmeldingDTO {
         val im = JsonUtils.fromString(inntektsmelding, Inntektsmelding::class.java)
 
         return SakInntektsmeldingDTO(
+            ytelseType = im.fagsakYtelseType.somYtelseType(),
             status = im.status.somInntektsmeldingStatusDto(),
             saksnummer = saksnummer,
-            journalpostId = journalpostId,
-            arbeidsgiver = im.arbeidsgiver.somArbeidsgiverDTO(),
-            startDatoPermisjon = im.startDatoPermisjon,
-            mottattDato = im.mottattDato,
-            inntektBeløp = im.inntektBeløp.verdi,
             innsendingstidspunkt = im.innsendingstidspunkt,
             kildesystem = im.kildesystem,
-            erstattetAv = im.erstattetAv.map { it.journalpostId }
+            arbeidsgiver = im.arbeidsgiver.somArbeidsgiverDTO(),
+            nærRelasjon = im.nærRelasjon,
+            journalpostId = journalpostId,
+            mottattDato = im.mottattDato,
+            inntektBeløp = im.inntektBeløp.verdi,
+            innsendingsårsak = im.innsendingsårsak.somInnsendingÅrsak(),
+            erstattetAv = im.erstattetAv.map { it.journalpostId },
+            graderinger = im.graderinger.map {it.somGradering()},
+            naturalYtelser = im.naturalYtelser.map {it.somNaturalYtelseDTO()},
+            utsettelsePerioder = im.utsettelsePerioder.map { it.somUtsettelseDTO() },
+            startDatoPermisjon = im.startDatoPermisjon,
+            oppgittFravær = im.oppgittFravær.map { it.somOppholdDTO() },
+            refusjonBeløpPerMnd = im.refusjonBeløpPerMnd?.verdi,
+            refusjonOpphører = im.refusjonOpphører,
+            inntektsmeldingType = im.inntektsmeldingType?.somInntektsmeldingTypeDTO(),
+            endringerRefusjon = im.endringerRefusjon.map { it.somEndringRefusjonDTO() }
         )
+    }
+
+    private fun Refusjon.somEndringRefusjonDTO(): EndringRefusjonDTO {
+        return EndringRefusjonDTO(
+            refusjonBeløpPerMnd = refusjonsbeløpMnd.verdi,
+            fom = fom
+        )
+    }
+
+
+    private fun InntektsmeldingType.somInntektsmeldingTypeDTO(): InntektsmeldingTypeDTO? {
+        return when (this) {
+            InntektsmeldingType.ORDINÆR -> InntektsmeldingTypeDTO.ORDINÆR
+            InntektsmeldingType.OMSORGSPENGER_REFUSJON -> InntektsmeldingTypeDTO.OMSORGSPENGER_REFUSJON
+            InntektsmeldingType.ARBEIDSGIVERINITIERT_NYANSATT -> InntektsmeldingTypeDTO.ARBEIDSGIVERINITIERT_NYANSATT
+            InntektsmeldingType.ARBEIDSGIVERINITIERT_UREGISTRERT -> InntektsmeldingTypeDTO.ARBEIDSGIVERINITIERT_UREGISTRERT
+        }
+    }
+
+    private fun PeriodeAndel.somOppholdDTO(): OppholdDTO {
+        return OppholdDTO(
+            periode = periode.somPeriodeDTO(),
+            varighetPerDag = varighetPerDag
+        )
+    }
+
+    private fun UtsettelsePeriode.somUtsettelseDTO(): UtsettelseDTO {
+        return UtsettelseDTO(
+            periode = periode.somPeriodeDTO(),
+            årsak = årsak.somUtsettelseÅrsakDTO()
+        )
+    }
+
+    private fun UtsettelseÅrsak.somUtsettelseÅrsakDTO(): UtsettelseÅrsakDTO {
+        return when (this) {
+            UtsettelseÅrsak.ARBEID -> UtsettelseÅrsakDTO.ARBEID
+            UtsettelseÅrsak.FERIE -> UtsettelseÅrsakDTO.FERIE
+            UtsettelseÅrsak.SYKDOM -> UtsettelseÅrsakDTO.SYKDOM
+            UtsettelseÅrsak.INSTITUSJON_SØKER -> UtsettelseÅrsakDTO.INSTITUSJON_SØKER
+            UtsettelseÅrsak.INSTITUSJON_BARN -> UtsettelseÅrsakDTO.INSTITUSJON_BARN
+            UtsettelseÅrsak.UDEFINERT -> UtsettelseÅrsakDTO.UDEFINERT
+        }
+    }
+
+
+    private fun NaturalYtelse.somNaturalYtelseDTO(): NaturalYtelseDTO {
+        return NaturalYtelseDTO(
+            periode = periode.somPeriodeDTO(),
+            beløpPerMnd = beloepPerMnd.verdi,
+            type = type.somNaturalYtelseTypeDTO()
+        )
+    }
+
+    private fun NaturalYtelseType.somNaturalYtelseTypeDTO(): NaturalYtelseTypeDTO {
+        return when (this) {
+            ELEKTRISK_KOMMUNIKASJON -> NaturalYtelseTypeDTO.ELEKTRISK_KOMMUNIKASJON
+            AKSJER_GRUNNFONDSBEVIS_TIL_UNDERKURS -> NaturalYtelseTypeDTO.AKSJER_GRUNNFONDSBEVIS_TIL_UNDERKURS
+            LOSJI -> NaturalYtelseTypeDTO.LOSJI
+            KOST_DØGN -> NaturalYtelseTypeDTO.KOST_DØGN
+            BESØKSREISER_HJEMMET_ANNET -> NaturalYtelseTypeDTO.BESØKSREISER_HJEMMET_ANNET
+            KOSTBESPARELSE_I_HJEMMET -> NaturalYtelseTypeDTO.KOSTBESPARELSE_I_HJEMMET
+            RENTEFORDEL_LÅN -> NaturalYtelseTypeDTO.RENTEFORDEL_LÅN
+            BIL -> NaturalYtelseTypeDTO.BIL
+            KOST_DAGER -> NaturalYtelseTypeDTO.KOST_DAGER
+            BOLIG -> NaturalYtelseTypeDTO.BOLIG
+            SKATTEPLIKTIG_DEL_FORSIKRINGER -> NaturalYtelseTypeDTO.SKATTEPLIKTIG_DEL_FORSIKRINGER
+            FRI_TRANSPORT -> NaturalYtelseTypeDTO.FRI_TRANSPORT
+            OPSJONER -> NaturalYtelseTypeDTO.OPSJONER
+            TILSKUDD_BARNEHAGEPLASS -> NaturalYtelseTypeDTO.TILSKUDD_BARNEHAGEPLASS
+            ANNET -> NaturalYtelseTypeDTO.ANNET
+            BEDRIFTSBARNEHAGEPLASS -> NaturalYtelseTypeDTO.BEDRIFTSBARNEHAGEPLASS
+            YRKEBIL_TJENESTLIGBEHOV_KILOMETER -> NaturalYtelseTypeDTO.YRKEBIL_TJENESTLIGBEHOV_KILOMETER
+            YRKEBIL_TJENESTLIGBEHOV_LISTEPRIS -> NaturalYtelseTypeDTO.YRKEBIL_TJENESTLIGBEHOV_LISTEPRIS
+            INNBETALING_TIL_UTENLANDSK_PENSJONSORDNING -> NaturalYtelseTypeDTO.INNBETALING_TIL_UTENLANDSK_PENSJONSORDNING
+            UDEFINERT -> NaturalYtelseTypeDTO.UDEFINERT
+        }
+    }
+
+    private fun InntektsmeldingInnsendingsårsak.somInnsendingÅrsak(): InnsendingsårsakDTO {
+        return when (this) {
+            InntektsmeldingInnsendingsårsak.NY -> InnsendingsårsakDTO.NY
+            InntektsmeldingInnsendingsårsak.ENDRING -> InnsendingsårsakDTO.ENDRING
+            InntektsmeldingInnsendingsårsak.UDEFINERT -> InnsendingsårsakDTO.UDEFINERT
+        }
+    }
+
+
+    private fun Gradering.somGradering(): GraderingDTO {
+        return GraderingDTO(
+            arbeidstidProsent = arbeidstidProsent.verdi,
+            periode = periode.somPeriodeDTO()
+        )
+
+    }
+
+    private fun Periode.somPeriodeDTO(): PeriodeDTO {
+        return PeriodeDTO(
+            fom = fraOgMed,
+            tom = tilOgMed
+        )
+    }
+
+    private fun FagsakYtelseType.somYtelseType(): YtekseTypeDTO {
+        return when (this) {
+            FagsakYtelseType.PLEIEPENGER_SYKT_BARN -> YtekseTypeDTO.PLEIEPENGER_SYKT_BARN
+            FagsakYtelseType.PLEIEPENGER_NÆRSTÅENDE -> YtekseTypeDTO.PLEIEPENGER_NÆRSTÅENDE
+            FagsakYtelseType.OMSORGSPENGER_KS -> YtekseTypeDTO.OMSORGSPENGER_KS
+            FagsakYtelseType.OMSORGSPENGER_MA -> YtekseTypeDTO.OMSORGSPENGER_MA
+            FagsakYtelseType.OMSORGSPENGER_AO -> YtekseTypeDTO.OMSORGSPENGER_AO
+            FagsakYtelseType.OPPLÆRINGSPENGER -> YtekseTypeDTO.OPPLÆRINGSPENGER
+        }
     }
 
     private fun InntektsmeldingStatus.somInntektsmeldingStatusDto(): InntektsmeldingStatusDto = when (this) {
@@ -85,3 +208,5 @@ class InntektsmeldingService(
                 }
             )
 }
+
+
