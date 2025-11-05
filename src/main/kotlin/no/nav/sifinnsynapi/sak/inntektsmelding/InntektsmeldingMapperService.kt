@@ -16,8 +16,13 @@ class InntektsmeldingMapperService(private val enhetsregisterService: Enhetsregi
         private val logger = LoggerFactory.getLogger(InntektsmeldingMapperService::class.java)
     }
 
-    fun mapTilInntektsmeldingDTO(inntektsmeldingDAO: InntektsmeldingDAO): SakInntektsmeldingDTO {
+    fun mapTilInntektsmeldingDTO(inntektsmeldingDAO: InntektsmeldingDAO): SakInntektsmeldingDTO? {
         val im = JsonUtils.fromString(inntektsmeldingDAO.inntektsmelding, Inntektsmelding::class.java)
+
+        if (im.arbeidsgiver.arbeidsgiverAktørId != null) {
+            logger.warn("Privat arbeidsgiver i inntektsmeldingen er ikke implementert enda, filtrerer den bort. journalpostId=${inntektsmeldingDAO.journalpostId}")
+            return null
+        }
 
         return SakInntektsmeldingDTO(
             ytelseType = im.fagsakYtelseType.somYtelseType(),

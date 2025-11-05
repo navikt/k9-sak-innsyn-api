@@ -22,15 +22,15 @@ class InntektsmeldingService(
 
     fun hentInntektsmeldingerPåSak(saksnummer: Saksnummer): List<SakInntektsmeldingDTO?> {
         logger.info("Henter inntektsmeldinger registrert på sak ${saksnummer.verdi}")
-        val søkersAktørId =
-            (oppslagsService.hentSøker() ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
+        val søkersAktørId = (oppslagsService.hentSøker()
+            ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-        return inntektsmeldingRepository.findAllBySøkerAktørIdAndSaksnummerOrderByOppdatertDatoAsc(
-            søkerAktørId = søkersAktørId,
-            saksnummer = saksnummer.verdi()
-        )
-            .map { inntektsmeldingDAO -> inntektsmeldingMapperService.mapTilInntektsmeldingDTO(inntektsmeldingDAO) }
-            .toList()
+        return inntektsmeldingRepository
+            .findAllBySøkerAktørIdAndSaksnummerOrderByOppdatertDatoAsc(
+                søkerAktørId = søkersAktørId,
+                saksnummer = saksnummer.verdi()
+            )
+            .mapNotNull { inntektsmeldingDAO -> inntektsmeldingMapperService.mapTilInntektsmeldingDTO(inntektsmeldingDAO) }
     }
 }
 
