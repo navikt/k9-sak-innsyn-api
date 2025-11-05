@@ -1,5 +1,7 @@
 package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,6 +33,8 @@ import org.springframework.web.util.UriComponentsBuilder
 class LegacyInnsynApiService(
     @Qualifier("sifInnsynApiClient")
     private val sifInnsynClient: RestTemplate,
+    private val legacySøknadRepository: LegacySøknadRepository,
+    private val objectMapper: ObjectMapper,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(LegacyInnsynApiService::class.java)
@@ -44,6 +48,15 @@ class LegacyInnsynApiService(
     }
 
     fun hentLegacySøknad(søknadId: String): LegacySøknadDTO {
+        // Sjekk om søknaden finnes i databasen først
+        val cachedSøknad = legacySøknadRepository.findById(søknadId)
+        if (cachedSøknad.isPresent) {
+            logger.info("Fant søknad med id=$søknadId i databasen, returnerer cached versjon")
+            return cachedSøknad.get().toDTO(objectMapper)
+        }
+
+        logger.info("Søknad med id=$søknadId finnes ikke i databasen, henter fra sif-innsyn-api")
+
         val exchange = sifInnsynClient.exchange(
             "$søknadUrl/$søknadId",
             HttpMethod.GET,
@@ -53,7 +66,25 @@ class LegacyInnsynApiService(
         logger.info("Fikk response {} for oppslag av søknadsdata fra sif-innsyn-api", exchange.statusCode)
 
         return if (exchange.statusCode.is2xxSuccessful) {
-            exchange.body!!
+            val søknadDTO = exchange.body!!
+
+            // Lagre i databasen for fremtidige kall
+            try {
+                val dao = LegacySøknadDAO(
+                    søknadId = søknadDTO.søknadId.toString(),
+                    søknadstype = søknadDTO.søknadstype.name,
+                    søknad = objectMapper.writeValueAsString(søknadDTO.søknad),
+                    saksId = søknadDTO.saksId,
+                    journalpostId = søknadDTO.journalpostId
+                )
+                legacySøknadRepository.save(dao)
+                logger.info("Lagret søknad med id=$søknadId i databasen")
+            } catch (e: Exception) {
+                logger.warn("Kunne ikke lagre søknad med id=$søknadId i databasen", e)
+                // Vi fortsetter selv om lagring feiler
+            }
+
+            søknadDTO
         } else {
             logger.error(
                 "Henting av søknadsdata feilet med status: {}, og respons: {}",
@@ -81,4 +112,14 @@ class LegacyInnsynApiService(
         logger.warn("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet.", error)
         throw søknadOpplysningerOppslafFeil
     }
+}
+
+fun LegacySøknadDAO.toDTO(objectMapper: ObjectMapper): LegacySøknadDTO {
+    return LegacySøknadDTO(
+        søknadId = java.util.UUID.fromString(this.søknadId),
+        søknadstype = LegacySøknadstype.valueOf(this.søknadstype),
+        søknad = objectMapper.readValue(this.søknad),
+        saksId = this.saksId,
+        journalpostId = this.journalpostId
+    )
 }
