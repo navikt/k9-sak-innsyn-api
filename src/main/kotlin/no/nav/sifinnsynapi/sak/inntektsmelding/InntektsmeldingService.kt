@@ -54,8 +54,8 @@ class InntektsmeldingService(
             inntektBeløp = im.inntektBeløp.verdi,
             innsendingsårsak = im.innsendingsårsak.somInnsendingÅrsak(),
             erstattetAv = im.erstattetAv.map { it.journalpostId },
-            graderinger = im.graderinger.map {it.somGradering()},
-            naturalYtelser = im.naturalYtelser.map {it.somNaturalYtelseDTO()},
+            graderinger = im.graderinger.map { it.somGradering() },
+            naturalYtelser = im.naturalYtelser.map { it.somNaturalYtelseDTO() },
             utsettelsePerioder = im.utsettelsePerioder.map { it.somUtsettelseDTO() },
             startDatoPermisjon = im.startDatoPermisjon,
             oppgittFravær = im.oppgittFravær.map { it.somOppholdDTO() },
@@ -187,8 +187,15 @@ class InntektsmeldingService(
 
     private fun Arbeidsgiver.somArbeidsgiverDTO(): ArbeidsgiverDTO {
         return ArbeidsgiverDTO(
-            navn = hentArbeidsgiverNavn(),
-            arbeidsgiverOrgnr = arbeidsgiverOrgnr,
+            organisasjon = arbeidsgiverOrgnr?.let {
+                ArbeidsgiverOrganisasjonDTO(
+                    navn = hentArbeidsgiverNavn(),
+                    organisasjonsnummer = it
+                )
+            },
+            privat = arbeidsgiverAktørId?.let {
+                throw NotImplementedError("Privat arbeidsgiver i inntektsmeldingen er ikke implementert enda.")
+            }
         )
     }
 
