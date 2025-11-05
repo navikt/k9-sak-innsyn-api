@@ -6,6 +6,7 @@ import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.innsyn.inntektsmelding.Inntektsmelding
 import no.nav.k9.innsyn.sak.Behandling
+import no.nav.k9.innsyn.sak.FagsakYtelseType
 import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
@@ -248,7 +249,7 @@ private fun InnsynHendelse<Inntektsmelding>.somInntektsmelingDAO() = Inntektsmel
     søkerAktørId = data.søkerAktørId.id,
     saksnummer = data.saksnummer.verdi,
     inntektsmelding = JsonUtils.toString(data),
-    ytelsetype = data.fagsakYtelseType,
+    ytelsetype = data.fagsakYtelseType ?: FagsakYtelseType.OMSORGSPENGER,
     status = data.status,
     opprettetDato = ZonedDateTime.now(UTC),
     oppdatertDato = oppdateringstidspunkt

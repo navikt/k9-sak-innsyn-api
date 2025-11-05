@@ -174,6 +174,7 @@ class InntektsmeldingService(
             FagsakYtelseType.OMSORGSPENGER_MA -> YtekseTypeDTO.OMSORGSPENGER_MA
             FagsakYtelseType.OMSORGSPENGER_AO -> YtekseTypeDTO.OMSORGSPENGER_AO
             FagsakYtelseType.OPPLÆRINGSPENGER -> YtekseTypeDTO.OPPLÆRINGSPENGER
+            FagsakYtelseType.OMSORGSPENGER -> YtekseTypeDTO.OPPLÆRINGSPENGER
         }
     }
 
