@@ -19,6 +19,6 @@ class BehandlingService(private val behandlingRepository: BehandlingRepository) 
     }
 
     fun hentSaksnummere(søkerAktørId: String, pleietrengendeAktørIder: Set<String>, fagsakYtelseType: FagsakYtelseType): List<PleietrengendeAktørIdMedSaksnummer> {
-        return behandlingRepository.hentSaksnummere(søkerAktørId, pleietrengendeAktørIder, fagsakYtelseType)
+        return behandlingRepository.hentSaksnummere(søkerAktørId, pleietrengendeAktørIder, fagsakYtelseType.kode)
     }
 }

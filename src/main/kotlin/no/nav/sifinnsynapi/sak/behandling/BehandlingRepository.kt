@@ -33,5 +33,5 @@ interface BehandlingRepository : JpaRepository<BehandlingDAO, UUID> {
         value = "SELECT DISTINCT saksnummer, pleietrengende_aktør_id, ytelsetype FROM behandling " +
                 "WHERE søker_aktør_id = ?1 AND pleietrengende_aktør_id IN (?2) AND ytelsetype = ?3"
     )
-    fun hentSaksnummere(søkerAktørId: String, pleietrengendeAktørIder: Set<String>, ytelsetype: FagsakYtelseType): List<PleietrengendeAktørIdMedSaksnummer>
+    fun hentSaksnummere(søkerAktørId: String, pleietrengendeAktørIder: Set<String>, ytelsetype: String): List<PleietrengendeAktørIdMedSaksnummer>
 }

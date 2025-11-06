@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.sak
 import jakarta.transaction.Transactional
 import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.*
+import no.nav.k9.kodeverk.Fagsystem
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
@@ -69,7 +70,7 @@ class SakService(
                 SakerMetadataDTO(
                     saksnummer = saksnummerMedPleietrengende.saksnummer,
                     pleietrengende = pleietrengendeDTO,
-                    fagsakYtelseType = saksnummerMedPleietrengende.ytelsetype,
+                    fagsakYtelseType = FagsakYtelseType.fraKode(saksnummerMedPleietrengende.ytelsetype),
                 )
             }
         }.also {
