@@ -29,6 +29,7 @@ import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.log
 
 @Service
 class SakService(
@@ -45,16 +46,20 @@ class SakService(
 
     @Transactional
     fun hentSakerMetadata(fagsakYtelseType: FagsakYtelseType): List<SakerMetadataDTO> {
+        logger.info("Henter saker metadata...")
         val søker = oppslagsService.hentSøker()
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
             .toSet()
+        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
 
+        logger.info("Henter personopplysninger på ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende...")
         val pleietrengendeDTOS: Map<String, PleietrengendeDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor.toList()))
             .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor.toList()) }
             .associateBy { it.aktørId }
 
+        logger.info("Henter saksnummer for pleietrengende søker har omsorg for...")
         return behandlingService.hentSaksnummere(
             søkerAktørId = søker.aktørId,
             pleietrengendeAktørIder = pleietrengendeSøkerHarOmsorgFor,
@@ -67,6 +72,8 @@ class SakService(
                     fagsakYtelseType = saksnummerMedPleietrengende.ytelsetype,
                 )
             }
+        }.also {
+            logger.info("Fant ${it.size} saker med metadata.")
         }
     }
 
