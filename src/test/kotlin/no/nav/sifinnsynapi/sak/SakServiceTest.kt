@@ -85,6 +85,8 @@ class SakServiceTest {
                 identitetsnummer = "30100577255"
             )
         )
+
+        every { legacyInnsynApiService.hentLegacySøknader(any()) } returns listOf()
     }
 
 
