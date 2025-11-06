@@ -23,7 +23,7 @@ import org.springframework.http.HttpHeaders
 class SwaggerConfiguration(
     @Value("\${springdoc.oAuthFlow.authorizationUrl}") val authorizationUrl: String,
     @Value("\${springdoc.oAuthFlow.tokenUrl}") val tokenUrl: String,
-    @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String
+    @Value("\${springdoc.oAuthFlow.apiScope}") val apiScope: String,
 ) : EnvironmentAware {
     private var env: Environment? = null
 
@@ -323,6 +323,27 @@ class SwaggerConfiguration(
                           ]
                         }
                       }
+                    ]
+                """
+
+        //language=json
+        const val SAKER_METADATA_RESPONSE_EKSEMPEL = """
+                    [
+                        {
+                            "saksnummer": "ABC123",
+                            "pleietrengende": {
+                                "fødselsdato": "2000-01-01",
+                                "fornavn": "Ola",
+                                "mellomnavn": null,
+                                "etternavn": "Nordmann",
+                                "aktørId": "11111111111",
+                                "identitetsnummer": "1234567890"
+                            },
+                            "fagsakYtelseType": {
+                                "kode": "PSB",
+                                "kodeverk": "FAGSAK_YTELSE"
+                            }
+                        }
                     ]
                 """
     }

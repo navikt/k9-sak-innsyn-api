@@ -137,5 +137,3 @@ data class AksjonspunktDTO(
     )
     val tidsfrist: ZonedDateTime,
 )
-
-
