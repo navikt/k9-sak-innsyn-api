@@ -16,6 +16,9 @@ class BehandlingService(private val behandlingRepository: BehandlingRepository) 
 
     fun hentBehandlinger(søkerAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO> {
         return behandlingRepository.findAllBySøkerAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId, ytelsetype)
+    }
 
+    fun hentSaksnummere(søkerAktørId: String, pleietrengendeAktørIder: Set<String>, fagsakYtelseType: FagsakYtelseType): List<PleietrengendeAktørIdMedSaksnummer> {
+        return behandlingRepository.hentSaksnummere(søkerAktørId, pleietrengendeAktørIder, fagsakYtelseType)
     }
 }

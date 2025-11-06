@@ -44,6 +44,33 @@ class SakService(
     }
 
     @Transactional
+    fun hentSakerMetadata(fagsakYtelseType: FagsakYtelseType): List<SakerMetadataDTO> {
+        val søker = oppslagsService.hentSøker()
+            ?: throw IllegalStateException("Feilet med å hente søker.")
+
+        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
+            .toSet()
+
+        val pleietrengendeDTOS: Map<String, PleietrengendeDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor.toList()))
+            .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor.toList()) }
+            .associateBy { it.aktørId }
+
+        return behandlingService.hentSaksnummere(
+            søkerAktørId = søker.aktørId,
+            pleietrengendeAktørIder = pleietrengendeSøkerHarOmsorgFor,
+            fagsakYtelseType = fagsakYtelseType
+        ).mapNotNull { saksnummerMedPleietrengende ->
+            pleietrengendeDTOS[saksnummerMedPleietrengende.pleietrengendeAktørId]?.let { pleietrengendeDTO: PleietrengendeDTO ->
+                SakerMetadataDTO(
+                    saksnummer = saksnummerMedPleietrengende.saksnummer,
+                    pleietrengende = pleietrengendeDTO,
+                    fagsakYtelseType = saksnummerMedPleietrengende.ytelsetype,
+                )
+            }
+        }
+    }
+
+    @Transactional
     fun hentSaker(fagsakYtelseType: FagsakYtelseType): List<PleietrengendeMedSak> {
         val søker = oppslagsService.hentSøker()
             ?: throw IllegalStateException("Feilet med å hente søker.")
@@ -146,7 +173,8 @@ class SakService(
     private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
         val behandlinger = behandlingerSupplier.get()
         val nyesteSak = behandlinger.somBehandling().findFirst().getOrNull()
-        logger.info("$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
+        logger.info(
+            "$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
             behandlinger.count(),
             nyesteSak?.fagsak?.saksnummer?.verdi,
             nyesteSak?.status,
