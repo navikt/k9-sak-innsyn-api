@@ -11,6 +11,7 @@ import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.api.Unprotected
 import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
+import no.nav.sifinnsynapi.config.SwaggerConfiguration
 import no.nav.sifinnsynapi.config.SwaggerConfiguration.Companion.SAKER_RESPONSE_EKSEMPEL
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -26,6 +27,29 @@ import org.springframework.web.bind.annotation.RestController
 class SakController(
     private val sakService: SakService,
 ) {
+    @GetMapping(Routes.SAKER_METADATA, produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+        summary = "Henter metadata om sakene registrert på pleietrengende som bruker har omsorgen for",
+        responses = [
+            ApiResponse(
+                responseCode = "200", description = "OK",
+                content = [
+                    Content(
+                        schema = Schema(implementation = SakerMetadataDTO::class),
+                        examples = [
+                            ExampleObject(
+                                name = "Saker metadata",
+                                value = SwaggerConfiguration.SAKER_METADATA_RESPONSE_EKSEMPEL
+                            )]
+                    )]
+            )
+        ]
+    )
+    fun hentSakerMetadata(): List<SakerMetadataDTO> {
+        return sakService.hentSakerMetadata(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+    }
+
     @GetMapping(Routes.SAKER, produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.OK)
     @Operation(

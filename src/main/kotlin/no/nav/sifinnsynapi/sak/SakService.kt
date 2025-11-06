@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi.sak
 import jakarta.transaction.Transactional
 import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.*
+import no.nav.k9.kodeverk.Fagsystem
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
@@ -29,6 +30,7 @@ import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.log
 
 @Service
 class SakService(
@@ -41,6 +43,39 @@ class SakService(
 ) {
     private companion object {
         private val logger = LoggerFactory.getLogger(SakService::class.java)
+    }
+
+    @Transactional
+    fun hentSakerMetadata(fagsakYtelseType: FagsakYtelseType): List<SakerMetadataDTO> {
+        logger.info("Henter saker metadata...")
+        val søker = oppslagsService.hentSøker()
+            ?: throw IllegalStateException("Feilet med å hente søker.")
+
+        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
+            .toSet()
+        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
+
+        logger.info("Henter personopplysninger på ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende...")
+        val pleietrengendeDTOS: Map<String, PleietrengendeDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor.toList()))
+            .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor.toList()) }
+            .associateBy { it.aktørId }
+
+        logger.info("Henter saksnummer for pleietrengende søker har omsorg for...")
+        return behandlingService.hentSaksnummere(
+            søkerAktørId = søker.aktørId,
+            pleietrengendeAktørIder = pleietrengendeSøkerHarOmsorgFor,
+            fagsakYtelseType = fagsakYtelseType
+        ).mapNotNull { saksnummerMedPleietrengende ->
+            pleietrengendeDTOS[saksnummerMedPleietrengende.pleietrengendeAktørId]?.let { pleietrengendeDTO: PleietrengendeDTO ->
+                SakerMetadataDTO(
+                    saksnummer = saksnummerMedPleietrengende.saksnummer,
+                    pleietrengende = pleietrengendeDTO,
+                    fagsakYtelseType = FagsakYtelseType.fraKode(saksnummerMedPleietrengende.ytelsetype),
+                )
+            }
+        }.also {
+            logger.info("Fant ${it.size} saker med metadata.")
+        }
     }
 
     @Transactional
@@ -146,7 +181,8 @@ class SakService(
     private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
         val behandlinger = behandlingerSupplier.get()
         val nyesteSak = behandlinger.somBehandling().findFirst().getOrNull()
-        logger.info("$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
+        logger.info(
+            "$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
             behandlinger.count(),
             nyesteSak?.fagsak?.saksnummer?.verdi,
             nyesteSak?.status,
