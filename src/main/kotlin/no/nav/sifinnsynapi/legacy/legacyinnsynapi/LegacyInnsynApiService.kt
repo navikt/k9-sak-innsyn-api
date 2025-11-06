@@ -81,9 +81,13 @@ class LegacyInnsynApiService(
         val eksisterendeIder = legacySøknaderFraDatabasen.map { it.søknadId.toString() }
         val manglendeIderFraDatabasen = søknadsIder.filterNot { eksisterendeIder.contains(it) }
 
-        logger.info("Mangler ${manglendeIderFraDatabasen.size} søknader i databasen, henter disse fra sif-innsyn-api")
-        val legacySøknaderFraRest: List<LegacySøknadDTO> = manglendeIderFraDatabasen.mapNotNull { søknadId ->
-            runCatching { hentLegacySøknad(søknadId) }.getOrNull()
+        val legacySøknaderFraRest: List<LegacySøknadDTO> = if (manglendeIderFraDatabasen.isNotEmpty()) {
+            logger.info("Mangler ${manglendeIderFraDatabasen.size} søknader i databasen, henter disse fra sif-innsyn-api")
+            manglendeIderFraDatabasen.mapNotNull { søknadId ->
+                runCatching { hentLegacySøknad(søknadId) }.getOrNull()
+            }
+        } else {
+            listOf()
         }
 
         logger.info("Totalt hentet ${legacySøknaderFraDatabasen.size + legacySøknaderFraRest.size} legacy søknader")
