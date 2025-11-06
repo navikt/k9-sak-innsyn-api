@@ -235,9 +235,18 @@ class SakService(
         behandling: Behandling,
         søkersDokmentoversikt: List<DokumentDTO>,
     ): BehandlingDTO {
+        val søknadsIder: List<String> = behandling.innsendinger.mapNotNull {
+            val k9Format = it.mapTilK9Format()
+            if (k9Format == null) {
+                return@mapNotNull null
+            }
+            k9Format.søknadId.id
+        }
+        val legacySøknader = legacyInnsynApiService.hentLegacySøknader(søknadsIder)
+
         val innsendelserISak: List<InnsendelserISakDTO> = behandling.innsendinger
             .medTilhørendeDokumenter(søkersDokmentoversikt)
-            .medTilhørendeInnsendelser(søkersDokmentoversikt)
+            .medTilhørendeInnsendelser(søkersDokmentoversikt, legacySøknader)
             .requireNoNulls() // Kaster exception hvis noen søknader er null.
 
 
@@ -255,7 +264,10 @@ class SakService(
         )
     }
 
-    private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<InnsendelserISakDTO> =
+    private fun Map<InnsendingInfo, List<DokumentDTO>>.medTilhørendeInnsendelser(
+        søkersDokmentoversikt: List<DokumentDTO>,
+        legacySøknader: List<LegacySøknadDTO>,
+    ): List<InnsendelserISakDTO> =
         mapNotNull { (innsendingInfo, dokumenter) ->
             val k9FormatInnsending = innsendingInfo.mapTilK9Format()
             if (k9FormatInnsending == null) {
@@ -268,7 +280,7 @@ class SakService(
             }
 
             val søknadId = k9FormatInnsending.søknadId.id
-            val legacySøknad = kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId) }.getOrNull()
+            val legacySøknad = legacySøknader.find { it.søknadId.toString() == søknadId }
 
             val innsendelsestype = utledSøknadsType(
                 k9FormatSøknad = k9FormatInnsending,
