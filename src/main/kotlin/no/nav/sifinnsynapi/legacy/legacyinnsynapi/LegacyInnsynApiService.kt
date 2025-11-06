@@ -65,6 +65,7 @@ class LegacyInnsynApiService(
         )
         logger.info("Fikk response {} for oppslag av søknadsdata fra sif-innsyn-api", exchange.statusCode)
 
+
         return if (exchange.statusCode.is2xxSuccessful) {
             val søknadDTO = exchange.body!!
 
