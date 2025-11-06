@@ -74,16 +74,23 @@ class LegacyInnsynApiService(
     }
 
     fun hentLegacySøknader(søknadsIder: List<String>): List<LegacySøknadDTO> {
+        logger.info("Henter ${søknadsIder.size} legacy søknader for søknadsIder: {}", søknadsIder)
         val legacySøknaderFraDatabasen = legacySøknadRepository.findAllById(søknadsIder).map { it.toDTO(objectMapper) }
 
         // Diff mellom søknadsIder og de som finnes i databasen
         val eksisterendeIder = legacySøknaderFraDatabasen.map { it.søknadId.toString() }
         val manglendeIderFraDatabasen = søknadsIder.filterNot { eksisterendeIder.contains(it) }
 
-        val legacySøknaderFraRest: List<LegacySøknadDTO> = manglendeIderFraDatabasen.mapNotNull { søknadId ->
-            runCatching { hentLegacySøknad(søknadId) }.getOrNull()
+        val legacySøknaderFraRest: List<LegacySøknadDTO> = if (manglendeIderFraDatabasen.isNotEmpty()) {
+            logger.info("Mangler ${manglendeIderFraDatabasen.size} søknader i databasen, henter disse fra sif-innsyn-api")
+            manglendeIderFraDatabasen.mapNotNull { søknadId ->
+                runCatching { hentLegacySøknad(søknadId) }.getOrNull()
+            }
+        } else {
+            listOf()
         }
 
+        logger.info("Totalt hentet ${legacySøknaderFraDatabasen.size + legacySøknaderFraRest.size} legacy søknader")
         return legacySøknaderFraDatabasen + legacySøknaderFraRest
     }
 
@@ -97,7 +104,6 @@ class LegacyInnsynApiService(
             LegacySøknadDTO::class.java
         )
         logger.info("Fikk response {} for oppslag av søknadsdata fra sif-innsyn-api", exchange.statusCode)
-
         return exchange
     }
 
