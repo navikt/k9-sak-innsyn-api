@@ -6,18 +6,13 @@ import java.time.LocalDate
 
 data class RefusjonDTO(
     val refusjonBeløpPerMnd: BigDecimal,
-    val refusjonOpphører: LocalDate?,
+    var refusjonOpphører: LocalDate?,
 ) {
-    val utledetRefusjon: UtledetRefusjonType
-        get() {
-            return when (refusjonOpphører) {
-                null, TIDENES_ENDE -> UtledetRefusjonType.OPPHØRER_ALDRI
-                else -> UtledetRefusjonType.OPPHØRER
-            }
+    init {
+        // Setter refusjonOpphører til null dersom den er satt til TIDENES_ENDE.
+        // Dette tolkes som at refusjon ikke opphører så lenge søker mottar ytelsen.
+        if (refusjonOpphører == TIDENES_ENDE) {
+            refusjonOpphører = null
         }
-}
-
-enum class UtledetRefusjonType {
-    OPPHØRER,
-    OPPHØRER_ALDRI
+    }
 }
