@@ -10,7 +10,7 @@ data class RefusjonDTO(
 ) {
     val utledetRefusjon: UtledetRefusjonType
         get() {
-            return when (val dato: LocalDate? = refusjonOpphører) {
+            return when (refusjonOpphører) {
                 null, TIDENES_ENDE -> UtledetRefusjonType.OPPHØRER_ALDRI
                 else -> UtledetRefusjonType.OPPHØRER
             }
