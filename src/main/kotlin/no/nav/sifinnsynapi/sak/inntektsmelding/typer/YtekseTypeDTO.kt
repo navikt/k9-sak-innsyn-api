@@ -8,3 +8,4 @@ enum class YtekseTypeDTO {
     OMSORGSPENGER_AO,
     OPPLÆRINGSPENGER
 }
+

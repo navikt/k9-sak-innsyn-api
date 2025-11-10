@@ -1,5 +1,6 @@
 package no.nav.sifinnsynapi.config
 
+import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.ExternalDocumentation
 import io.swagger.v3.oas.models.OpenAPI
@@ -115,6 +116,11 @@ class SwaggerConfiguration(
     }
 
     companion object {
+        init {
+            // Definerer globalt at enums skal være egne typer (refs) i swagger-dokumentasjonen.
+            ModelResolver.enumsAsRef = true
+        }
+
         // language=json
         const val SAKER_RESPONSE_EKSEMPEL = """
                     [
