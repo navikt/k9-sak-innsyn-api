@@ -10,8 +10,8 @@ class BehandlingService(private val behandlingRepository: BehandlingRepository) 
         behandlingRepository.save(behandling)
     }
 
-    fun hentBehandlinger(søkerAktørId: String, pleietrengendeAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO> {
-        return behandlingRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId, pleietrengendeAktørId, ytelsetype)
+    fun hentBehandlinger(søkerAktørId: String, pleietrengendeAktørId: String, saksnummer: String, ytelsetype: FagsakYtelseType): List<BehandlingDAO> {
+        return behandlingRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdAndSaksnummerAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId, pleietrengendeAktørId, saksnummer, ytelsetype)
     }
 
     fun hentBehandlinger(søkerAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO> {

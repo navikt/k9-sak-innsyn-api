@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi
 object Routes{
     const val SØKNAD = "/soknad"
     const val SAKER = "/saker"
+    const val SAK = "/sak"
     const val SAKER_METADATA = "$SAKER/metadata"
     const val DOKUMENT = "/dokument"
     const val K9SAK_OMSORGSDAGER_KRONISK_SYKT_BARN_GYLDIG_VEDTAK = "k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"

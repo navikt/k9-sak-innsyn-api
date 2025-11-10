@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
+import java.util.*
 import java.util.stream.Stream
 
 @Transactional(TRANSACTION_MANAGER)
 interface BehandlingRepository : JpaRepository<BehandlingDAO, UUID> {
-    fun findAllBySøkerAktørIdAndPleietrengendeAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId: String, pleietrengendeAktørIder: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO>
+    fun findAllBySøkerAktørIdAndPleietrengendeAktørIdAndSaksnummerAndYtelsetypeOrderByOppdatertDatoAsc (søkerAktørId: String, pleietrengendeAktørIder: String, saksnummer: String, ytelsetype: FagsakYtelseType): List<BehandlingDAO>
     fun findAllBySøkerAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO>
 
     /**

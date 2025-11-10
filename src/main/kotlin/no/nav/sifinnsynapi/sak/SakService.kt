@@ -3,7 +3,6 @@ package no.nav.sifinnsynapi.sak
 import jakarta.transaction.Transactional
 import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.*
-import no.nav.k9.kodeverk.Fagsystem
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.Innsending
 import no.nav.k9.søknad.JsonUtils
@@ -30,7 +29,6 @@ import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
-import kotlin.math.log
 
 @Service
 class SakService(
@@ -76,6 +74,39 @@ class SakService(
         }.also {
             logger.info("Fant ${it.size} saker med metadata.")
         }
+    }
+
+    @Transactional
+    fun hentSak(saksnummer: String, pleietrengendeAktørId: String, fagsakYtelseType: FagsakYtelseType): SakDTO? {
+        val søker = oppslagsService.hentSøker()
+            ?: throw IllegalStateException("Feilet med å hente søker.")
+
+        val behandlinger = behandlingService.hentBehandlinger(søker.aktørId, pleietrengendeAktørId, saksnummer, fagsakYtelseType).somBehandling()
+
+        if (behandlinger.isEmpty()) {
+            logger.info("Fant ingen behandlinger for for saksnummmer = ${saksnummer}")
+            return null
+        }
+
+        val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
+        logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
+
+        val fagsak = behandlinger.first().fagsak
+        val ytelseType = fagsak.ytelseType
+        val behandlingerMedTilhørendeInnsendelser = behandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+
+        val saksbehandlingsFrist = behandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+        val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
+
+        return SakDTO(
+            saksnummer = fagsak.saksnummer, // Alle behandlinger har samme saksnummer for pleietrengende
+            utledetStatus = utledetStatus,
+            fagsakYtelseType = no.nav.k9.kodeverk.behandling.FagsakYtelseType.fraKode(ytelseType.kode), // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+            ytelseType = ytelseType, // Alle behandlinger har samme fagsakYtelseType for pleietrengende
+            saksbehandlingsFrist = saksbehandlingsFrist, // Utleder sakbehandlingsfrist fra åpen behandling. Dersom det ikke finnes en åpen behandling, returneres null.
+            behandlinger = behandlingerMedTilhørendeInnsendelser
+        )
+
     }
 
     @Transactional
@@ -195,7 +226,7 @@ class SakService(
         return åpenBehandling?.let { SaksbehandlingstidUtleder.utled(it) }?.toLocalDate()
     }
 
-    private fun MutableList<Behandling>.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
+    private fun List<Behandling>.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt: List<DokumentDTO>): List<BehandlingDTO> =
         mapNotNull { behandling ->
             logger.info("Henter og mapper søknader i behandling med behandlingsId ${behandling.behandlingsId}.")
             if (skalIgnorereBehandling(behandling, søkersDokmentoversikt)) {
@@ -410,7 +441,7 @@ class SakService(
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(
         behandlingSupplier: Supplier<Stream<BehandlingDAO>>,
-    ): Map<PleietrengendeDTO, MutableList<Behandling>> =
+    ): Map<PleietrengendeDTO, List<Behandling>> =
         associateWith { pleietrengendeDTO ->
             val pleietrengendesBehandlinger = behandlingSupplier
                 .get()
@@ -457,5 +488,8 @@ class SakService(
         map { AksjonspunktDTO(venteårsak = it.venteårsak, tidsfrist = it.tidsfrist) }
 
     private fun Stream<BehandlingDAO>.somBehandling(): Stream<Behandling> =
+        map { JsonUtils.fromString(it.behandling, Behandling::class.java) }
+
+    private fun List<BehandlingDAO>.somBehandling(): List<Behandling> =
         map { JsonUtils.fromString(it.behandling, Behandling::class.java) }
 }

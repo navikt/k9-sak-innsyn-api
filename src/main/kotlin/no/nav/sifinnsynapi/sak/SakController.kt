@@ -13,11 +13,10 @@ import no.nav.sifinnsynapi.Routes
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SwaggerConfiguration
 import no.nav.sifinnsynapi.config.SwaggerConfiguration.Companion.SAKER_RESPONSE_EKSEMPEL
+import no.nav.sifinnsynapi.config.SwaggerConfiguration.Companion.SAK_RESPONSE_EKSEMPEL
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 @RestController
@@ -71,6 +70,32 @@ class SakController(
     )
     fun hentMineSaker(): List<PleietrengendeMedSak> {
         return sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
+    }
+
+    @PostMapping("${Routes.SAK}/{saksnummer}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+        summary = "Henter saken registrert på pleietrengende som bruker har omsorgen for",
+        responses = [
+            ApiResponse(
+                responseCode = "200", description = "OK",
+                content = [
+                    Content(
+                        schema = Schema(implementation = SakDTO::class),
+                        examples = [
+                            ExampleObject(
+                                name = "Sak",
+                                value = SAK_RESPONSE_EKSEMPEL
+                            )]
+                    )]
+            )
+        ]
+    )
+    fun hentSak(
+        @PathVariable saksnummer: String,
+        @RequestBody request: HentSakRequest
+    ): SakDTO? {
+        return sakService.hentSak(saksnummer, request.pleietrengendeAktørId, FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
     }
 
     @GetMapping("${Routes.SAKER}/saksbehandlingstid", produces = [MediaType.APPLICATION_JSON_VALUE])
