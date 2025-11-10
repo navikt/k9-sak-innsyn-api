@@ -11,7 +11,7 @@ import java.util.stream.Stream
 
 @Transactional(TRANSACTION_MANAGER)
 interface BehandlingRepository : JpaRepository<BehandlingDAO, UUID> {
-    fun findAllBySøkerAktørIdAndPleietrengendeAktørIdAndSaksnummerAndYtelsetypeOrderByOppdatertDatoAsc (søkerAktørId: String, pleietrengendeAktørIder: String, saksnummer: String, ytelsetype: FagsakYtelseType): List<BehandlingDAO>
+    fun findAllBySøkerAktørIdAndSaksnummerAndYtelsetypeOrderByOppdatertDatoAsc (søkerAktørId: String, saksnummer: String, ytelsetype: FagsakYtelseType): List<BehandlingDAO>
     fun findAllBySøkerAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO>
 
     /**
