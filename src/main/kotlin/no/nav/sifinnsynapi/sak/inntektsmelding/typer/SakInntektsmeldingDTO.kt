@@ -22,8 +22,7 @@ data class SakInntektsmeldingDTO(
     val utsettelsePerioder: List<UtsettelseDTO>?,
     val startDatoPermisjon: LocalDate?,
     val oppgittFravær: List<OppholdDTO>?,
-    val refusjonBeløpPerMnd: BigDecimal?,
-    val refusjonOpphører: LocalDate?,
+    val refusjon: RefusjonDTO?,
     val inntektsmeldingType: InntektsmeldingTypeDTO?,
     val endringerRefusjon: List<EndringRefusjonDTO>?,
 )
