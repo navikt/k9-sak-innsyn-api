@@ -17,7 +17,6 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
@@ -26,7 +25,7 @@ import java.time.LocalDate
 
 @Service
 @Retryable(
-    exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class, ResourceAccessException::class],
+    exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
@@ -88,12 +87,6 @@ class OppslagsService(
         throw IllegalStateException("Feil ved henting av søkers personinformasjon")
     }
 
-    @Recover
-    private fun recover(error: ResourceAccessException): SøkerOppslagRespons? {
-        logger.error("{}", error.message)
-        throw IllegalStateException("Timeout ved henting av søkers personinformasjon")
-    }
-
     fun hentBarn(): List<BarnOppslagDTO> {
         logger.info("Slår opp barn...")
         val exchange = oppslagsKlient.getForEntity(barnUrl.toUriString(), BarnOppslagResponse::class.java)
@@ -114,11 +107,6 @@ class OppslagsService(
         throw IllegalStateException("Feil ved henting av søkers barn")
     }
 
-    @Recover
-    private fun recoverBarn(error: ResourceAccessException): List<BarnOppslagDTO> {
-        logger.error("{}", error.message)
-        throw IllegalStateException("Timeout ved henting av søkers barn")
-    }
 
     fun hentIdenter(hentIdenterForespørsel: HentIdenterForespørsel): List<HentIdenterRespons> {
         return kotlin.runCatching {
@@ -211,15 +199,6 @@ class OppslagsService(
         error: HttpClientErrorException,
     ): List<BarnOppslagDTO> {
         logger.error("Error response = '${error.responseBodyAsString}' fra '${systemBarnUrl.toUriString()}'")
-        throw IllegalStateException("Feil ved systemoppslag av barn")
-    }
-
-    @Recover
-    fun systemoppslagBarn(
-        hentBarnForespørsel: HentBarnForespørsel,
-        error: ResourceAccessException,
-    ): List<BarnOppslagDTO> {
-        logger.error("'${error.message}' ved systemkall mot '${systemBarnUrl.toUriString()}'")
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 

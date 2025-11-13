@@ -13,7 +13,6 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.*
@@ -23,8 +22,7 @@ import java.util.*
     noRetryFor = [
         HttpClientErrorException.Unauthorized::class,
         HttpClientErrorException.Forbidden::class,
-        HttpClientErrorException.NotFound::class,
-        ResourceAccessException::class],
+        HttpClientErrorException.NotFound::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
@@ -141,12 +139,6 @@ class LegacyInnsynApiService(
             error.responseBodyAsString,
             error
         )
-        throw søknadOpplysningerOppslafFeil
-    }
-
-    @Recover
-    private fun recover(error: ResourceAccessException, søknadId: String): LegacySøknadDTO {
-        logger.warn("Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet.", error)
         throw søknadOpplysningerOppslafFeil
     }
 }
