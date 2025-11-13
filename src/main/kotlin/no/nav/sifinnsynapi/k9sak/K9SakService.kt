@@ -19,14 +19,13 @@ import org.springframework.stereotype.Service
 import org.springframework.web.ErrorResponseException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 import java.time.LocalDate
 
 @Service
 @Retryable(
-    noRetryFor = [K9SakException::class, HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class, ResourceAccessException::class],
+    noRetryFor = [K9SakException::class, HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
@@ -78,19 +77,6 @@ class K9SakService(
         inputDto: HentSisteGyldigeVedtakForAktorIdDto
     ): HentSisteGyldigeVedtakForAktorIdResponse? {
         logger.error("Fikk en HttpServerErrorException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
-        return HentSisteGyldigeVedtakForAktorIdResponse(
-            harInnvilgedeBehandlinger = false,
-            saksnummer = null,
-            vedtaksdato = null,
-        )
-    }
-
-    @Recover
-    private fun hentSisteGyldigeVedtakForAktorId(
-        exception: ResourceAccessException,
-        inputDto: HentSisteGyldigeVedtakForAktorIdDto
-    ): HentSisteGyldigeVedtakForAktorIdResponse? {
-        logger.error("Fikk en ResourceAccessException når man kalte hentSisteGyldigeVedtakForAktorId tjeneste i k9-sak.")
         return HentSisteGyldigeVedtakForAktorIdResponse(
             harInnvilgedeBehandlinger = false,
             saksnummer = null,

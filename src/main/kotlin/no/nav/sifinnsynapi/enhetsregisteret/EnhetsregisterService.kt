@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.ErrorResponseException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
@@ -26,7 +25,6 @@ import java.net.URI
 
 @Retryable(
     noRetryFor = [
-        ResourceAccessException::class,
         EnhetsregisterException::class
     ],
     backoff = Backoff(
@@ -84,15 +82,6 @@ class EnhetsregisterService(
         val feilmelding = parseFeilmelding(ex.responseBodyAsString)
         logger.error("Serverfeil ${ex.statusCode} mot $TJENESTE_NAVN: $feilmelding", ex)
         throw EnhetsregisterException("Annen feil: $feilmelding", HttpStatus.valueOf(ex.statusCode.value()))
-    }
-
-    @Recover
-    open fun recoverResourceAccess(ex: ResourceAccessException): OrganisasjonRespons {
-        logger.error("Tilgangsfeil mot $TJENESTE_NAVN: ${ex.message}", ex)
-        throw EnhetsregisterException(
-            "Kunne ikke nå enhetsregisteret: ${ex.message}",
-            HttpStatus.SERVICE_UNAVAILABLE
-        )
     }
 
     private fun parseFeilmelding(body: String): String =
