@@ -108,11 +108,6 @@ class SakService(
         val ytelseType = fagsak.ytelseType
         val behandlingerMedTilhørendeInnsendelser = relevanteBehandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
 
-        if (behandlingerMedTilhørendeInnsendelser.isEmpty()) {
-            logger.info("Returnerer null for fagsak ${fagsak.saksnummer.verdi} fordi vi ikke hadde noen behandlinger å vise.")
-            return null
-        }
-
         val saksbehandlingsFrist = relevanteBehandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
         val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
 
@@ -210,7 +205,11 @@ class SakService(
         val sisteBehandling = behandlinger.sortedByDescending { it.opprettetTidspunkt }.firstOrNull()
 
         if (sisteBehandling == null) {
-            throw IllegalArgumentException("Ingen behandlinger funnet for sak.")
+            return UtledetStatus(
+                status = BehandlingStatus.UKJENT,
+                aksjonspunkter = listOf(),
+                saksbehandlingsFrist = saksbehandlingsFrist
+            )
         }
 
         val innsendelser = sisteBehandling.innsendelser.sortedByDescending { it.mottattTidspunkt }
