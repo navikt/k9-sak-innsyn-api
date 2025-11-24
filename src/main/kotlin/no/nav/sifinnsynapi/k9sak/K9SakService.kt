@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service
 import org.springframework.web.ErrorResponseException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
+import java.net.SocketTimeoutException
 import java.net.URI
 import java.time.LocalDate
 
@@ -84,7 +86,7 @@ class K9SakService(
         )
     }
 
-    suspend fun hentOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
+    fun hentOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
         val response = k9SakKlient.exchange(
             hentOpplæringsinstitusjonerUrl,
             HttpMethod.GET,
@@ -92,6 +94,16 @@ class K9SakService(
             object: ParameterizedTypeReference<List<Opplæringsinstitusjon>>() {}
         )
         return response.body ?: emptyList()
+    }
+
+    @Recover
+    fun hentOpplæringsinstitusjoner(exception: ResourceAccessException): List<Opplæringsinstitusjon> {
+        if (exception.rootCause is SocketTimeoutException) {
+            logger.warn("k9-sak timeout fetching opplæringsinstitusjoner. Returning empty list.", exception)
+        } else {
+            logger.error("Network error calling k9-sak: ${exception.message}. Returning empty list.", exception)
+        }
+        return emptyList()
     }
 }
 

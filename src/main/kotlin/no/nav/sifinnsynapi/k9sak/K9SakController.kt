@@ -1,6 +1,5 @@
 package no.nav.sifinnsynapi.k9sak
 
-import kotlinx.coroutines.runBlocking
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.sifinnsynapi.Routes
@@ -9,11 +8,7 @@ import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.k9sak.opplaeringsinstitusjon.Opplæringsinstitusjon
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 @RestController
@@ -33,8 +28,8 @@ class K9SakController(
 
     @GetMapping(Routes.K9SAK_OPPLÆRINGSINSTITUSJONER, produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.OK)
-    fun hentOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> = runBlocking {
-        k9SakService.hentOpplæringsinstitusjoner()
+    fun hentOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
+        return k9SakService.hentOpplæringsinstitusjoner()
     }
 
     data class OmsorgsdagerKronsinskSuktBarnRequestDto(
