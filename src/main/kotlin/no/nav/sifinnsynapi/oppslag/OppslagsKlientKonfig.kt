@@ -20,6 +20,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
+import java.util.function.Supplier
 
 @Configuration
 class OppslagsKlientKonfig(
@@ -48,28 +49,26 @@ class OppslagsKlientKonfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
-        // Configure connection pool for same-cluster calls (GCP → GCP)
-        // This fixes the 92 ETIMEDOUT (-110) errors from the error logs
         val connectionManager = PoolingHttpClientConnectionManager().apply {
-            maxTotal = 50                                          // Moderate pool for same-cluster service
-            defaultMaxPerRoute = 50                                // Max connections to k9-selvbetjening-oppslag
+            maxTotal = 50                                                   // Moderate pool for internal service
+            defaultMaxPerRoute = 50
             setValidateAfterInactivity(TimeValue.ofSeconds(10))    // Validate idle connections before reuse
         }
 
         val httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
             .evictIdleConnections(TimeValue.ofMinutes(10))         // Connection TTL: 10 min for same-cluster
-            .evictExpiredConnections()                              // Background eviction
+            .evictExpiredConnections()
             .build()
 
         val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
-            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout
-            setConnectionRequestTimeout(Duration.ofSeconds(45))    // Pool acquire timeout
+            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout (same-cluster recommendation)
+            setConnectionRequestTimeout(Duration.ofSeconds(45))
             setReadTimeout(Duration.ofSeconds(20))
         }
 
         return builder
-            .requestFactory(java.util.function.Supplier { requestFactory })
+            .requestFactory(Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)

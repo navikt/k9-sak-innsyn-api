@@ -16,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
+import java.util.function.Supplier
 
 @Configuration
 class EnhetsregisterKlientKonfig(
@@ -32,27 +33,26 @@ class EnhetsregisterKlientKonfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
-        // Configure connection pool for external service (Enhetsregisteret)
         val connectionManager = PoolingHttpClientConnectionManager().apply {
-            maxTotal = 50                                          // Moderate pool for external service
+            maxTotal = 50                                                   // Moderate pool for external service
             defaultMaxPerRoute = 50
-            setValidateAfterInactivity(TimeValue.ofSeconds(10))    // Validate before reuse
+            setValidateAfterInactivity(TimeValue.ofSeconds(10))     // Validate idle connections before reuse
         }
 
         val httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
-            .evictIdleConnections(TimeValue.ofMinutes(5))          // Short TTL for external services
+            .evictIdleConnections(TimeValue.ofMinutes(5))   // Short TTL for external services
             .evictExpiredConnections()
             .build()
 
         val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
-            setConnectTimeout(Duration.ofSeconds(10))
+            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout (external services recommendation)
             setConnectionRequestTimeout(Duration.ofSeconds(45))
             setReadTimeout(Duration.ofSeconds(20))
         }
 
         return builder
-            .requestFactory(java.util.function.Supplier { requestFactory })
+            .requestFactory(Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(enhetsregisterBaseUrl)
             .defaultMessageConverters()

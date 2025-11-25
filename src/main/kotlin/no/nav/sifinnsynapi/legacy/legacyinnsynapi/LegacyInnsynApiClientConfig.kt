@@ -20,6 +20,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.retry.RetryListener
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
+import java.util.function.Supplier
 
 @Configuration
 class LegacyInnsynApiClientConfig(
@@ -42,27 +43,26 @@ class LegacyInnsynApiClientConfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor
     ): RestTemplate {
-        // Configure connection pool for same-cluster calls (sif-innsyn-api)
         val connectionManager = PoolingHttpClientConnectionManager().apply {
-            maxTotal = 50                                          // Moderate pool for internal service
+            maxTotal = 50                                                   // Moderate pool for internal service
             defaultMaxPerRoute = 50
             setValidateAfterInactivity(TimeValue.ofSeconds(10))
         }
 
         val httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
-            .evictIdleConnections(TimeValue.ofMinutes(10))         // Same-cluster TTL
+            .evictIdleConnections(TimeValue.ofMinutes(10))      // Same-cluster TTL
             .evictExpiredConnections()
             .build()
 
         val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
-            setConnectTimeout(Duration.ofSeconds(10))
+            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout (same-cluster recommendation)
             setConnectionRequestTimeout(Duration.ofSeconds(45))
             setReadTimeout(Duration.ofSeconds(20))
         }
 
         return builder
-            .requestFactory(java.util.function.Supplier { requestFactory })
+            .requestFactory(Supplier { requestFactory })
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(sifInnsynApiBaseUrl)
             .defaultMessageConverters()
