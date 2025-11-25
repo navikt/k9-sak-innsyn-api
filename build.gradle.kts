@@ -94,7 +94,8 @@ dependencies {
     }
 
     // Add Apache HttpClient 5
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+    testImplementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
 
     // Spring Cloud
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
