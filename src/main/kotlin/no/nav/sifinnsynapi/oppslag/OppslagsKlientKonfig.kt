@@ -3,6 +3,9 @@ package no.nav.sifinnsynapi.oppslag
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager
+import org.apache.hc.core5.util.TimeValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -14,6 +17,7 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
 
@@ -44,9 +48,28 @@ class OppslagsKlientKonfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
+        // Configure connection pool for same-cluster calls (GCP → GCP)
+        // This fixes the 92 ETIMEDOUT (-110) errors from the error logs
+        val connectionManager = PoolingHttpClientConnectionManager().apply {
+            maxTotal = 50                                          // Moderate pool for same-cluster service
+            defaultMaxPerRoute = 50                                // Max connections to k9-selvbetjening-oppslag
+            setValidateAfterInactivity(TimeValue.ofSeconds(10))    // Validate idle connections before reuse
+        }
+
+        val httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .evictIdleConnections(TimeValue.ofMinutes(10))         // Connection TTL: 10 min for same-cluster
+            .evictExpiredConnections()                              // Background eviction
+            .build()
+
+        val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
+            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout
+            setConnectionRequestTimeout(Duration.ofSeconds(45))    // Pool acquire timeout
+            setReadTimeout(Duration.ofSeconds(20))
+        }
+
         return builder
-            .connectTimeout(Duration.ofSeconds(20))
-            .readTimeout(Duration.ofSeconds(20))
+            .requestFactory(java.util.function.Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)

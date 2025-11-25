@@ -29,9 +29,8 @@ class K9SakKlientKonfig(
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
 ) {
 
-    private companion object {
-        val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
-
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
         const val TOKENX_K9_SAK = "tokenx-k9-sak"
     }
 
@@ -78,6 +77,7 @@ class K9SakKlientKonfig(
             // Note: This is set on the RestTemplateBuilder, not here
             // Pool acquire timeout: 45 seconds (fail fast if pool exhausted)
             setConnectionRequestTimeout(Duration.ofSeconds(45))
+            setReadTimeout(Duration.ofSeconds(60))
         }
 
         return builder
