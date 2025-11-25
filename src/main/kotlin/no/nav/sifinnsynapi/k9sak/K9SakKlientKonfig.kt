@@ -3,6 +3,9 @@ package no.nav.sifinnsynapi.k9sak
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager
+import org.apache.hc.core5.util.TimeValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -14,8 +17,10 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
+import java.util.function.Supplier
 
 @Configuration
 class K9SakKlientKonfig(
@@ -25,8 +30,7 @@ class K9SakKlientKonfig(
 ) {
 
     private companion object {
-        val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
-
+        private val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
         const val TOKENX_K9_SAK = "tokenx-k9-sak"
     }
 
@@ -39,9 +43,26 @@ class K9SakKlientKonfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
+        val connectionManager = PoolingHttpClientConnectionManager().apply {
+            maxTotal = 100                                                   // Higher pool for slow endpoints
+            defaultMaxPerRoute = 100
+            setValidateAfterInactivity(TimeValue.ofSeconds(10))    // Validate idle connections before reuse
+        }
+
+        val httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .evictIdleConnections(TimeValue.ofMinutes(55))   // Below 60-minute FSS firewall timeout. Prevents firewall from silently dropping connections
+            .evictExpiredConnections()                                              // Prevents reusing dead connections
+            .build()
+
+        val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
+            setConnectTimeout(Duration.ofSeconds(15))            // Connection timeout: 15 seconds (cross-cluster recommendation)
+            setConnectionRequestTimeout(Duration.ofSeconds(45))
+            setReadTimeout(Duration.ofSeconds(60))
+        }
+
         return builder
-            .connectTimeout(Duration.ofSeconds(20))
-            .readTimeout(Duration.ofSeconds(20))
+            .requestFactory(Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(k9SakUrl)
             .defaultMessageConverters()

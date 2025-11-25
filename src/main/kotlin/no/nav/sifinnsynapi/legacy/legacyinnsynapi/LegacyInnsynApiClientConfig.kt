@@ -3,6 +3,9 @@ package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager
+import org.apache.hc.core5.util.TimeValue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -13,9 +16,11 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.retry.RetryListener
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
+import java.util.function.Supplier
 
 @Configuration
 class LegacyInnsynApiClientConfig(
@@ -38,9 +43,26 @@ class LegacyInnsynApiClientConfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor
     ): RestTemplate {
+        val connectionManager = PoolingHttpClientConnectionManager().apply {
+            maxTotal = 50                                                   // Moderate pool for internal service
+            defaultMaxPerRoute = 50
+            setValidateAfterInactivity(TimeValue.ofSeconds(10))
+        }
+
+        val httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .evictIdleConnections(TimeValue.ofMinutes(10))      // Same-cluster TTL
+            .evictExpiredConnections()
+            .build()
+
+        val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
+            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout (same-cluster recommendation)
+            setConnectionRequestTimeout(Duration.ofSeconds(45))
+            setReadTimeout(Duration.ofSeconds(20))
+        }
+
         return builder
-            .connectTimeout(Duration.ofSeconds(20))
-            .readTimeout(Duration.ofSeconds(20))
+            .requestFactory(Supplier { requestFactory })
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(sifInnsynApiBaseUrl)
             .defaultMessageConverters()
