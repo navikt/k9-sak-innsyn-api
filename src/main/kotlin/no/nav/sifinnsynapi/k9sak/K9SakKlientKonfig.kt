@@ -29,7 +29,7 @@ class K9SakKlientKonfig(
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
 ) {
 
-    companion object {
+    private companion object {
         private val logger: Logger = LoggerFactory.getLogger(K9SakKlientKonfig::class.java)
         const val TOKENX_K9_SAK = "tokenx-k9-sak"
     }
