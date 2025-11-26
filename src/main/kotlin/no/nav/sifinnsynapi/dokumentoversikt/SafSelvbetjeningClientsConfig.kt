@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.dokumentoversikt
 
 import com.expediagroup.graphql.client.spring.GraphQLWebClient
+import io.netty.channel.ChannelOption
 import no.nav.security.token.support.client.core.ClientProperties
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
@@ -22,6 +23,8 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
 import reactor.netty.http.client.HttpClientRequest
 import reactor.netty.http.client.HttpClientResponse
+import reactor.netty.resources.ConnectionProvider
+import java.time.Duration
 import java.util.*
 
 @Configuration
@@ -44,7 +47,18 @@ class SafSelvbetjeningClientsConfig(
         builder = WebClient.builder()
             .clientConnector(
                 ReactorClientHttpConnector(
-                    HttpClient.create()
+                    HttpClient.create(
+                        ConnectionProvider.builder("saf-selvbetjening-pool")
+                            .maxConnections(100)
+                            .maxIdleTime(Duration.ofMinutes(55))    // Stay below 60-min firewall timeout
+                            .maxLifeTime(Duration.ofMinutes(55))    // Connection TTL for DNS refresh
+                            .pendingAcquireMaxCount(50)  // Max requests waiting for connection
+                            .evictInBackground(Duration.ofMinutes(5))  // Periodic cleanup of stale connections
+                            .build()
+                    )
+                        .responseTimeout(Duration.ofSeconds(30))  // Max time to wait for complete response (cross-cluster)
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)  // 10s connection timeout (cross-cluster)
+                        .option(ChannelOption.SO_KEEPALIVE, true)  // Enable TCP keep-alive to detect dead connections
                         .doOnRequest { request: HttpClientRequest, _ ->
                             logger.info("{} {} {}", request.version(), request.method(), request.resourceUrl())
                         }
