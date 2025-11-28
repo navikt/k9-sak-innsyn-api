@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
     kotlin("jvm") version "2.2.21"
@@ -26,9 +26,9 @@ configurations {
 
 val graphQLKotlinVersion = "8.8.1"
 val springCloudVersion = "4.3.0"
-val springdocVersion = "2.8.14"
+val springdocVersion = "3.0.0"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "5.0.33"
+val tokenSupportVersion = "6.0.0"
 val k9FormatVersion = "12.6.3"
 val retryVersion = "2.0.12"
 val zalandoVersion = "0.27.0"
@@ -40,9 +40,9 @@ val springMockkVersion = "4.0.2"
 val mockkVersion = "1.14.6"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20250517"
-val k9FellesVersion = "5.1.1"
-val k9FormidlingVersion = "10.1.7"
-val k9SakVersion = "5.4.20"
+val k9FellesVersion = "9.2.2"
+val k9FormidlingVersion = "10.1.10"
+val k9SakVersion = "6.0.2"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
