@@ -10,8 +10,11 @@ import no.nav.sifinnsynapi.util.personIdent
 import org.slf4j.LoggerFactory
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpMethod
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 
 @Service
@@ -46,6 +49,18 @@ class SafSelvbetjeningService(
         }
     }
 
+    @Retryable(
+        noRetryFor = [
+            HttpClientErrorException.Unauthorized::class,
+            HttpClientErrorException.Forbidden::class
+        ],
+        backoff = Backoff(
+            delayExpression = "\${spring.rest.retry.initialDelay}",
+            multiplierExpression = "\${spring.rest.retry.multiplier}",
+            maxDelayExpression = "\${spring.rest.retry.maxDelay}"
+        ),
+        maxAttemptsExpression = "\${spring.rest.retry.maxAttempts}"
+    )
     @Validated
     fun hentDokument(
         @Pattern(regexp = "\\d{9}", message = "[\${validatedValue}] matcher ikke tillatt pattern [{regexp}]") journalpostId: String,

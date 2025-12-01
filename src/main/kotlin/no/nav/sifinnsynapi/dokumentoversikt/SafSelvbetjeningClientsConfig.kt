@@ -20,18 +20,26 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientRequestException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.netty.http.client.HttpClient
 import reactor.netty.http.client.HttpClientRequest
 import reactor.netty.http.client.HttpClientResponse
 import reactor.netty.resources.ConnectionProvider
+import reactor.util.retry.Retry
+import java.io.IOException
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeoutException
 
 @Configuration
 class SafSelvbetjeningClientsConfig(
     oauth2Config: ClientConfigurationProperties,
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
-    @Value("\${no.nav.gateways.saf-selvbetjening-base-url}") private val safSelvbetjeningBaseUrl: String
+    @Value("\${no.nav.gateways.saf-selvbetjening-base-url}") private val safSelvbetjeningBaseUrl: String,
+    @Value("\${spring.rest.retry.maxAttempts}") private val maxAttempts: Long,
+    @Value("\${spring.rest.retry.initialDelay}") private val initialDelay: Long,
+    @Value("\${spring.rest.retry.maxDelay}") private val maxDelay: Long
 ) {
 
     private companion object {
@@ -67,6 +75,38 @@ class SafSelvbetjeningClientsConfig(
                         }
                 )
             )
+            .filter { request, next ->
+                next.exchange(request)
+                    .retryWhen(
+                        Retry.backoff(maxAttempts, Duration.ofMillis(initialDelay))
+                            .maxBackoff(Duration.ofMillis(maxDelay))
+                            .filter { throwable ->
+                                // Kun legg til retry for network/connection errors, ikke 4xx client error
+                                when (throwable) {
+                                    is WebClientResponseException.Unauthorized,
+                                    is WebClientResponseException.Forbidden,
+                                    is WebClientResponseException.BadRequest -> false
+                                    is WebClientRequestException,
+                                    is IOException,
+                                    is TimeoutException -> true
+                                    else -> throwable.cause is IOException || throwable.cause is TimeoutException
+                                }
+                            }
+                            .doBeforeRetry { retrySignal ->
+                                logger.warn(
+                                    "Retry GraphQL request til ${safSelvbetjeningBaseUrl} (forsøk ${retrySignal.totalRetries() + 1}/${maxAttempts}).",
+                                    retrySignal.failure()
+                                )
+                            }
+                            .onRetryExhaustedThrow { _, retrySignal ->
+                                logger.error(
+                                    "Max retry attempts (${maxAttempts}) exhausted for GraphQL request to ${safSelvbetjeningBaseUrl}.",
+                                    retrySignal.failure()
+                                )
+                                retrySignal.failure()
+                            }
+                    )
+            }
             .defaultRequest {
                 val correlationId = MDCUtil.callIdOrNew()
                 it.header(NAV_CALL_ID, correlationId)
@@ -112,3 +152,4 @@ class SafSelvbetjeningClientsConfig(
             execution.execute(request, body)
         }
 }
+
