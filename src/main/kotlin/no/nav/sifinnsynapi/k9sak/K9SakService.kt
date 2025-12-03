@@ -45,6 +45,7 @@ class K9SakService(
 
         private val hentSisteGyldigeVedtakForAktorIdUrl = "/api/brukerdialog/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
         private val hentOpplæringsinstitusjonerUrl = "/api/opplæringsinstitusjon/alle"
+        private val hentAktiveOpplæringsinstitusjonerUrl = "/api/opplæringsinstitusjon/aktive"
     }
 
     fun hentSisteGyldigeVedtakForAktorId(
@@ -99,9 +100,29 @@ class K9SakService(
     @Recover
     fun hentOpplæringsinstitusjoner(exception: ResourceAccessException): List<Opplæringsinstitusjon> {
         if (exception.rootCause is SocketTimeoutException) {
-            logger.warn("k9-sak timeout fetching opplæringsinstitusjoner. Returning empty list.", exception)
+            logger.warn("k9-sak timeout ved henting av alle opplæringsinstitusjoner. Returnerer tom liste.", exception)
         } else {
-            logger.error("Network error calling k9-sak: ${exception.message}. Returning empty list.", exception)
+            logger.error("Network error mot k9-sak ved henting av alle opplæringsinstitusjoner. Returnerer tom liste.", exception)
+        }
+        return emptyList()
+    }
+
+    fun hentAktiveOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
+        val response = k9SakKlient.exchange(
+            hentAktiveOpplæringsinstitusjonerUrl,
+            HttpMethod.GET,
+            HttpEntity(Unit),
+            object: ParameterizedTypeReference<List<Opplæringsinstitusjon>>() {}
+        )
+        return response.body ?: emptyList()
+    }
+
+    @Recover
+    fun hentAktiveOpplæringsinstitusjoner(exception: ResourceAccessException): List<Opplæringsinstitusjon> {
+        if (exception.rootCause is SocketTimeoutException) {
+            logger.warn("k9-sak timeout ved henting av aktive opplæringsinstitusjoner. Returnerer tom liste.", exception)
+        } else {
+            logger.error("Network error mot k9-sak ved henting av aktive opplæringsinstitusjoner. Returnerer tom liste.", exception)
         }
         return emptyList()
     }

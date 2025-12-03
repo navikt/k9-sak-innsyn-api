@@ -8,4 +8,5 @@ object Routes{
     const val DOKUMENT = "/dokument"
     const val K9SAK_OMSORGSDAGER_KRONISK_SYKT_BARN_GYLDIG_VEDTAK = "k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak"
     const val K9SAK_OPPLÆRINGSINSTITUSJONER = "k9sak/opplaringsinstitusjoner"
+    const val K9SAK_OPPLÆRINGSINSTITUSJONER_AKTIVE = "k9sak/opplaringsinstitusjoner/aktive"
 }
