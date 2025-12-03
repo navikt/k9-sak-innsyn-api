@@ -32,6 +32,12 @@ class K9SakController(
         return k9SakService.hentOpplæringsinstitusjoner()
     }
 
+    @GetMapping(Routes.K9SAK_OPPLÆRINGSINSTITUSJONER_AKTIVE, produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.OK)
+    fun hentAktiveOpplæringsinstitusjoner(): List<Opplæringsinstitusjon> {
+        return k9SakService.hentAktiveOpplæringsinstitusjoner()
+    }
+
     data class OmsorgsdagerKronsinskSuktBarnRequestDto(
         val pleietrengendeAktørId: AktørId
     )
