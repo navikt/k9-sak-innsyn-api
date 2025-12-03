@@ -96,4 +96,3 @@ data class ArkivertDokument(
         return result
     }
 }
-
