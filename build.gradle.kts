@@ -20,7 +20,7 @@ configurations {
         extendsFrom(configurations.annotationProcessor.get())
     }
     testCompileOnly {
-        exclude(group="junit", module = "junit")
+        exclude(group = "junit", module = "junit")
     }
 }
 
@@ -46,7 +46,7 @@ val k9SakVersion = "5.4.20"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
-val testcontainersVersion ="1.21.3"
+val testcontainersVersion = "1.21.3"
 
 repositories {
     mavenCentral()
@@ -163,6 +163,12 @@ tasks {
         useJUnitPlatform()
     }
 
+    withType<GraphQLGenerateClientTask> {
+        queryFileDirectory.set(file("${project.projectDir}/src/main/resources/safselvbetjening"))
+        schemaFile.set(file("${project.projectDir}/src/main/resources/safselvbetjening/saf-selvbetjening-sdl.graphqls"))
+        packageName.set("no.nav.sifinnsynapi.safselvbetjening.generated")
+    }
+
     withType<KotlinCompile> {
         compilerOptions {
             freeCompilerArgs.set(listOf("-Xjsr305=strict"))
@@ -177,10 +183,4 @@ tasks {
     withType<Wrapper> {
         gradleVersion = "8.2.1"
     }
-}
-
-val graphqlGenerateOtherClient by tasks.creating(GraphQLGenerateClientTask::class) {
-    queryFileDirectory.set(file("${project.projectDir}/src/main/resources/safselvbetjening"))
-    schemaFile.set(file("${project.projectDir}/src/main/resources/safselvbetjening/saf-selvbetjening-sdl.graphqls"))
-    packageName.set("no.nav.sifinnsynapi.safselvbetjening.generated")
 }
