@@ -33,7 +33,7 @@ import no.nav.sifinnsynapi.soknad.InnsendingService
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
+import java.net.URI
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -556,7 +556,7 @@ class SakServiceTest {
         harTilgang = true,
         journalposttype = Journalposttype.INNGÅENDE,
         relevanteDatoer = emptyList(),
-        url = URL("http://localhost:8080/dokument/journalpostId1/dokumentInfo1/ARKIV")
+        url = URI("http://localhost:8080/dokument/journalpostId1/dokumentInfo1/ARKIV").toURL()
     )
 
     private fun lagPsbSøknad(journalpostId: String) = PsbSøknadDAO(
