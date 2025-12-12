@@ -18,7 +18,7 @@ import no.nav.sifinnsynapi.sak.RelevantDatoDTO
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.net.URL
+import java.net.URI
 
 @Service
 class DokumentService(
@@ -88,7 +88,7 @@ class DokumentService(
                         no.nav.sifinnsynapi.safselvbetjening.generated.enums.Journalposttype.N ->Journalposttype.NOTAT
                         else -> throw IllegalArgumentException("Ukjent journalposttype: $jpt") // Burde ikke kunne inntreffe.
                     },
-                    url = URL("$applicationIngress${Routes.DOKUMENT}/$journalpostId/$dokumentInfoId/${dokumentvariant.variantformat.name}"),
+                    url = URI("$applicationIngress${Routes.DOKUMENT}/$journalpostId/$dokumentInfoId/${dokumentvariant.variantformat.name}").toURL(),
                     relevanteDatoer = relevanteDatoer.someRelevanteDatoer()
                 )
             }

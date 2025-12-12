@@ -36,7 +36,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.net.URI
-import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.time.LocalDate
@@ -151,7 +150,7 @@ class SakControllerTest {
                                             dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
                                             filtype = "PDFA",
                                             harTilgang = true,
-                                            url = URL("http://localhost:8080/saker/123456789"),
+                                            url = URI("http://localhost:8080/saker/123456789").toURL(),
                                             journalposttype = Journalposttype.INNGÅENDE,
                                             relevanteDatoer = listOf(
                                                 RelevantDatoDTO(
@@ -187,7 +186,7 @@ class SakControllerTest {
                                             dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_ETTERSENDELSE,
                                             filtype = "PDFA",
                                             harTilgang = true,
-                                            url = URL("http://localhost:8080/saker/123456789"),
+                                            url = URI("http://localhost:8080/saker/123456789").toURL(),
                                             journalposttype = Journalposttype.INNGÅENDE,
                                             relevanteDatoer = listOf(
                                                 RelevantDatoDTO(
@@ -211,7 +210,7 @@ class SakControllerTest {
                                     dokumentType = DokumentBrevkode.ETTERLYST_INNTEKTSMELDING,
                                     filtype = "PDFA",
                                     harTilgang = true,
-                                    url = URL("http://localhost:8080/saker/123456789"),
+                                    url = URI("http://localhost:8080/saker/123456789").toURL(),
                                     journalposttype = Journalposttype.UTGÅENDE,
                                     relevanteDatoer = listOf(
                                         RelevantDatoDTO(

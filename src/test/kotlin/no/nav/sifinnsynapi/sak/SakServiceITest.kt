@@ -35,7 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.net.URL
+import java.net.URI
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -153,7 +153,7 @@ class SakServiceITest {
                 dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
                 filtype = "PDFA",
                 harTilgang = true,
-                url = URL("http://localhost:8080/saker/123456789"),
+                url = URI("http://localhost:8080/saker/123456789").toURL(),
                 journalposttype = Journalposttype.INNGÅENDE,
                 relevanteDatoer = listOf(
                     RelevantDatoDTO(
@@ -212,7 +212,7 @@ class SakServiceITest {
                 dokumentType = DokumentBrevkode.PLEIEPENGER_SYKT_BARN_SOKNAD,
                 filtype = "PDFA",
                 harTilgang = true,
-                url = URL("http://localhost:8080/saker/123456789"),
+                url = URI("http://localhost:8080/saker/123456789").toURL(),
                 journalposttype = Journalposttype.INNGÅENDE,
                 relevanteDatoer = listOf(
                     RelevantDatoDTO(
