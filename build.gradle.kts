@@ -40,13 +40,13 @@ val springMockkVersion = "4.0.2"
 val mockkVersion = "1.14.7"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20250517"
-val k9FellesVersion = "9.2.9"
+val k9FellesVersion = "5.1.1"
 val k9FormidlingVersion = "10.1.14"
 val k9SakVersion = "6.0.4"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
-val testcontainersVersion = "1.21.3"
+val testcontainersVersion = "1.21.4"
 
 repositories {
     mavenCentral()
