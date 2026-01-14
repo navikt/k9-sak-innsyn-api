@@ -129,6 +129,8 @@ class SakService(
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
 
+        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
+
         val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
             behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
         }
