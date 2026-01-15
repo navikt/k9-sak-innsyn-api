@@ -112,8 +112,7 @@ class SakControllerTest {
                     fornavn = "Ola",
                     mellomnavn = null,
                     etternavn = "Nordmann",
-                    aktørId = "11111111111",
-                    identitetsnummer = "1234567890"
+                    aktørId = "11111111111"
                 ),
                 sak = SakDTO(
                     saksnummer = Saksnummer("ABC123"),
@@ -238,8 +237,7 @@ class SakControllerTest {
                           "fornavn": "Ola",
                           "mellomnavn": null,
                           "etternavn": "Nordmann",
-                          "aktørId": "11111111111",
-                          "identitetsnummer": "1234567890"
+                          "aktørId": "11111111111"
                         },
                         "sak": {
                           "saksnummer": "ABC123",

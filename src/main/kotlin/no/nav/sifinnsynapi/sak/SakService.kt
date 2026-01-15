@@ -512,7 +512,6 @@ class SakService(
         }
 
         return PleietrengendeDTO(
-            identitetsnummer = this.identitetsnummer!!,
             fødselsdato = this.fødselsdato,
             fornavn = fornavn1,
             mellomnavn = mellomnavn1,

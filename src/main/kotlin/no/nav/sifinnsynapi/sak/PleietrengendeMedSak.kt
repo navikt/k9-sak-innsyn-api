@@ -21,7 +21,6 @@ data class PleietrengendeMedSak(
 )
 
 data class PleietrengendeDTO(
-    val identitetsnummer: String,
     val fødselsdato: LocalDate,
     val aktørId: String,
 
