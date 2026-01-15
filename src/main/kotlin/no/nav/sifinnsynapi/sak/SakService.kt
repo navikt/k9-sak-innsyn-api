@@ -50,30 +50,56 @@ class SakService(
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
-            .toSet()
-        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
 
         logger.info("Henter personopplysninger på ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende...")
-        val pleietrengendeDTOS: Map<String, PleietrengendeDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor.toList()))
-            .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor.toList()) }
-            .associateBy { it.aktørId }
 
-        logger.info("Henter saksnummer for pleietrengende søker har omsorg for...")
-        return behandlingService.hentSaksnummere(
-            søkerAktørId = søker.aktørId,
-            pleietrengendeAktørIder = pleietrengendeSøkerHarOmsorgFor,
-            fagsakYtelseType = fagsakYtelseType
-        ).mapNotNull { saksnummerMedPleietrengende ->
-            pleietrengendeDTOS[saksnummerMedPleietrengende.pleietrengendeAktørId]?.let { pleietrengendeDTO: PleietrengendeDTO ->
-                SakerMetadataDTO(
-                    saksnummer = saksnummerMedPleietrengende.saksnummer,
-                    pleietrengende = pleietrengendeDTO,
-                    fagsakYtelseType = FagsakYtelseType.fraKode(saksnummerMedPleietrengende.ytelsetype),
-                )
-            }
-        }.also {
-            logger.info("Fant ${it.size} saker med metadata.")
+        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
+            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
         }
+
+        val pleietrengendeMedBehandlinger: Map<PleietrengendeDTO, List<Behandling>> = behandlingerSupplier.get()
+            .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
+            .distinct() // Fjerner duplikater
+            .toList()
+            .let { pleietrengendeAktørIder ->
+                // Henter pleietrengende basert på aktørIder
+                logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
+                oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
+                    .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
+            }
+            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
+
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+            loggNyesteBehandling(
+                "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
+                behandlingerSupplier
+            )
+            return emptyList()
+        }
+
+        logger.info("Henter saksinfo for pleietrengende søker har omsorg for...")
+        val sakerMetadata: List<SakerMetadataDTO> = pleietrengendeMedBehandlinger
+            .mapNotNull { (pleietrengendeDTO, behandlinger) ->
+                val behandlingerGruppertPåSaksnummer: Map<Saksnummer, List<Behandling>> =
+                    behandlinger.groupBy { it.fagsak.saksnummer }
+
+                behandlingerGruppertPåSaksnummer.mapNotNull { (saksnummer, behandlinger) ->
+                    if (behandlinger.isEmpty()) {
+                        return@mapNotNull null
+                    }
+                    SakerMetadataDTO(
+                        saksnummer = saksnummer.verdi,
+                        pleietrengende = pleietrengendeDTO,
+                        fagsakYtelseType = behandlinger.first().fagsak.ytelseType,
+                        fagsakOpprettetTidspunkt = behandlinger.minBy { it.opprettetTidspunkt }.opprettetTidspunkt,
+                        fagsakAvsluttetTidspunkt = behandlinger.maxByOrNull { it.avsluttetTidspunkt }?.avsluttetTidspunkt
+                    )
+                }
+            }.flatten()
+            .also {
+                logger.info("Fant ${it.size} saker med metadata.")
+            }
+        return sakerMetadata
     }
 
     @Transactional
