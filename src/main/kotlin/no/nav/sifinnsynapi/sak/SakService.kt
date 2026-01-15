@@ -107,34 +107,21 @@ class SakService(
         val søker = oppslagsService.hentSøker()
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
-        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
-        val alleBehandlinger = behandlingService.hentBehandlinger(søker.aktørId, saksnummer, fagsakYtelseType)
+        val alleBehandlinger: List<Behandling> = behandlingService.hentBehandlinger(søker.aktørId, saksnummer, fagsakYtelseType).somBehandling()
 
-        val relevanteBehandlinger = alleBehandlinger
-            .filter { behandling -> pleietrengendeSøkerHarOmsorgFor.contains(behandling.pleietrengendeAktørId) }
-            .somBehandling()
-
-        if (relevanteBehandlinger.isEmpty()) {
+        if (alleBehandlinger.isEmpty()) {
             logger.info("Fant ingen behandlinger for for saksnummmer = ${saksnummer}")
             return null
-        }
-
-        if (relevanteBehandlinger.count() != alleBehandlinger.count()) {
-            logger.info(
-                "Filtrerer bort {} av {} behandlinger pga manglende omsorg for pleietrengende.",
-                alleBehandlinger.count() - relevanteBehandlinger.count(),
-                alleBehandlinger.count()
-            )
         }
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
-        val fagsak = relevanteBehandlinger.first().fagsak
+        val fagsak = alleBehandlinger.first().fagsak
         val ytelseType = fagsak.ytelseType
-        val behandlingerMedTilhørendeInnsendelser = relevanteBehandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+        val behandlingerMedTilhørendeInnsendelser = alleBehandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
 
-        val saksbehandlingsFrist = relevanteBehandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+        val saksbehandlingsFrist = alleBehandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
         val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
 
         return SakDTO(
