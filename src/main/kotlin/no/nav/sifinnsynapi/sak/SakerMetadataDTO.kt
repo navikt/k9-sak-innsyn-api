@@ -7,6 +7,6 @@ data class SakerMetadataDTO(
     val saksnummer: String,
     val pleietrengende: PleietrengendeDTO,
     val fagsakYtelseType: FagsakYtelseType,
-    val fagsakOpprettetTidspunkt: ZonedDateTime,
+    val fagsakOpprettetTidspunkt: ZonedDateTime?,
     val fagsakAvsluttetTidspunkt: ZonedDateTime?
 )

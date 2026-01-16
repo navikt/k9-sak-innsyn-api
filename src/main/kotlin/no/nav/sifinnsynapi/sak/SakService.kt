@@ -87,11 +87,16 @@ class SakService(
                     if (behandlinger.isEmpty()) {
                         return@mapNotNull null
                     }
+                    val opprettetTidspunkter = behandlinger.map { it.opprettetTidspunkt }
+                    if (opprettetTidspunkter.contains(null)) {
+                        logger.warn("Listen over behandlinger innehodler opprettetTidspunkt som er null for saksnummer ${saksnummer.verdi}.")
+                    }
+
                     SakerMetadataDTO(
                         saksnummer = saksnummer.verdi,
                         pleietrengende = pleietrengendeDTO,
                         fagsakYtelseType = behandlinger.first().fagsak.ytelseType,
-                        fagsakOpprettetTidspunkt = behandlinger.maxBy { it.opprettetTidspunkt }.opprettetTidspunkt,
+                        fagsakOpprettetTidspunkt = behandlinger.filter { it.opprettetTidspunkt != null }. minByOrNull { it.opprettetTidspunkt!! }?.opprettetTidspunkt,
                         fagsakAvsluttetTidspunkt = behandlinger.filter { it.avsluttetTidspunkt != null }.maxByOrNull { it.avsluttetTidspunkt!! }?.avsluttetTidspunkt
                     )
                 }
