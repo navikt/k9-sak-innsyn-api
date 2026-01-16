@@ -91,8 +91,8 @@ class SakService(
                         saksnummer = saksnummer.verdi,
                         pleietrengende = pleietrengendeDTO,
                         fagsakYtelseType = behandlinger.first().fagsak.ytelseType,
-                        fagsakOpprettetTidspunkt = behandlinger.maxByOrNull { it.opprettetTidspunkt }?.opprettetTidspunkt,
-                        fagsakAvsluttetTidspunkt = behandlinger.maxByOrNull { it.avsluttetTidspunkt }?.avsluttetTidspunkt
+                        fagsakOpprettetTidspunkt = behandlinger.maxBy { it.opprettetTidspunkt }.opprettetTidspunkt,
+                        fagsakAvsluttetTidspunkt = behandlinger.filter { it.avsluttetTidspunkt != null }.maxByOrNull { it.avsluttetTidspunkt!! }?.avsluttetTidspunkt
                     )
                 }
             }.flatten()
