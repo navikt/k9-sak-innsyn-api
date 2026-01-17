@@ -1,9 +1,11 @@
 package no.nav.sifinnsynapi.sak.behandling
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.søknad.felles.Kildesystem
 import org.junit.jupiter.api.Test
-import org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId

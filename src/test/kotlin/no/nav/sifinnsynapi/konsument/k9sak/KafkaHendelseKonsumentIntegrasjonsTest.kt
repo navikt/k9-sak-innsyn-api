@@ -52,7 +52,7 @@ import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 
 @EmbeddedKafka( // Setter opp og tilgjengligjør embeded kafka broker.
-    count = 3,
+    count = 1,
     bootstrapServersProperty = "kafka.aiven.servers", // Setter bootstrap-servers for consumer og producer.
     topics = [K9_SAK_TOPIC]
 )

@@ -25,10 +25,9 @@ configurations {
 }
 
 val graphQLKotlinVersion = "8.8.1"
-val springCloudVersion = "5.0.1"
 val springdocVersion = "3.0.1"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "5.0.33"
+val tokenSupportVersion = "6.0.0"
 val k9FormatVersion = "12.7.3"
 val retryVersion = "2.0.12"
 val zalandoVersion = "0.27.0"
@@ -40,7 +39,7 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.7"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20251224"
-val k9FellesVersion = "10.0.9"
+val k9FellesVersion = "5.1.1"
 val k9FormidlingVersion = "10.1.15"
 val k9SakVersion = "6.0.6"
 val openhtmltopdfVersion = "1.0.10"
@@ -87,6 +86,8 @@ dependencies {
     //implementation("org.springframework.boot:spring-boot-starter-jetty") /// TODO: Til jetty får støtte fro Servlet 6.0
     implementation("org.springframework.boot:spring-boot-jackson2")
     implementation("org.springframework.boot:spring-boot-starter-restclient")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+
 
 
     implementation("org.springframework.retry:spring-retry:$retryVersion")
@@ -103,10 +104,6 @@ dependencies {
     // Add Apache HttpClient 5
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
     testImplementation("org.apache.httpcomponents.client5:httpclient5:5.6")
-
-    // Spring Cloud
-    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
 
     //graphql
     implementation("com.expediagroup:graphql-kotlin-spring-client:$graphQLKotlinVersion")
