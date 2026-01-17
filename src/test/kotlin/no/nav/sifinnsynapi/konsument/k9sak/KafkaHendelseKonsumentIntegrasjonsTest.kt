@@ -4,7 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.ninjasquad.springmockk.MockkBean
-import com.ninjasquad.springmockk.SpykBean
+import com.ninjasquad.springmockk.MockkSpyBean
 import io.mockk.every
 import io.mockk.verify
 import no.nav.k9.ettersendelse.Ettersendelse
@@ -36,14 +36,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import org.springframework.boot.resttestclient.TestRestTemplate
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.wiremock.spring.ConfigureWireMock
+import org.wiremock.spring.EnableWireMock
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
@@ -55,12 +57,13 @@ import java.time.ZonedDateTime
     topics = [K9_SAK_TOPIC]
 )
 @ExtendWith(SpringExtension::class)
+@AutoConfigureTestRestTemplate
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext
 @ActiveProfiles("test")
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test. Se application-test.yml -> no.nav.security.jwt.issuer.selvbetjening for konfigurasjon
 @Import(SecurityConfiguration::class)
-@AutoConfigureWireMock // Konfigurerer og setter opp en wiremockServer. Default leses src/test/resources/__files og src/test/resources/mappings
+@EnableWireMock(ConfigureWireMock()) // Konfigurerer og setter opp en wiremockServer. Default leses src/test/resources/__files og src/test/resources/mappings
 @SpringBootTest(
     classes = [SifInnsynApiApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
@@ -86,7 +89,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
     @Autowired
     lateinit var omsorgService: OmsorgService
 
-    @SpykBean
+    @MockkSpyBean
     lateinit var k9SakHendelseKonsument: K9SakHendelseKonsument
 
     @MockkBean(relaxed = true)

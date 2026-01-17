@@ -3,13 +3,16 @@ package no.nav.sifinnsynapi.oppslag
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
+import org.apache.hc.client5.http.config.ConnectionConfig
+import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager
 import org.apache.hc.core5.util.TimeValue
+import org.apache.hc.core5.util.Timeout
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders.CONTENT_TYPE
@@ -49,23 +52,32 @@ class OppslagsKlientKonfig(
         builder: RestTemplateBuilder,
         mdcInterceptor: MDCValuesPropagatingClientHttpRequestInterceptor,
     ): RestTemplate {
+
+        val connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofSeconds(10))              // Connection timeout (same-cluster recommendation)
+            .build()
+
         val connectionManager = PoolingHttpClientConnectionManager().apply {
             maxTotal = 50                                                   // Moderate pool for internal service
             defaultMaxPerRoute = 50
             setValidateAfterInactivity(TimeValue.ofSeconds(10))    // Validate idle connections before reuse
+            setDefaultConnectionConfig(connectionConfig)
+
         }
+
+        val requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.ofSeconds(45))
+            .setResponseTimeout(Timeout.ofSeconds(20))             // Read timeout
+            .build()
 
         val httpClient = HttpClients.custom()
             .setConnectionManager(connectionManager)
             .evictIdleConnections(TimeValue.ofMinutes(10))         // Connection TTL: 10 min for same-cluster
             .evictExpiredConnections()
+            .setDefaultRequestConfig(requestConfig)
             .build()
 
-        val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient).apply {
-            setConnectTimeout(Duration.ofSeconds(10))              // Connection timeout (same-cluster recommendation)
-            setConnectionRequestTimeout(Duration.ofSeconds(45))
-            setReadTimeout(Duration.ofSeconds(20))
-        }
+        val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 
         return builder
             .requestFactory(Supplier { requestFactory })

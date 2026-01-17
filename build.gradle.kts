@@ -6,9 +6,9 @@ plugins {
     id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.spring") version "2.3.0"
-    kotlin("plugin.jpa") version "2.3.0"
+    kotlin("jvm") version "2.2.10"
+    kotlin("plugin.spring") version "2.2.10"
+    kotlin("plugin.jpa") version "2.2.10"
 }
 
 group = "no.nav"
@@ -85,6 +85,10 @@ dependencies {
         //exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     //implementation("org.springframework.boot:spring-boot-starter-jetty") /// TODO: Til jetty får støtte fro Servlet 6.0
+    implementation("org.springframework.boot:spring-boot-jackson2")
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
+
+
     implementation("org.springframework.retry:spring-retry:$retryVersion")
     implementation("org.springframework:spring-aspects")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -92,6 +96,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
     }
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+
 
     // Add Apache HttpClient 5
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
@@ -154,6 +161,11 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkJvmVersion")
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
+
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:3.10.0")
+    testImplementation("org.wiremock:wiremock-jetty12:3.13.2")
+    testImplementation("org.eclipse.jetty.ee10:jetty-ee10-bom:12.1.0")
+
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
 }
