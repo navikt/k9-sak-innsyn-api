@@ -101,9 +101,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
 
-    // Add Apache HttpClient 5
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
-    testImplementation("org.apache.httpcomponents.client5:httpclient5:5.6")
+    // Apache HttpClient 5 - versions managed by Spring Boot
+    implementation("org.apache.httpcomponents.client5:httpclient5")
 
     //graphql
     implementation("com.expediagroup:graphql-kotlin-spring-client:$graphQLKotlinVersion")
