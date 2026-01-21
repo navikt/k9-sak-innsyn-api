@@ -1,6 +1,5 @@
 package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
@@ -10,9 +9,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
@@ -36,9 +35,6 @@ class LegacyInnsynApiServiceTest {
 
     @Autowired
     lateinit var legacyInnsynApiService: LegacyInnsynApiService
-
-    @Autowired
-    lateinit var wireMockServer: WireMockServer
 
     companion object {
         const val sifInnsynApiMockUrl = "sif-innsyn-api-base-url-mock"
@@ -84,6 +80,6 @@ class LegacyInnsynApiServiceTest {
 
         kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId.toString()) }
 
-        wireMockServer.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
     }
 }

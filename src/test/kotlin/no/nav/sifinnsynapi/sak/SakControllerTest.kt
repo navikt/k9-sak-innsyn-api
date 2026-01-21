@@ -32,6 +32,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
+import org.skyscreamer.jsonassert.JSONAssert
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -54,7 +56,6 @@ class SakControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var mockOAuth2Server: MockOAuth2Server
 
@@ -87,7 +88,10 @@ class SakControllerTest {
             .andExpect(MockMvcResultMatchers.status().isInternalServerError)
             .andExpect(MockMvcResultMatchers.header().exists("problem-details"))
             .andExpect(MockMvcResultMatchers.content().json(errorResponse))
-            .andExpect(MockMvcResultMatchers.header().string("problem-details", errorResponse))
+            .andExpect {
+                val actualHeader = it.response.getHeader("problem-details")
+                JSONAssert.assertEquals(errorResponse, actualHeader, false)
+            }
     }
 
     @Test
@@ -442,7 +446,7 @@ class SakControllerTest {
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().json(forventetJsonResponse, true))
+            .andExpect(MockMvcResultMatchers.content().json(forventetJsonResponse, JsonCompareMode.STRICT))
     }
 
     @Test
