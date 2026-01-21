@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="K9SakInnsynApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+  <configuration default="false" name="K9SakInnsynApiMedVtpApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="vtp" />
     <option name="envFilePaths">
       <option value="$PROJECT_DIR$/docker-compose-env/vtp.env" />
