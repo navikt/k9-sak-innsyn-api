@@ -50,30 +50,61 @@ class SakService(
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
-            .toSet()
-        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
 
         logger.info("Henter personopplysninger på ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende...")
-        val pleietrengendeDTOS: Map<String, PleietrengendeDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor.toList()))
-            .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor.toList()) }
-            .associateBy { it.aktørId }
 
-        logger.info("Henter saksnummer for pleietrengende søker har omsorg for...")
-        return behandlingService.hentSaksnummere(
-            søkerAktørId = søker.aktørId,
-            pleietrengendeAktørIder = pleietrengendeSøkerHarOmsorgFor,
-            fagsakYtelseType = fagsakYtelseType
-        ).mapNotNull { saksnummerMedPleietrengende ->
-            pleietrengendeDTOS[saksnummerMedPleietrengende.pleietrengendeAktørId]?.let { pleietrengendeDTO: PleietrengendeDTO ->
-                SakerMetadataDTO(
-                    saksnummer = saksnummerMedPleietrengende.saksnummer,
-                    pleietrengende = pleietrengendeDTO,
-                    fagsakYtelseType = FagsakYtelseType.fraKode(saksnummerMedPleietrengende.ytelsetype),
-                )
-            }
-        }.also {
-            logger.info("Fant ${it.size} saker med metadata.")
+        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
+            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
         }
+
+        val pleietrengendeMedBehandlinger: Map<PleietrengendeDTO, List<Behandling>> = behandlingerSupplier.get()
+            .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
+            .distinct() // Fjerner duplikater
+            .toList()
+            .let { pleietrengendeAktørIder ->
+                // Henter pleietrengende basert på aktørIder
+                logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
+                oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
+                    .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
+            }
+            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
+
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+            loggNyesteBehandling(
+                "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
+                behandlingerSupplier
+            )
+            return emptyList()
+        }
+
+        logger.info("Henter saksinfo for pleietrengende søker har omsorg for...")
+        val sakerMetadata: List<SakerMetadataDTO> = pleietrengendeMedBehandlinger
+            .mapNotNull { (pleietrengendeDTO, behandlinger) ->
+                val behandlingerGruppertPåSaksnummer: Map<Saksnummer, List<Behandling>> =
+                    behandlinger.groupBy { it.fagsak.saksnummer }
+
+                behandlingerGruppertPåSaksnummer.mapNotNull { (saksnummer, behandlinger) ->
+                    if (behandlinger.isEmpty()) {
+                        return@mapNotNull null
+                    }
+                    val opprettetTidspunkter = behandlinger.map { it.opprettetTidspunkt }
+                    if (opprettetTidspunkter.contains(null)) {
+                        logger.warn("Listen over behandlinger innehodler opprettetTidspunkt som er null for saksnummer ${saksnummer.verdi}.")
+                    }
+
+                    SakerMetadataDTO(
+                        saksnummer = saksnummer.verdi,
+                        pleietrengende = pleietrengendeDTO,
+                        fagsakYtelseType = behandlinger.first().fagsak.ytelseType,
+                        fagsakOpprettetTidspunkt = behandlinger.filter { it.opprettetTidspunkt != null }. minByOrNull { it.opprettetTidspunkt!! }?.opprettetTidspunkt,
+                        fagsakAvsluttetTidspunkt = behandlinger.filter { it.avsluttetTidspunkt != null }.maxByOrNull { it.avsluttetTidspunkt!! }?.avsluttetTidspunkt
+                    )
+                }
+            }.flatten()
+            .also {
+                logger.info("Fant ${it.size} saker med metadata.")
+            }
+        return sakerMetadata
     }
 
     @Transactional
@@ -81,34 +112,21 @@ class SakService(
         val søker = oppslagsService.hentSøker()
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
-        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
-        val alleBehandlinger = behandlingService.hentBehandlinger(søker.aktørId, saksnummer, fagsakYtelseType)
+        val alleBehandlinger: List<Behandling> = behandlingService.hentBehandlinger(søker.aktørId, saksnummer, fagsakYtelseType).somBehandling()
 
-        val relevanteBehandlinger = alleBehandlinger
-            .filter { behandling -> pleietrengendeSøkerHarOmsorgFor.contains(behandling.pleietrengendeAktørId) }
-            .somBehandling()
-
-        if (relevanteBehandlinger.isEmpty()) {
+        if (alleBehandlinger.isEmpty()) {
             logger.info("Fant ingen behandlinger for for saksnummmer = ${saksnummer}")
             return null
-        }
-
-        if (relevanteBehandlinger.count() != alleBehandlinger.count()) {
-            logger.info(
-                "Filtrerer bort {} av {} behandlinger pga manglende omsorg for pleietrengende.",
-                alleBehandlinger.count() - relevanteBehandlinger.count(),
-                alleBehandlinger.count()
-            )
         }
 
         val søkersDokmentoversikt = dokumentService.hentDokumentOversikt()
         logger.info("Fant ${søkersDokmentoversikt.size} dokumenter i søkers dokumentoversikt.")
 
-        val fagsak = relevanteBehandlinger.first().fagsak
+        val fagsak = alleBehandlinger.first().fagsak
         val ytelseType = fagsak.ytelseType
-        val behandlingerMedTilhørendeInnsendelser = relevanteBehandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
+        val behandlingerMedTilhørendeInnsendelser = alleBehandlinger.behandlingerMedTilhørendeInnsendelser(søkersDokmentoversikt)
 
-        val saksbehandlingsFrist = relevanteBehandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
+        val saksbehandlingsFrist = alleBehandlinger.utledSaksbehandlingsfristFraÅpenBehandling()
         val utledetStatus = utledStatus(behandlingerMedTilhørendeInnsendelser, saksbehandlingsFrist)
 
         return SakDTO(
@@ -128,6 +146,8 @@ class SakService(
             ?: throw IllegalStateException("Feilet med å hente søker.")
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søker.aktørId)
+
+        logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
 
         val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
             behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
@@ -497,7 +517,6 @@ class SakService(
         }
 
         return PleietrengendeDTO(
-            identitetsnummer = this.identitetsnummer!!,
             fødselsdato = this.fødselsdato,
             fornavn = fornavn1,
             mellomnavn = mellomnavn1,
