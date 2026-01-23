@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    kotlin("plugin.jpa") version "2.2.21"
+    kotlin("jvm") version "2.3.0"
+    kotlin("plugin.spring") version "2.3.0"
+    kotlin("plugin.jpa") version "2.3.0"
 }
 
 group = "no.nav"
@@ -25,24 +25,24 @@ configurations {
 }
 
 val graphQLKotlinVersion = "8.8.1"
-val springCloudVersion = "4.3.0"
-val springdocVersion = "2.8.14"
+val springCloudVersion = "5.0.1"
+val springdocVersion = "3.0.1"
 val logstashLogbackEncoderVersion = "9.0"
 val tokenSupportVersion = "5.0.33"
-val k9FormatVersion = "12.7.3"
+val k9FormatVersion = "12.7.4"
 val retryVersion = "2.0.12"
 val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.8"
+val postgresqlVersion = "42.7.9"
 val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
-val springMockkVersion = "4.0.2"
+val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.7"
 val guavaVersion = "33.5.0-jre"
-val orgJsonVersion = "20250517"
-val k9FellesVersion = "5.1.1"
-val k9FormidlingVersion = "10.1.14"
-val k9SakVersion = "6.0.4"
+val orgJsonVersion = "20251224"
+val k9FellesVersion = "10.0.11"
+val k9FormidlingVersion = "10.1.15"
+val k9SakVersion = "6.0.7"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
@@ -94,8 +94,8 @@ dependencies {
     }
 
     // Add Apache HttpClient 5
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
-    testImplementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
+    testImplementation("org.apache.httpcomponents.client5:httpclient5:5.6")
 
     // Spring Cloud
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
