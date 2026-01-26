@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "4.0.1"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
     kotlin("jvm") version "2.2.10"
@@ -30,9 +30,6 @@ val logstashLogbackEncoderVersion = "9.0"
 val tokenSupportVersion = "6.0.0"
 val k9FormatVersion = "12.7.3"
 val retryVersion = "2.0.12"
-val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.8"
-val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "5.0.1"
@@ -45,7 +42,6 @@ val k9SakVersion = "6.0.6"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
-val testcontainersVersion = "1.21.4"
 
 repositories {
     mavenCentral()
@@ -89,7 +85,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-flyway")
 
 
-
+    //Dette biblioteket er deprecated da spring tilbyr funksjonalitet natively
     implementation("org.springframework.retry:spring-retry:$retryVersion")
     implementation("org.springframework:spring-aspects")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -119,11 +115,9 @@ dependencies {
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
-    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+    runtimeOnly("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
-    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -158,12 +152,10 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 
-    testImplementation("org.wiremock.integrations:wiremock-spring-boot:3.10.0")
-    testImplementation("org.wiremock:wiremock-jetty12:3.13.2")
-    testImplementation("org.eclipse.jetty.ee10:jetty-ee10-bom:12.1.0")
-
-
-    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.0.9")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 
 tasks {
