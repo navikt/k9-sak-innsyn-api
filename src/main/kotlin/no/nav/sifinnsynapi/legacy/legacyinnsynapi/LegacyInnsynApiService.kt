@@ -92,7 +92,7 @@ class LegacyInnsynApiService(
         return legacySøknaderFraDatabasen + legacySøknaderFraRest
     }
 
-    private fun hentLegacySøknadViaRest(søknadId: String): ResponseEntity<LegacySøknadDTO?> {
+    private fun hentLegacySøknadViaRest(søknadId: String): ResponseEntity<LegacySøknadDTO> {
         logger.info("Søknad med id=$søknadId finnes ikke i databasen, henter fra sif-innsyn-api")
 
         val exchange = sifInnsynClient.exchange(

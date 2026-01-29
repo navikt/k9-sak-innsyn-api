@@ -1,5 +1,7 @@
 package no.nav.sifinnsynapi.drift
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.k9.søknad.Søknad
@@ -26,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -36,6 +38,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import tools.jackson.databind.ObjectMapper
 import java.util.*
 
 
@@ -49,6 +52,9 @@ class DriftControllerTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
+
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -92,7 +98,7 @@ class DriftControllerTest {
 
         val token = mockOAuth2Server.hentToken(issuerId = "azure", claims = mapOf("NAVident" to "Z99481")).serialize()
 
-        mockMvc.perform(
+        val result = mockMvc.perform(
             MockMvcRequestBuilders
                 .post(debugSøknaderEndepunkt)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -104,7 +110,12 @@ class DriftControllerTest {
             .andExpect(status().isInternalServerError)
             .andExpect(header().exists("problem-details"))
             .andExpect(content().json(errorResponse))
-            .andExpect(header().string("problem-details", errorResponse))
+            .andReturn()
+
+        val problemDetailHeader = result.response.getHeader("problem-details")
+
+        assertThat(objectMapper.readTree(problemDetailHeader))
+            .isEqualTo(objectMapper.readTree(errorResponse))
     }
 
     @Test

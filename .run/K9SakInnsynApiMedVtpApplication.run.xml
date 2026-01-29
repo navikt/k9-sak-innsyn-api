@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="K9SakInnsynApiMedVtpApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="vtp" />
+    <option name="envFilePaths">
+      <option value="$PROJECT_DIR$/docker-compose-env/vtp.env" />
+    </option>
+    <module name="k9-sak-innsyn-api.main" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
+    <option name="SPRING_BOOT_MAIN_CLASS" value="no.nav.sifinnsynapi.SifInnsynApiApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

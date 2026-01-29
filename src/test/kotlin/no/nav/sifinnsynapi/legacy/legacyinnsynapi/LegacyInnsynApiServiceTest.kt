@@ -1,6 +1,5 @@
 package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
@@ -10,16 +9,17 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.RestTemplate
+import org.wiremock.spring.ConfigureWireMock
+import org.wiremock.spring.EnableWireMock
 import java.time.Duration
 import java.util.*
 
@@ -28,16 +28,13 @@ import java.util.*
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = ["spring.main.allow-bean-definition-overriding=true"]
 )
-@AutoConfigureWireMock
+@EnableWireMock(ConfigureWireMock())
 @ActiveProfiles("test")
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test. Se application-test.yml -> no.nav.security.jwt.issuer.selvbetjening for konfigurasjon
 class LegacyInnsynApiServiceTest {
 
     @Autowired
     lateinit var legacyInnsynApiService: LegacyInnsynApiService
-
-    @Autowired
-    lateinit var wireMockServer: WireMockServer
 
     companion object {
         const val sifInnsynApiMockUrl = "sif-innsyn-api-base-url-mock"
@@ -83,6 +80,6 @@ class LegacyInnsynApiServiceTest {
 
         kotlin.runCatching { legacyInnsynApiService.hentLegacySøknad(søknadId.toString()) }
 
-        wireMockServer.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
     }
 }

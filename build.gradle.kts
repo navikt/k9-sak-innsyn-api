@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    kotlin("plugin.jpa") version "2.2.21"
+    kotlin("jvm") version "2.2.10"
+    kotlin("plugin.spring") version "2.2.10"
+    kotlin("plugin.jpa") version "2.2.10"
 }
 
 group = "no.nav"
@@ -25,28 +25,23 @@ configurations {
 }
 
 val graphQLKotlinVersion = "8.8.1"
-val springCloudVersion = "4.3.0"
-val springdocVersion = "2.8.14"
+val springdocVersion = "3.0.1"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "5.0.33"
+val tokenSupportVersion = "6.0.0"
 val k9FormatVersion = "12.7.3"
 val retryVersion = "2.0.12"
-val zalandoVersion = "0.27.0"
-val postgresqlVersion = "42.7.8"
-val hibernateTypes52Version = "2.20.0"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
-val springMockkVersion = "4.0.2"
+val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.7"
 val guavaVersion = "33.5.0-jre"
-val orgJsonVersion = "20250517"
+val orgJsonVersion = "20251224"
 val k9FellesVersion = "5.1.1"
-val k9FormidlingVersion = "10.1.14"
-val k9SakVersion = "6.0.4"
+val k9FormidlingVersion = "10.1.15"
+val k9SakVersion = "6.0.6"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
-val testcontainersVersion = "1.21.4"
 
 repositories {
     mavenCentral()
@@ -85,6 +80,12 @@ dependencies {
         //exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     //implementation("org.springframework.boot:spring-boot-starter-jetty") /// TODO: Til jetty får støtte fro Servlet 6.0
+    implementation("org.springframework.boot:spring-boot-jackson2")
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+
+
+    //Dette biblioteket er deprecated da spring tilbyr funksjonalitet natively
     implementation("org.springframework.retry:spring-retry:$retryVersion")
     implementation("org.springframework:spring-aspects")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -92,14 +93,12 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
     }
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
-    // Add Apache HttpClient 5
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
-    testImplementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
 
-    // Spring Cloud
-    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-contract-stub-runner
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springCloudVersion")
+    // Apache HttpClient 5 - versions managed by Spring Boot
+    implementation("org.apache.httpcomponents.client5:httpclient5")
 
     //graphql
     implementation("com.expediagroup:graphql-kotlin-spring-client:$graphQLKotlinVersion")
@@ -116,11 +115,9 @@ dependencies {
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
 
     // Database
-    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+    runtimeOnly("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
-    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -155,7 +152,10 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 
-    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.0.9")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 
 tasks {

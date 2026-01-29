@@ -2,7 +2,6 @@ package no.nav.sifinnsynapi.utils
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.sifinnsynapi.oppslag.Adressebeskyttelse
-import org.springframework.cloud.contract.spec.internal.MediaTypes
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -107,7 +106,7 @@ fun stubStsToken(
             .willReturn(
                 WireMock.aResponse()
                     .withStatus(forventetStatus.value())
-                    .withHeader("Content-Type", MediaTypes.APPLICATION_JSON)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .withBody(
                         //language=json
                         """
