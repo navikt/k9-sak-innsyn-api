@@ -98,7 +98,7 @@ class SakService(
                         fagsakYtelseType = behandlinger.first().fagsak.ytelseType,
                         fagsakOpprettetTidspunkt = behandlinger.filter { it.opprettetTidspunkt != null }. minByOrNull { it.opprettetTidspunkt!! }?.opprettetTidspunkt,
                         fagsakAvsluttetTidspunkt = behandlinger.filter { it.avsluttetTidspunkt != null }.maxByOrNull { it.avsluttetTidspunkt!! }?.avsluttetTidspunkt,
-                        føresteInnsendingTidspunkt = behandlinger.flatMap { it.innsendinger }.minOfOrNull { it.mottattTidspunkt },
+                        førsteInnsendingTidspunkt = behandlinger.flatMap { it.innsendinger }.minOfOrNull { it.mottattTidspunkt },
                         sisteInnsendingTidspunkt = behandlinger.flatMap { it.innsendinger }.maxOfOrNull { it.mottattTidspunkt }
                     )
                 }

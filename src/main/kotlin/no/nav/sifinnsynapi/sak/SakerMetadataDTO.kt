@@ -9,6 +9,6 @@ data class SakerMetadataDTO(
     val fagsakYtelseType: FagsakYtelseType,
     val fagsakOpprettetTidspunkt: ZonedDateTime?,
     val fagsakAvsluttetTidspunkt: ZonedDateTime?,
-    val føresteInnsendingTidspunkt: ZonedDateTime?,
+    val førsteInnsendingTidspunkt: ZonedDateTime?,
     val sisteInnsendingTidspunkt: ZonedDateTime?
 )
