@@ -27,7 +27,7 @@ class SaksbehandlingstidUtlederTest {
         )
         val saksbehandlingsfrist = SaksbehandlingstidUtleder.utled(behandling,(null))
 
-        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteMottattTidspunkt.plusWeeks(9))
+        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteMottattTidspunkt.plusWeeks(10))
     }
 
     @Test
@@ -57,7 +57,7 @@ class SaksbehandlingstidUtlederTest {
             lagSøknad(tidligsteMottattTidspunkt.plusMonths(20), Kildesystem.SØKNADSDIALOG)
         ))
         val saksbehandlingsfrist = SaksbehandlingstidUtleder.utled(behandling)
-        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteSøknadsTidspunkt.plusWeeks(9))
+        assertThat(saksbehandlingsfrist).isEqualTo(tidligsteSøknadsTidspunkt.plusWeeks(10))
 
     }
 
