@@ -122,7 +122,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(digitalSøknadJP))
@@ -175,7 +175,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknadJP)
         every { dokumentService.hentDokumentOversikt() } returns listOf(
@@ -236,7 +236,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
@@ -294,7 +294,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
@@ -358,7 +358,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(digitalSøknad)
@@ -412,7 +412,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { innsendingService.hentEttersendelse(any()) } returns lagEttersendelse(digitalEttersendelse)
@@ -458,7 +458,7 @@ class SakServiceTest {
                     ZonedDateTime.now(),
                     BehandlingStatus.OPPRETTET
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(punsjsøknad)
         every { dokumentService.hentDokumentOversikt() } returns listOf(lagDokumentDto(punsjsøknad)) //ikke mulig i praksis
@@ -523,7 +523,7 @@ class SakServiceTest {
                         )
                     )
                 )
-            ).stream()
+            )
         }
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknad1JournalpostId)
         every { innsendingService.hentSøknad(any()) } returns lagPsbSøknad(søknad2JournalpostId)

@@ -176,7 +176,7 @@ class SakServiceITest {
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
                 )
-            ).stream()
+            )
         }
 
         val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)
@@ -235,7 +235,7 @@ class SakServiceITest {
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
                 )
-            ).stream()
+            )
         }
 
         val hentSaker = sakService.hentSaker(FagsakYtelseType.PLEIEPENGER_SYKT_BARN)

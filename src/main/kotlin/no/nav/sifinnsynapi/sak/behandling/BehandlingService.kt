@@ -2,7 +2,6 @@ package no.nav.sifinnsynapi.sak.behandling
 
 import no.nav.k9.innsyn.sak.FagsakYtelseType
 import org.springframework.stereotype.Service
-import java.util.stream.Stream
 
 @Service
 class BehandlingService(private val behandlingRepository: BehandlingRepository) {
@@ -14,7 +13,7 @@ class BehandlingService(private val behandlingRepository: BehandlingRepository) 
             return behandlingRepository.findAllBySøkerAktørIdAndSaksnummerAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId, saksnummer, ytelsetype)
     }
 
-    fun hentBehandlinger(søkerAktørId: String, ytelsetype: FagsakYtelseType): Stream<BehandlingDAO> {
+    fun hentBehandlinger(søkerAktørId: String, ytelsetype: FagsakYtelseType): List<BehandlingDAO> {
         return behandlingRepository.findAllBySøkerAktørIdAndYtelsetypeOrderByOppdatertDatoAsc(søkerAktørId, ytelsetype)
     }
 
