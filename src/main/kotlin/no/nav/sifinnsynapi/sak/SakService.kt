@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
-import java.util.function.Supplier
-import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -53,26 +51,23 @@ class SakService(
 
         logger.info("Henter personopplysninger på ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende...")
 
-        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
-            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
-        }
+        val behandlinger = behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
 
-        val pleietrengendeMedBehandlinger: Map<PleietrengendeDTO, List<Behandling>> = behandlingerSupplier.get()
+        val pleietrengendeMedBehandlinger: Map<PleietrengendeDTO, List<Behandling>> = behandlinger
             .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
             .distinct() // Fjerner duplikater
-            .toList()
             .let { pleietrengendeAktørIder ->
                 // Henter pleietrengende basert på aktørIder
                 logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
                 oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
                     .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
             }
-            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
+            .assosierPleietrengendeMedBehandlinger(behandlinger)
 
-        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlinger.isNotEmpty()) {
             loggNyesteBehandling(
                 "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
-                behandlingerSupplier
+                behandlinger
             )
             return emptyList()
         }
@@ -149,26 +144,23 @@ class SakService(
 
         logger.info("Søker har omsorg for ${pleietrengendeSøkerHarOmsorgFor.size} pleietrengende.")
 
-        val behandlingerSupplier = Supplier<Stream<BehandlingDAO>> {
-            behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
-        }
+        val behandlinger = behandlingService.hentBehandlinger(søker.aktørId, fagsakYtelseType)
 
-        val pleietrengendeMedBehandlinger = behandlingerSupplier.get()
+        val pleietrengendeMedBehandlinger = behandlinger
             .map { it.pleietrengendeAktørId } // Henter ut alle pleietrengende aktørIder
             .distinct() // Fjerner duplikater
-            .toList()
             .let { pleietrengendeAktørIder ->
                 // Henter pleietrengende basert på aktørIder
                 logger.info("Henter ${pleietrengendeAktørIder.size} pleietrengende som søker har behandlinger for.")
                 oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeAktørIder))
                     .map { it.somPleietrengendeDTO(pleietrengendeSøkerHarOmsorgFor) }
             }
-            .assosierPleietrengendeMedBehandlinger(behandlingerSupplier)
+            .assosierPleietrengendeMedBehandlinger(behandlinger)
 
-        if (pleietrengendeMedBehandlinger.isEmpty() && behandlingerSupplier.get().count() > 0) {
+        if (pleietrengendeMedBehandlinger.isEmpty() && behandlinger.isNotEmpty()) {
             loggNyesteBehandling(
                 "Pleietrengende med behandlinger var tomt, men søker hadde behandlinger",
-                behandlingerSupplier
+                behandlinger
             )
             return emptyList()
         }
@@ -251,12 +243,11 @@ class SakService(
         )
     }
 
-    private fun loggNyesteBehandling(prefix: String, behandlingerSupplier: Supplier<Stream<BehandlingDAO>>) {
-        val behandlinger = behandlingerSupplier.get()
-        val nyesteSak = behandlinger.somBehandling().findFirst().getOrNull()
+    private fun loggNyesteBehandling(prefix: String, behandlinger: List<BehandlingDAO>) {
+        val nyesteSak = behandlinger.somBehandling().firstOrNull()
         logger.info(
             "$prefix. Søker har {} behandlinger og nyeste saksnummer={} med status={} og venteårsaker={}",
-            behandlinger.count(),
+            behandlinger.size,
             nyesteSak?.fagsak?.saksnummer?.verdi,
             nyesteSak?.status,
             nyesteSak?.aksjonspunkter?.joinToString { it.venteårsak.name }
@@ -482,14 +473,12 @@ class SakService(
         }
 
     private fun List<PleietrengendeDTO>.assosierPleietrengendeMedBehandlinger(
-        behandlingSupplier: Supplier<Stream<BehandlingDAO>>,
+        behandlinger: List<BehandlingDAO>,
     ): Map<PleietrengendeDTO, List<Behandling>> =
         associateWith { pleietrengendeDTO ->
-            val pleietrengendesBehandlinger = behandlingSupplier
-                .get()
+            val pleietrengendesBehandlinger = behandlinger
                 .filter { it.pleietrengendeAktørId == pleietrengendeDTO.aktørId }
                 .somBehandling()
-                .toList()
             logger.info("Fant ${pleietrengendesBehandlinger.size} behandlinger for pleietrengende.")
             pleietrengendesBehandlinger
         }
@@ -528,8 +517,6 @@ class SakService(
     private fun Set<Aksjonspunkt>.somAksjonspunktDTO(): List<AksjonspunktDTO> =
         map { AksjonspunktDTO(venteårsak = it.venteårsak, tidsfrist = it.tidsfrist) }
 
-    private fun Stream<BehandlingDAO>.somBehandling(): Stream<Behandling> =
-        map { JsonUtils.fromString(it.behandling, Behandling::class.java) }
 
     private fun List<BehandlingDAO>.somBehandling(): List<Behandling> =
         map { JsonUtils.fromString(it.behandling, Behandling::class.java) }
