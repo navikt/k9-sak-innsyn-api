@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "4.0.2"
+    id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "8.8.1"
-    kotlin("jvm") version "2.2.10"
-    kotlin("plugin.spring") version "2.2.10"
-    kotlin("plugin.jpa") version "2.2.10"
+    id("com.expediagroup.graphql") version "9.0.0"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10"
+    kotlin("plugin.jpa") version "2.3.10"
 }
 
 group = "no.nav"
@@ -24,21 +24,21 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "8.8.1"
-val springdocVersion = "3.0.1"
+val graphQLKotlinVersion = "9.0.0"
+val springdocVersion = "3.0.2"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.0"
+val tokenSupportVersion = "6.0.3"
 val k9FormatVersion = "12.9.1"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "5.0.1"
-val mockkVersion = "1.14.7"
+val mockkVersion = "1.14.9"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20251224"
-val k9FellesVersion = "5.1.1"
+val k9FellesVersion = "10.3.1"
 val k9FormidlingVersion = "10.1.15"
-val k9SakVersion = "6.0.6"
+val k9SakVersion = "6.0.11"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
@@ -55,7 +55,7 @@ repositories {
     }
 }
 dependencies {
-    implementation("org.yaml:snakeyaml:2.5") {
+    implementation("org.yaml:snakeyaml:2.6") {
         because("https://github.com/navikt/k9-sak-innsyn-api/security/dependabot/2")
     }
 
@@ -152,7 +152,7 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 
-    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.0.9")
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.2.0")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
