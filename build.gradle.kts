@@ -27,8 +27,8 @@ configurations {
 val graphQLKotlinVersion = "9.0.0"
 val springdocVersion = "3.0.2"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.3"
-val k9FormatVersion = "12.9.1"
+val tokenSupportVersion = "6.0.4"
+val k9FormatVersion = "12.9.2"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
@@ -36,9 +36,9 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.9"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20251224"
-val k9FellesVersion = "10.3.1"
+val k9FellesVersion = "10.5.2"
 val k9FormidlingVersion = "10.1.15"
-val k9SakVersion = "6.0.11"
+val k9SakVersion = "6.0.12"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
@@ -152,7 +152,7 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 
-    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.2.0")
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.2.1")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
