@@ -169,7 +169,7 @@ internal class InnsendingServiceTest {
     }
 
     @Test
-    fun `gitt søknader med tilsyn og arbeidstid fra flere søkere på samme barn, forvent kun at tilsynsperioder blir slått sammen`() {
+    fun `gitt søknader med tilsyn og arbeidstid fra flere søkere på samme barn, forvent kun data fra innlogget søker`() {
         val organisasjonsnummer = "987654321"
 
         // gitt at det eksiterer to søknader med arbeidstid og omsorgstilbud fra 2 søkere på samme barn...
@@ -234,7 +234,7 @@ internal class InnsendingServiceTest {
             )
         )
 
-        // forvent at søknadene blir slått sammen.
+        // forvent at kun søknader fra innlogget søker blir returnert.
         val søknad: Søknad? = innsendingService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
         assertNotNull(søknad)
 
@@ -256,14 +256,12 @@ internal class InnsendingServiceTest {
             )
         )
 
-        // Samt, at periodene med omsorgstilbd fra de to søknadene med forskjellige søkere er slått sammen.
+        // Tilsynsordning skal kun inneholde perioder fra innlogget søker, ikke fra andre søkere.
         assertResultet(
             faktiskePerioder = sammenslåttTilsynsordning.perioder,
             forventedePerioder = mapOf(
-                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-09-24")) to
-                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(4)),
-                Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
-                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(2).plusMinutes(30))
+                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
+                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(4))
             )
         )
     }
