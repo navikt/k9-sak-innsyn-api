@@ -40,8 +40,8 @@ class DriftService(
         return pleietrengendeAktørIder
             .mapNotNull { pleietrengendeAktørId ->
                 val alleSøknader =
-                    søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
-                        .map { it: PsbSøknadDAO -> it.kunPleietrengendeDataFraAndreSøkere(søkerAktørId) }
+                    søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId, pleietrengendeAktørId)
+                        .map { it: PsbSøknadDAO -> JsonUtils.fromString(it.søknad, Søknad::class.java) }
                         .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
                         .toList()
 
@@ -58,11 +58,11 @@ class DriftService(
         pleietrengendeAktørId: String,
         ekskluderteSøknadIder: List<String>,
     ): Søknad? {
-        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+        return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream
                     .map { psbSøknadDAO: PsbSøknadDAO ->
-                        psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
+                        JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
                     }
                     .filter { søknad: Søknad -> !ekskluderteSøknadIder.contains(søknad.søknadId.id) }
                     .reduce(Søknadsammenslåer::slåSammen)
@@ -78,13 +78,6 @@ class DriftService(
         )
     }
 
-    private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
-        val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)
-        return when (this.søkerAktørId) {
-            søkerAktørId -> søknad
-            else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
-        }
-    }
 
     fun oppdaterAktørId(gyldig: String, utgått: String): Int {
         var antallRader = 0

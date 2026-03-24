@@ -83,10 +83,10 @@ class InnsendingService(
         søkersAktørId: String,
         pleietrengendeAktørId: String,
     ): Søknad? {
-        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
+        return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
             .use { søknadStream: Stream<PsbSøknadDAO> ->
                 søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
-                    psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
+                    JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
                 }
                     .reduce(Søknadsammenslåer::slåSammen)
                     .orElse(null)
@@ -109,13 +109,6 @@ class InnsendingService(
         )
     }
 
-    private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
-        val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)
-        return when (this.søkerAktørId) {
-            søkerAktørId -> søknad
-            else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
-        }
-    }
 
 
     fun hentArbeidsgiverMeldingFil(søknadId: UUID, organisasjonsnummer: String): ByteArray {

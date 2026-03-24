@@ -9,7 +9,7 @@ import java.util.stream.Stream
 
 @Transactional(TRANSACTION_MANAGER)
 interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
-    fun findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørIder: String): Stream<PsbSøknadDAO>
+    fun findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String, pleietrengendeAktørId: String): Stream<PsbSøknadDAO>
 
     /**
      * Oppdaterer Aktørid for søker (aktørsplitt/merge)

@@ -53,7 +53,7 @@ class SøknadRepositoryTest {
     @Test
     fun `hent alle søknader som stream`() {
         assertNotNull(repository.save(lagSøknadDAO()))
-        assertk.assertThat(repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").count())
+        assertk.assertThat(repository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc("12345678910", "10987654321").count())
             .isEqualTo(1)
     }
 
@@ -69,7 +69,7 @@ class SøknadRepositoryTest {
         IntStream.range(0, 1000).forEach {
             repository.save(lagSøknadDAO(journalpostId = it.toString()))
         }
-        repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").use {
+        repository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc("12345678910", "10987654321").use {
             assertk.assertThat(it.count()).isEqualTo(1000)
         }
     }
