@@ -29,7 +29,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
-import java.util.stream.Stream
 
 
 @ExtendWith(SpringExtension::class)
@@ -110,7 +109,7 @@ internal class InnsendingServiceMedMockRepoTest {
     @Test
     fun `kan slå sammen perioder med tilsyn`() {
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.of(
+            listOf(
                 psbSøknadDAO(
                     journalpostId = "1",
                     søknad = defaultSøknad(
@@ -163,7 +162,7 @@ internal class InnsendingServiceMedMockRepoTest {
     fun `kan slå sammen arbeidstid for en arbeidstaker`() {
         val org = "987654321"
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.of(
+            listOf(
                 psbSøknadDAO(
                     journalpostId = "1",
                     søknad = defaultSøknad(
@@ -222,7 +221,7 @@ internal class InnsendingServiceMedMockRepoTest {
         val org3 = "933333333";
         val org4 = "944444444";
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.of(
+            listOf(
                 psbSøknadDAO(
                     journalpostId = "1",
                     søknad = defaultSøknad(
@@ -335,7 +334,7 @@ internal class InnsendingServiceMedMockRepoTest {
     @Test
     fun `kan slå sammen arbeidstid for frilanser`() {
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.of(
+            listOf(
                 psbSøknadDAO(
                     journalpostId = "1",
                     søknad = defaultSøknad(
@@ -388,7 +387,7 @@ internal class InnsendingServiceMedMockRepoTest {
     @Test
     fun `kan slå sammen arbeidstid for selvstendig næringsdrivende`() {
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.of(
+            listOf(
                 psbSøknadDAO(
                     journalpostId = "1",
                     søknad = defaultSøknad(
@@ -441,7 +440,7 @@ internal class InnsendingServiceMedMockRepoTest {
     @Test
     fun `gitt ingen søknader blir funnet, forvent tom liste`() {
         every { søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(any(), any()) } answers {
-            Stream.empty()
+            emptyList()
         }
 
         assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()

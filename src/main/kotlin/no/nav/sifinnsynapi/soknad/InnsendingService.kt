@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.*
-import java.util.stream.Stream
 
 
 @Service
@@ -84,13 +83,10 @@ class InnsendingService(
         pleietrengendeAktørId: String,
     ): Søknad? {
         return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
-            .use { søknadStream: Stream<PsbSøknadDAO> ->
-                søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
-                    JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
-                }
-                    .reduce(Søknadsammenslåer::slåSammen)
-                    .orElse(null)
+            .map { psbSøknadDAO: PsbSøknadDAO ->
+                JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
             }
+            .reduceOrNull(Søknadsammenslåer::slåSammen)
     }
 
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)

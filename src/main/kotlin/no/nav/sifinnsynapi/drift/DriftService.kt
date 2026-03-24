@@ -12,7 +12,6 @@ import no.nav.sifinnsynapi.soknad.SøknadRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 
 @Service
@@ -43,7 +42,6 @@ class DriftService(
                     søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId, pleietrengendeAktørId)
                         .map { it: PsbSøknadDAO -> JsonUtils.fromString(it.søknad, Søknad::class.java) }
                         .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
-                        .toList()
 
                 slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId, ekskluderteSøknadIder)?.somDebugDTO(
                     pleietrengendeAktørId,
@@ -59,15 +57,11 @@ class DriftService(
         ekskluderteSøknadIder: List<String>,
     ): Søknad? {
         return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
-            .use { søknadStream: Stream<PsbSøknadDAO> ->
-                søknadStream
-                    .map { psbSøknadDAO: PsbSøknadDAO ->
-                        JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
-                    }
-                    .filter { søknad: Søknad -> !ekskluderteSøknadIder.contains(søknad.søknadId.id) }
-                    .reduce(Søknadsammenslåer::slåSammen)
-                    .orElse(null)
+            .map { psbSøknadDAO: PsbSøknadDAO ->
+                JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
             }
+            .filter { søknad: Søknad -> !ekskluderteSøknadIder.contains(søknad.søknadId.id) }
+            .reduceOrNull(Søknadsammenslåer::slåSammen)
     }
 
     private fun Søknad.somDebugDTO(pleietrengendeAktørId: String, alleSøknader: List<Søknad>? = null): DebugDTO {
