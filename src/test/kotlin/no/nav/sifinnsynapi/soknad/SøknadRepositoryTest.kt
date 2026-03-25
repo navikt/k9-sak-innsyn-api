@@ -58,6 +58,14 @@ class SøknadRepositoryTest {
     }
 
     @Test
+    fun `hent alle søknader kun med søkers aktørId`() {
+        repository.save(lagSøknadDAO(journalpostId = "00000000001", pleietrengendeAktørId = "10987654321"))
+        repository.save(lagSøknadDAO(journalpostId = "00000000002", pleietrengendeAktørId = "10987654322"))
+        assertk.assertThat(repository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc("12345678910").size)
+            .isEqualTo(2)
+    }
+
+    @Test
     fun `oppdater aktørid`() {
         assertNotNull(repository.save(lagSøknadDAO()))
         assertk.assertThat(repository.oppdaterAktørIdForSøker("12345678911","12345678910"))

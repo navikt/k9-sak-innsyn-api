@@ -52,28 +52,28 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
-            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
-            return listOf()
+
+        val barnOppslagDTOS: List<BarnOppslagDTO> = if (pleietrengendeSøkerHarOmsorgFor.isNotEmpty()) {
+            oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
+        } else {
+            emptyList()
         }
 
-        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
-        if (barnOppslagDTOS.isEmpty()) {
-            return emptyList()
-        }
         logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
 
-        return pleietrengendeSøkerHarOmsorgFor
-            .mapNotNull { pleietrengendeAktørId ->
+        val søknaderPerPleietrengende = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
+            .groupBy { it.pleietrengendeAktørId }
+
+        return søknaderPerPleietrengende
+            .mapNotNull { (pleietrengendeAktørId, psbSøknader) ->
                 val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
-                if (barn != null) {
-                    slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(barn)
-                } else {
-                    logger.info("PleietrengedeAktørId matchet ikke med aktørId på barn fra oppslag.")
-                    null
-                }
+                    ?: anonymisertBarn(pleietrengendeAktørId)
+
+                psbSøknader
+                    .map { psbSøknadDAO -> JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java) }
+                    .reduceOrNull(Søknadsammenslåer::slåSammen)
+                    ?.somSøknadDTO(barn)
             }
     }
 
@@ -102,6 +102,17 @@ class InnsendingService(
             barn = barn,
             søknad = this,
             søknader = alleSøknader
+        )
+    }
+
+    private fun anonymisertBarn(pleietrengendeAktørId: String): BarnOppslagDTO {
+        return BarnOppslagDTO(
+            aktørId = pleietrengendeAktørId,
+            fødselsdato = LocalDate.EPOCH,
+            fornavn = "",
+            mellomnavn = null,
+            etternavn = "",
+            identitetsnummer = null
         )
     }
 

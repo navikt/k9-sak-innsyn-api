@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional(TRANSACTION_MANAGER)
 interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
+    fun findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String): List<PsbSøknadDAO>
     fun findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String, pleietrengendeAktørId: String): List<PsbSøknadDAO>
 
     /**
