@@ -3,6 +3,9 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.personopplysninger.Barn
+import no.nav.k9.søknad.ytelse.Ytelse
+import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.NotSupportedArbeidsgiverMeldingException
@@ -67,14 +70,36 @@ class InnsendingService(
 
         return søknaderPerPleietrengende
             .mapNotNull { (pleietrengendeAktørId, psbSøknader) ->
-                val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
-                    ?: anonymisertBarn(pleietrengendeAktørId)
-
-                psbSøknader
-                    .map { psbSøknadDAO -> JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java) }
-                    .reduceOrNull(Søknadsammenslåer::slåSammen)
-                    ?.somSøknadDTO(barn)
+                slåSammenOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS)
             }
+    }
+
+    private fun slåSammenOgMapTilDTO(
+        pleietrengendeAktørId: String,
+        psbSøknader: List<PsbSøknadDAO>,
+        barnOppslagDTOS: List<BarnOppslagDTO>,
+    ): SøknadDTO? {
+        val barnOppslag = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
+        val barn = barnOppslag ?: anonymisertBarn(pleietrengendeAktørId)
+
+        val sammenslåttSøknad = slåSammenPsbSøknader(psbSøknader) ?: return null
+
+        if (barnOppslag == null) {
+            anonymiserBarnIYtelse(sammenslåttSøknad)
+        }
+
+        return sammenslåttSøknad.somSøknadDTO(barn)
+    }
+
+    private fun slåSammenPsbSøknader(psbSøknader: List<PsbSøknadDAO>): Søknad? {
+        return psbSøknader
+            .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+            .filter { it.getYtelse<Ytelse>() is PleiepengerSyktBarn }
+            .reduceOrNull(Søknadsammenslåer::slåSammen)
+    }
+
+    private fun anonymiserBarnIYtelse(søknad: Søknad) {
+        søknad.getYtelse<PleiepengerSyktBarn>().medBarn(Barn())
     }
 
     @Transactional(readOnly = true)
