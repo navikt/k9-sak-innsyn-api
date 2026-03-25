@@ -70,11 +70,11 @@ class InnsendingService(
 
         return søknaderPerPleietrengende
             .mapNotNull { (pleietrengendeAktørId, psbSøknader) ->
-                slåSammenOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS)
+                slåSammenSøknaderOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS)
             }
     }
 
-    private fun slåSammenOgMapTilDTO(
+    private fun slåSammenSøknaderOgMapTilDTO(
         pleietrengendeAktørId: String,
         psbSøknader: List<PsbSøknadDAO>,
         barnOppslagDTOS: List<BarnOppslagDTO>,
