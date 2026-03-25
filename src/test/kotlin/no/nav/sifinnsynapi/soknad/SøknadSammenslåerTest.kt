@@ -24,6 +24,7 @@ class SøknadSammenslåerTest {
             .orElse(null)
 
         println("Sammenslått søknad: ${JsonUtils.toString(sammenslåttSøknad)}")
+
     }
 }
 
