@@ -89,8 +89,7 @@ class InnsendingService(
         // Hvis pleietrengende finnes i systemoppslag men søker ikke har omsorg, anonymiser
         val søkerHarOmsorg = pleietrengendeSøkerHarOmsorgFor.contains(pleietrengendeAktørId)
         if (!søkerHarOmsorg) {
-            anonymiserBarnIYtelse(sammenslåttSøknad)
-            return sammenslåttSøknad.somSøknadDTO(anonymisertBarn(pleietrengendeAktørId))
+            return sammenslåttSøknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId)
         }
 
         return sammenslåttSøknad.somSøknadDTO(barnOppslag)
@@ -103,10 +102,6 @@ class InnsendingService(
             .reduceOrNull(Søknadsammenslåer::slåSammen)
     }
 
-    private fun anonymiserBarnIYtelse(søknad: Søknad) {
-        søknad.getYtelse<PleiepengerSyktBarn>().medBarn(Barn())
-    }
-
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)
 
     @Transactional
@@ -115,12 +110,23 @@ class InnsendingService(
         return !søknadRepository.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>? = null): SøknadDTO {
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO): SøknadDTO {
         return SøknadDTO(
             barn = barn,
             søknad = this,
-            søknader = alleSøknader
         )
+    }
+
+    private fun Søknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId: String): SøknadDTO {
+        anonymiserBarnIYtelse(this)
+        return SøknadDTO(
+            barn = anonymisertBarn(pleietrengendeAktørId),
+            søknad = this,
+        )
+    }
+
+    private fun anonymiserBarnIYtelse(søknad: Søknad) {
+        søknad.getYtelse<PleiepengerSyktBarn>().medBarn(Barn())
     }
 
     private fun anonymisertBarn(pleietrengendeAktørId: String): BarnOppslagDTO {
@@ -128,9 +134,7 @@ class InnsendingService(
             aktørId = pleietrengendeAktørId,
             fødselsdato = LocalDate.EPOCH,
             fornavn = "",
-            mellomnavn = null,
             etternavn = "",
-            identitetsnummer = null
         )
     }
 
