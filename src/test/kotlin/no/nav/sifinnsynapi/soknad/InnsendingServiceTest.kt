@@ -237,7 +237,11 @@ internal class InnsendingServiceTest {
         )
 
         // forvent at kun søknader fra innlogget søker blir returnert.
-        val søknad: Søknad? = innsendingService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
+        val søknader = innsendingService.slåSammenSøknadsopplysningerPerBarn()
+        assertThat(søknader).isNotEmpty
+        assertThat(søknader).size().isEqualTo(1)
+
+        val søknad: Søknad? = søknader.firstOrNull()?.søknad
         assertNotNull(søknad)
 
         val ytelse = søknad!!.getYtelse<PleiepengerSyktBarn>()

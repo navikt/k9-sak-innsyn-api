@@ -107,18 +107,6 @@ class InnsendingService(
         søknad.getYtelse<PleiepengerSyktBarn>().medBarn(Barn())
     }
 
-    @Transactional(readOnly = true)
-    fun slåSammenSøknaderFor(
-        søkersAktørId: String,
-        pleietrengendeAktørId: String,
-    ): Søknad? {
-        return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
-            .map { psbSøknadDAO: PsbSøknadDAO ->
-                JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
-            }
-            .reduceOrNull(Søknadsammenslåer::slåSammen)
-    }
-
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)
 
     @Transactional
