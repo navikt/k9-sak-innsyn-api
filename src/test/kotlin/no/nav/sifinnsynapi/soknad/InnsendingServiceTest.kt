@@ -18,7 +18,9 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.oppslag.*
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -69,8 +71,28 @@ internal class InnsendingServiceTest {
         private val barn2AktørId = "33333333333"
     }
 
-    @BeforeAll
-    fun initial() {
+    @BeforeEach
+    fun setUp() {
+        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
+        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
+            BarnOppslagDTO(
+                aktørId = barn1AktørId,
+                fødselsdato = LocalDate.parse("2005-02-12"),
+                fornavn = "Ole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "12020567099"
+            ),
+            BarnOppslagDTO(
+                aktørId = barn2AktørId,
+                fødselsdato = LocalDate.parse("2005-10-30"),
+                fornavn = "Dole",
+                mellomnavn = null,
+                etternavn = "Doffen",
+                identitetsnummer = "30100577255"
+            )
+        )
+
         søknadRepository.saveAll(
             listOf(
                 psbSøknadDAO(
@@ -111,29 +133,6 @@ internal class InnsendingServiceTest {
                 )
             )
         )
-    }
-
-    @BeforeEach
-    fun setUp() {
-        every { oppslagsService.hentSøker() } returns SøkerOppslagRespons(aktørId = hovedSøkerAktørId)
-        every { oppslagsService.systemoppslagBarn(any()) } returns listOf(
-            BarnOppslagDTO(
-                aktørId = barn1AktørId,
-                fødselsdato = LocalDate.parse("2005-02-12"),
-                fornavn = "Ole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "12020567099"
-            ),
-            BarnOppslagDTO(
-                aktørId = barn2AktørId,
-                fødselsdato = LocalDate.parse("2005-10-30"),
-                fornavn = "Dole",
-                mellomnavn = null,
-                etternavn = "Doffen",
-                identitetsnummer = "30100577255"
-            )
-        )
 
         omsorgRepository.saveAll(
             listOf(
@@ -159,6 +158,7 @@ internal class InnsendingServiceTest {
 
     @AfterEach
     fun tearDown() {
+        søknadRepository.deleteAll()
         omsorgRepository.deleteAll()
     }
 
