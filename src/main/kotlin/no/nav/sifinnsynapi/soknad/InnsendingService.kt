@@ -56,21 +56,21 @@ class InnsendingService(
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
         val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-
-        val barnOppslagDTOS: List<BarnOppslagDTO> = if (pleietrengendeSøkerHarOmsorgFor.isNotEmpty()) {
-            oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
-        } else {
-            emptyList()
-        }
-
         logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
 
         val søknaderPerPleietrengende = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
             .groupBy { it.pleietrengendeAktørId }
 
+        val allePleietrengendeAktørIder = søknaderPerPleietrengende.keys.toList()
+        val barnOppslagDTOS: List<BarnOppslagDTO> = if (allePleietrengendeAktørIder.isNotEmpty()) {
+            oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = allePleietrengendeAktørIder))
+        } else {
+            emptyList()
+        }
+
         return søknaderPerPleietrengende
             .mapNotNull { (pleietrengendeAktørId, psbSøknader) ->
-                slåSammenSøknaderOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS)
+                slåSammenSøknaderOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS, pleietrengendeSøkerHarOmsorgFor)
             }
     }
 
@@ -78,17 +78,22 @@ class InnsendingService(
         pleietrengendeAktørId: String,
         psbSøknader: List<PsbSøknadDAO>,
         barnOppslagDTOS: List<BarnOppslagDTO>,
+        pleietrengendeSøkerHarOmsorgFor: List<String>,
     ): SøknadDTO? {
+        // Hvis pleietrengende ikke finnes i systemoppslag, filtrer ut søknaden
         val barnOppslag = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
-        val barn = barnOppslag ?: anonymisertBarn(pleietrengendeAktørId)
+            ?: return null
 
         val sammenslåttSøknad = slåSammenPsbSøknader(psbSøknader) ?: return null
 
-        if (barnOppslag == null) {
+        // Hvis pleietrengende finnes i systemoppslag men søker ikke har omsorg, anonymiser
+        val søkerHarOmsorg = pleietrengendeSøkerHarOmsorgFor.contains(pleietrengendeAktørId)
+        if (!søkerHarOmsorg) {
             anonymiserBarnIYtelse(sammenslåttSøknad)
+            return sammenslåttSøknad.somSøknadDTO(anonymisertBarn(pleietrengendeAktørId))
         }
 
-        return sammenslåttSøknad.somSøknadDTO(barn)
+        return sammenslåttSøknad.somSøknadDTO(barnOppslag)
     }
 
     private fun slåSammenPsbSøknader(psbSøknader: List<PsbSøknadDAO>): Søknad? {

@@ -18,7 +18,9 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadNotFoundException
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.oppslag.*
+import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.OppslagsService
+import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -268,13 +270,12 @@ internal class InnsendingServiceTest {
 
     @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
-        every { oppslagsService.hentBarn() } answers { listOf() }
+        every { oppslagsService.systemoppslagBarn(any()) } returns emptyList()
         assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     @Test
-    //@Disabled("Har deaktivert sjekk på omsorg i SøknadService.kt:28")
-    fun `gitt at søker ikke har omsorg for barna, forvent tom liste`() {
+    fun `gitt at søker ikke har omsorg for barna, forvent anonymisert resultat`() {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
@@ -291,8 +292,25 @@ internal class InnsendingServiceTest {
             )!!.harOmsorgen
         )
 
-        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+        val resultat = innsendingService.slåSammenSøknadsopplysningerPerBarn()
+        assertThat(resultat).isNotEmpty
+        assertThat(resultat).size().isEqualTo(1)
 
+        val søknadDTO = resultat.first()
+
+        // Forvent at BarnOppslagDTO er anonymisert
+        assertThat(søknadDTO.barn.fornavn).isEmpty()
+        assertThat(søknadDTO.barn.etternavn).isEmpty()
+        assertThat(søknadDTO.barn.mellomnavn).isNull()
+        assertThat(søknadDTO.barn.identitetsnummer).isNull()
+        assertThat(søknadDTO.barn.fødselsdato).isEqualTo(LocalDate.EPOCH)
+        assertThat(søknadDTO.barn.aktørId).isEqualTo(barn1AktørId)
+
+        // Forvent at Barn i ytelsen også er anonymisert
+        assertNotNull(søknadDTO.søknad)
+        val ytelse = søknadDTO.søknad.getYtelse<PleiepengerSyktBarn>()
+        assertThat(ytelse.barn.personIdent).isNull()
+        assertThat(ytelse.barn.fødselsdato).isNull()
     }
 
     @Test
