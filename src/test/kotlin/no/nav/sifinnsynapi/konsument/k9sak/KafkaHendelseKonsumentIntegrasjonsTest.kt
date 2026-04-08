@@ -21,6 +21,7 @@ import no.nav.sifinnsynapi.config.kafka.Topics.K9_SAK_TOPIC
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.omsorg.OmsorgStatus
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
@@ -311,9 +312,8 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
         k9SakProducer.leggPåTopic(omsorgHendelseUtenOmsorg, K9_SAK_TOPIC)
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            val faktiskOmsorg = omsorgService.harOmsorgen(hovedSøkerAktørId, barn1AktørId)
-            assertThat(faktiskOmsorg).isNotNull()
-            assertFalse(faktiskOmsorg)
+            val faktiskOmsorgStatus = omsorgService.hentOmsorgStatus(hovedSøkerAktørId, barn1AktørId)
+            assertEquals(OmsorgStatus.HAR_IKKE_OMSORGEN, faktiskOmsorgStatus)
         }
     }
 
