@@ -170,6 +170,8 @@ internal class InnsendingServiceTest {
 
     @Test
     fun `gitt søknader med tilsyn og arbeidstid fra flere søkere på samme barn, forvent kun data fra innlogget søker`() {
+        omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
+
         val organisasjonsnummer = "987654321"
 
         // gitt at det eksiterer to søknader med arbeidstid og omsorgstilbud fra 2 søkere på samme barn...
@@ -277,7 +279,7 @@ internal class InnsendingServiceTest {
     }
 
     @Test
-    fun `gitt at søker ikke har omsorg for barna, forvent anonymisert resultat`() {
+    fun `gitt at søker ikke har omsorg for barna, forvent tom liste`() {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
 
@@ -292,6 +294,26 @@ internal class InnsendingServiceTest {
                 hovedSøkerAktørId,
                 barn2AktørId
             )!!.harOmsorgen
+        )
+
+        assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+    }
+
+    @Test
+    fun `gitt at søker ikke har fått evaluert omsorge for ennå, forvent anonymisert resultat`() {
+        omsorgRepository.deleteAll()
+
+        assertNull(
+            omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(
+                hovedSøkerAktørId,
+                barn1AktørId
+            )?.harOmsorgen
+        )
+        assertNull(
+            omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(
+                hovedSøkerAktørId,
+                barn2AktørId
+            )?.harOmsorgen
         )
 
         val resultat = innsendingService.slåSammenSøknadsopplysningerPerBarn()

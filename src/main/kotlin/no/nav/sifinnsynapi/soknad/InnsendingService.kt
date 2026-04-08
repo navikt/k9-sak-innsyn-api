@@ -13,6 +13,7 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.finnOrganisasjon
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.tilArbeidstakernavn
 import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.omsorg.OmsorgStatus
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
@@ -55,13 +56,14 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
-
         val søknaderPerPleietrengende = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
             .groupBy { it.pleietrengendeAktørId }
 
         val allePleietrengendeAktørIder = søknaderPerPleietrengende.keys.toList()
+
+        val pleietrengendeSøkerHarOmsorgFor: Map<String, OmsorgStatus> = allePleietrengendeAktørIder
+            .associateWith { omsorgService.hentOmsorgStatus(søkersAktørId, it) }
+
         val barnOppslagDTOS: List<BarnOppslagDTO> = if (allePleietrengendeAktørIder.isNotEmpty()) {
             oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = allePleietrengendeAktørIder))
         } else {
@@ -78,17 +80,21 @@ class InnsendingService(
         pleietrengendeAktørId: String,
         psbSøknader: List<PsbSøknadDAO>,
         barnOppslagDTOS: List<BarnOppslagDTO>,
-        pleietrengendeSøkerHarOmsorgFor: List<String>,
+        pleietrengendeSøkerHarOmsorgFor: Map<String, OmsorgStatus>,
     ): SøknadDTO? {
         // Hvis pleietrengende ikke finnes i systemoppslag, filtrer ut søknaden
         val barnOppslag = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
             ?: return null
 
+        // Hvis søker ikke har omsorgen for, filtrer ut søknaden
+        if (pleietrengendeSøkerHarOmsorgFor.getValue(pleietrengendeAktørId) == OmsorgStatus.HAR_IKKE_OMSORGEN) {
+            return null
+        }
+
         val sammenslåttSøknad = slåSammenPsbSøknader(psbSøknader) ?: return null
 
-        // Hvis pleietrengende finnes i systemoppslag men søker ikke har omsorg, anonymiser
-        val søkerHarOmsorg = pleietrengendeSøkerHarOmsorgFor.contains(pleietrengendeAktørId)
-        if (!søkerHarOmsorg) {
+        // Hvis omsorgen ikke har blitt evaluert ennå, annonymiser søknaden
+        if (pleietrengendeSøkerHarOmsorgFor.getValue(pleietrengendeAktørId) == OmsorgStatus.HAR_IKKE_EVALUERT_OMSORGEN) {
             return sammenslåttSøknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId)
         }
 
