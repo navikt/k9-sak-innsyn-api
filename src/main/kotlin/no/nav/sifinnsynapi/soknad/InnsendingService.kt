@@ -56,7 +56,7 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
-        val søknaderPerPleietrengende = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
+        val søknaderPerPleietrengende: Map<String, List<PsbSøknadDAO>> = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
             .groupBy { it.pleietrengendeAktørId }
 
         val allePleietrengendeAktørIder = søknaderPerPleietrengende.keys.toList()
@@ -93,7 +93,7 @@ class InnsendingService(
 
         val sammenslåttSøknad = slåSammenPsbSøknader(psbSøknader) ?: return null
 
-        // Hvis omsorgen ikke har blitt evaluert ennå, annonymiser søknaden
+        // Hvis omsorgen ikke har blitt evaluert ennå, anonymiser søknaden
         if (pleietrengendeSøkerHarOmsorgFor.getValue(pleietrengendeAktørId) == OmsorgStatus.HAR_IKKE_EVALUERT_OMSORGEN) {
             return sammenslåttSøknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId)
         }

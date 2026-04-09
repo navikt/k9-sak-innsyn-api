@@ -300,7 +300,7 @@ internal class InnsendingServiceTest {
     }
 
     @Test
-    fun `gitt at søker ikke har fått evaluert omsorge for ennå, forvent anonymisert resultat`() {
+    fun `gitt at søker ikke har fått evaluert omsorg for ennå, forvent anonymisert resultat`() {
         omsorgRepository.deleteAll()
 
         assertNull(
