@@ -106,7 +106,7 @@ Push/merge til master branch vil teste, bygge og deploye til produksjonsmiljø o
 
 * docker
 * docker-compose
-* Java 11
+* Java 25
 * Kubectl
 
 ## Bygge Prosjekt
