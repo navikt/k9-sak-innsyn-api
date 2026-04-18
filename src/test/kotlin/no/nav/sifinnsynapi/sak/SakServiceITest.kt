@@ -81,7 +81,7 @@ class SakServiceITest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             ),
             BarnOppslagDTO(
                 aktørId = barn2AktørId,
@@ -89,7 +89,7 @@ class SakServiceITest {
                 fornavn = "Dole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "30100577255"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -137,7 +137,7 @@ class SakServiceITest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -196,7 +196,7 @@ class SakServiceITest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 

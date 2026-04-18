@@ -125,7 +125,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             ),
             BarnOppslagDTO(
                 aktørId = barn2AktørId,
@@ -133,7 +133,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                 fornavn = "Dole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "30100577255"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -389,7 +389,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                     "ettersendelse" : {
                         "mottattDato" : "2024-05-03T09:28:21.201Z",
                         "søker" : {
-                            "norskIdentitetsnummer" : "14026223262"
+                            "norskIdentitetsnummer" : "01017000299"
                         },
                         "søknadId" : "67bcff24-82ec-47d9-a39b-2dae93c9bf64",
                         "ytelse" : "PLEIEPENGER_SYKT_BARN"
@@ -401,7 +401,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                       "mottattDato" : "2024-05-03T09:28:21.201Z",
                       "språk" : "nb",
                       "søker" : {
-                        "norskIdentitetsnummer" : "14026223262"
+                        "norskIdentitetsnummer" : "01017000299"
                       },
                       "søknadId" : "67bcff24-82ec-47d9-a39b-2dae93c9bf64",
                       "versjon" : "1.0.0",
@@ -427,7 +427,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
                         },
                         "barn" : {
                           "fødselsdato" : null,
-                          "norskIdentitetsnummer" : "21121879023"
+                          "norskIdentitetsnummer" : "01017000299"
                         },
                         "beredskap" : {
                           "perioder" : { },

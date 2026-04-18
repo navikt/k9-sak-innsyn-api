@@ -74,7 +74,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             ),
             BarnOppslagDTO(
                 aktørId = barn2AktørId,
@@ -82,7 +82,7 @@ class SakServiceTest {
                 fornavn = "Dole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "30100577255"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -103,7 +103,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -149,7 +149,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -204,7 +204,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -268,7 +268,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -325,7 +325,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -386,7 +386,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -439,7 +439,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -484,7 +484,7 @@ class SakServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             )
         )
 

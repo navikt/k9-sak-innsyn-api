@@ -175,7 +175,7 @@ class SwaggerConfiguration(
                                     "ytelse": {
                                       "type": "PLEIEPENGER_SYKT_BARN",
                                       "barn": {
-                                        "norskIdentitetsnummer": "21121879023",
+                                        "norskIdentitetsnummer": "01017000299",
                                         "fødselsdato": null
                                       },
                                       "søknadsperiode": [
@@ -267,7 +267,7 @@ class SwaggerConfiguration(
                                     },
                                     "ytelse": "PLEIEPENGER_SYKT_BARN",
                                     "pleietrengende": {
-                                      "norskIdentitetsnummer": "21121879023"
+                                      "norskIdentitetsnummer": "01017000299"
                                     },
                                     "type": "LEGEERKLÆRING"
                                   },
@@ -387,7 +387,7 @@ class SwaggerConfiguration(
                     "ytelse": {
                       "type": "PLEIEPENGER_SYKT_BARN",
                       "barn": {
-                        "norskIdentitetsnummer": "21121879023",
+                        "norskIdentitetsnummer": "01017000299",
                         "fødselsdato": null
                       },
                       "søknadsperiode": [
@@ -479,7 +479,7 @@ class SwaggerConfiguration(
                     },
                     "ytelse": "PLEIEPENGER_SYKT_BARN",
                     "pleietrengende": {
-                      "norskIdentitetsnummer": "21121879023"
+                      "norskIdentitetsnummer": "01017000299"
                     },
                     "type": "LEGEERKLÆRING"
                   },
