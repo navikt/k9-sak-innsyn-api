@@ -177,7 +177,7 @@ class SakControllerTest {
                                     k9FormatInnsendelse = defaultEttersendelse(
                                         søknadId = søknadId,
                                         søkersIdentitetsnummer = "1234567890",
-                                        pleietrengendeIdentitetsnummer = "21121879023",
+                                        pleietrengendeIdentitetsnummer = "01017000299",
                                         mottattDato = mottattDato
                                     ),
                                     dokumenter = listOf(
@@ -287,7 +287,7 @@ class SakControllerTest {
                                     "ytelse": {
                                       "type": "PLEIEPENGER_SYKT_BARN",
                                       "barn": {
-                                        "norskIdentitetsnummer": "21121879023",
+                                        "norskIdentitetsnummer": "01017000299",
                                         "fødselsdato": null
                                       },
                                       "erSammenMedBarnet": null,
@@ -381,7 +381,7 @@ class SakControllerTest {
                                     },
                                     "ytelse": "PLEIEPENGER_SYKT_BARN",
                                     "pleietrengende": {
-                                      "norskIdentitetsnummer": "21121879023"
+                                      "norskIdentitetsnummer": "01017000299"
                                     },
                                     "type": "LEGEERKLÆRING"
                                   },

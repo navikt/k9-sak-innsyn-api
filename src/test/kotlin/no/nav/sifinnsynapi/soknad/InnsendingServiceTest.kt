@@ -81,7 +81,7 @@ internal class InnsendingServiceTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "12020567099"
+                identitetsnummer = "01017000299"
             ),
             BarnOppslagDTO(
                 aktørId = barn2AktørId,
@@ -89,7 +89,7 @@ internal class InnsendingServiceTest {
                 fornavn = "Dole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "30100577255"
+                identitetsnummer = "01017000299"
             )
         )
 
@@ -365,7 +365,7 @@ internal class InnsendingServiceTest {
                       "mellomnavn": "Mellomnavn",
                       "etternavn": "Nordmann",
                       "aktørId": "123456",
-                      "fødselsnummer": "02119970078",
+                      "fødselsnummer": "01017000299",
                       "fornavn": "Ola"
                     },
                     "arbeidsgivere": {
@@ -417,7 +417,7 @@ internal class InnsendingServiceTest {
                       "mellomnavn": "Mellomnavn",
                       "etternavn": "Nordmann",
                       "aktørId": "123456",
-                      "fødselsnummer": "02119970078",
+                      "fødselsnummer": "01017000299",
                       "fornavn": "Ola"
                     },
                     "arbeidsgivere": [

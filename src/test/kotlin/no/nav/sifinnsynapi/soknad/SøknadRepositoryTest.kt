@@ -85,7 +85,7 @@ class SøknadRepositoryTest {
     private fun lagSøknadDAO(
         søknadId: UUID = UUID.randomUUID(),
         journalpostId: String = "00000000001",
-        søkerPersonIdentifikator: String = "14026223262",
+        søkerPersonIdentifikator: String = "01017000299",
         søkerAktørId: String = "12345678910",
         pleietrengendeAktørId: String = "10987654321",
     ): PsbSøknadDAO = PsbSøknadDAO(

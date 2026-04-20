@@ -102,7 +102,7 @@ class SøknadControllerTest {
                     mellomnavn = null,
                     etternavn = "Nordmann",
                     aktørId = "123",
-                    identitetsnummer = "12020567099",
+                    identitetsnummer = "01017000299",
                     adressebeskyttelse = listOf(
                         Adressebeskyttelse(gradering = AdressebeskyttelseGradering.STRENGT_FORTROLIG)
                     )
