@@ -3,6 +3,9 @@ package no.nav.sifinnsynapi.soknad
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.k9.søknad.felles.personopplysninger.Barn
+import no.nav.k9.søknad.ytelse.Ytelse
+import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacyInnsynApiService
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.LegacySøknadstype
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.NotSupportedArbeidsgiverMeldingException
@@ -10,6 +13,7 @@ import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.finnOrganisasjon
 import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils.tilArbeidstakernavn
 import no.nav.sifinnsynapi.omsorg.OmsorgService
+import no.nav.sifinnsynapi.omsorg.OmsorgStatus
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.HentBarnForespørsel
 import no.nav.sifinnsynapi.oppslag.OppslagsService
@@ -24,7 +28,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.*
-import java.util.stream.Stream
 
 
 @Service
@@ -53,44 +56,56 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
+        val søknaderPerPleietrengende: Map<String, List<PsbSøknadDAO>> = søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
+            .groupBy { it.pleietrengendeAktørId }
 
-        val pleietrengendeSøkerHarOmsorgFor = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkersAktørId)
-        if (pleietrengendeSøkerHarOmsorgFor.isEmpty()) {
-            logger.info("Fant ingen pleietrengende søker har omsorgen for.")
-            return listOf()
+        val allePleietrengendeAktørIder = søknaderPerPleietrengende.keys.toList()
+
+        val pleietrengendeSøkerHarOmsorgFor: Map<String, OmsorgStatus> = allePleietrengendeAktørIder
+            .associateWith { omsorgService.hentOmsorgStatus(søkersAktørId, it) }
+
+        val barnOppslagDTOS: List<BarnOppslagDTO> = if (allePleietrengendeAktørIder.isNotEmpty()) {
+            oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = allePleietrengendeAktørIder))
+        } else {
+            emptyList()
         }
 
-        val barnOppslagDTOS: List<BarnOppslagDTO> = oppslagsService.systemoppslagBarn(HentBarnForespørsel(identer = pleietrengendeSøkerHarOmsorgFor))
-        if (barnOppslagDTOS.isEmpty()) {
-            return emptyList()
-        }
-        logger.info("Fant {} pleietrengende søker har omsorgen for.", pleietrengendeSøkerHarOmsorgFor.size)
-
-        return pleietrengendeSøkerHarOmsorgFor
-            .mapNotNull { pleietrengendeAktørId ->
-                val barn = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
-                if (barn != null) {
-                    slåSammenSøknaderFor(søkersAktørId, pleietrengendeAktørId)?.somSøknadDTO(barn)
-                } else {
-                    logger.info("PleietrengedeAktørId matchet ikke med aktørId på barn fra oppslag.")
-                    null
-                }
+        return søknaderPerPleietrengende
+            .mapNotNull { (pleietrengendeAktørId, psbSøknader) ->
+                slåSammenSøknaderOgMapTilDTO(pleietrengendeAktørId, psbSøknader, barnOppslagDTOS, pleietrengendeSøkerHarOmsorgFor)
             }
     }
 
-    @Transactional(readOnly = true)
-    fun slåSammenSøknaderFor(
-        søkersAktørId: String,
+    private fun slåSammenSøknaderOgMapTilDTO(
         pleietrengendeAktørId: String,
-    ): Søknad? {
-        return søknadRepository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørId)
-            .use { søknadStream: Stream<PsbSøknadDAO> ->
-                søknadStream.map { psbSøknadDAO: PsbSøknadDAO ->
-                    psbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkersAktørId)
-                }
-                    .reduce(Søknadsammenslåer::slåSammen)
-                    .orElse(null)
-            }
+        psbSøknader: List<PsbSøknadDAO>,
+        barnOppslagDTOS: List<BarnOppslagDTO>,
+        pleietrengendeSøkerHarOmsorgFor: Map<String, OmsorgStatus>,
+    ): SøknadDTO? {
+        // Hvis pleietrengende ikke finnes i systemoppslag, filtrer ut søknaden
+        val barnOppslag = barnOppslagDTOS.firstOrNull { it.aktørId == pleietrengendeAktørId }
+            ?: return null
+
+        // Hvis søker ikke har omsorgen for, filtrer ut søknaden
+        if (pleietrengendeSøkerHarOmsorgFor.getValue(pleietrengendeAktørId) == OmsorgStatus.HAR_IKKE_OMSORGEN) {
+            return null
+        }
+
+        val sammenslåttSøknad = slåSammenPsbSøknader(psbSøknader) ?: return null
+
+        // Hvis omsorgen ikke har blitt evaluert ennå, anonymiser søknaden
+        if (pleietrengendeSøkerHarOmsorgFor.getValue(pleietrengendeAktørId) == OmsorgStatus.HAR_IKKE_EVALUERT_OMSORGEN) {
+            return sammenslåttSøknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId)
+        }
+
+        return sammenslåttSøknad.somSøknadDTO(barnOppslag)
+    }
+
+    private fun slåSammenPsbSøknader(psbSøknader: List<PsbSøknadDAO>): Søknad? {
+        return psbSøknader
+            .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+            .filter { it.getYtelse<Ytelse>() is PleiepengerSyktBarn }
+            .reduceOrNull(Søknadsammenslåer::slåSammen)
     }
 
     fun lagreSøknad(søknad: PsbSøknadDAO): PsbSøknadDAO = søknadRepository.save(søknad)
@@ -101,21 +116,34 @@ class InnsendingService(
         return !søknadRepository.existsById(journalpostId)
     }
 
-    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO, alleSøknader: List<Søknad>? = null): SøknadDTO {
+    private fun Søknad.somSøknadDTO(barn: BarnOppslagDTO): SøknadDTO {
         return SøknadDTO(
             barn = barn,
             søknad = this,
-            søknader = alleSøknader
         )
     }
 
-    private fun PsbSøknadDAO.kunPleietrengendeDataFraAndreSøkere(søkerAktørId: String): Søknad {
-        val søknad = JsonUtils.fromString(this.søknad, Søknad::class.java)
-        return when (this.søkerAktørId) {
-            søkerAktørId -> søknad
-            else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
-        }
+    private fun Søknad.somSøknadDTOMedAnonymisertBarn(pleietrengendeAktørId: String): SøknadDTO {
+        anonymiserBarnIYtelse(this)
+        return SøknadDTO(
+            barn = anonymisertBarn(pleietrengendeAktørId),
+            søknad = this,
+        )
     }
+
+    private fun anonymiserBarnIYtelse(søknad: Søknad) {
+        søknad.getYtelse<PleiepengerSyktBarn>().medBarn(Barn())
+    }
+
+    private fun anonymisertBarn(pleietrengendeAktørId: String): BarnOppslagDTO {
+        return BarnOppslagDTO(
+            aktørId = pleietrengendeAktørId,
+            fødselsdato = LocalDate.EPOCH,
+            fornavn = "",
+            etternavn = "",
+        )
+    }
+
 
 
     fun hentArbeidsgiverMeldingFil(søknadId: UUID, organisasjonsnummer: String): ByteArray {

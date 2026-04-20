@@ -1,15 +1,21 @@
 package no.nav.sifinnsynapi.omsorg
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class OmsorgService(
     private val omsorgRepository: OmsorgRepository
 ) {
 
-    fun harOmsorgen(søkerAktørId: String, pleietrengendeAktørId: String): Boolean =
-        hentOmsorg(søkerAktørId, pleietrengendeAktørId)?.harOmsorgen ?: false
+    fun hentOmsorgStatus(søkerAktørId: String, pleietrengendeAktørId: String): OmsorgStatus {
+        val omsorg = hentOmsorg(søkerAktørId, pleietrengendeAktørId)
+
+        return when (omsorg?.harOmsorgen) {
+            true -> OmsorgStatus.HAR_OMSORGEN
+            false -> OmsorgStatus.HAR_IKKE_OMSORGEN
+            null -> OmsorgStatus.HAR_IKKE_EVALUERT_OMSORGEN
+        }
+    }
 
     fun omsorgEksisterer(søkerAktørId: String, pleietrengendeAktørId: String): Boolean =
         omsorgRepository.existsBySøkerAktørIdAndPleietrengendeAktørId(søkerAktørId, pleietrengendeAktørId)

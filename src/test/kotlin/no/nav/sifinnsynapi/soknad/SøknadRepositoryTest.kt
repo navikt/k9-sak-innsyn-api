@@ -51,10 +51,18 @@ class SøknadRepositoryTest {
     }
 
     @Test
-    fun `hent alle søknader som stream`() {
+    fun `hent alle søknader`() {
         assertNotNull(repository.save(lagSøknadDAO()))
-        assertk.assertThat(repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").count())
+        assertk.assertThat(repository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc("12345678910", "10987654321").size)
             .isEqualTo(1)
+    }
+
+    @Test
+    fun `hent alle søknader kun med søkers aktørId`() {
+        repository.save(lagSøknadDAO(journalpostId = "00000000001", pleietrengendeAktørId = "10987654321"))
+        repository.save(lagSøknadDAO(journalpostId = "00000000002", pleietrengendeAktørId = "10987654322"))
+        assertk.assertThat(repository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc("12345678910").size)
+            .isEqualTo(2)
     }
 
     @Test
@@ -65,13 +73,13 @@ class SøknadRepositoryTest {
     }
 
     @Test
-    fun `hent 1000 søknader som en strøm`() {
+    fun `hent 1000 søknader`() {
         IntStream.range(0, 1000).forEach {
             repository.save(lagSøknadDAO(journalpostId = it.toString()))
         }
-        repository.findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc("10987654321").use {
-            assertk.assertThat(it.count()).isEqualTo(1000)
-        }
+        assertk.assertThat(
+            repository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc("12345678910", "10987654321").size
+        ).isEqualTo(1000)
     }
 
     private fun lagSøknadDAO(

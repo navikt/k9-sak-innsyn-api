@@ -1,17 +1,18 @@
 package no.nav.sifinnsynapi.omsorg
 
-import assertk.assertThat
-import assertk.assertions.isNotNull
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.time.Duration
 import java.time.ZoneOffset.UTC
 import java.time.ZonedDateTime
 
@@ -40,7 +41,7 @@ internal class OmsorgServiceTest {
     }
 
     @Test
-    internal fun `gitt at søker har omsorg for pleiepetrengende, forvent true`() {
+    internal fun `gitt at søker har omsorg for pleiepetrengende, forvent HAR_OMSORGEN`() {
         val søkerAktørId = "11111111111"
         val pleietrengendeAktørId = "22222222222"
         omsorgRepository.save(
@@ -54,17 +55,16 @@ internal class OmsorgServiceTest {
             )
         )
 
-        val harOmsorgen = omsorgService.harOmsorgen(
+        val omsorgStatus = omsorgService.hentOmsorgStatus(
             søkerAktørId = søkerAktørId,
             pleietrengendeAktørId = pleietrengendeAktørId
         )
 
-        assertThat(harOmsorgen).isNotNull()
-        assertTrue { harOmsorgen }
+        assertEquals(OmsorgStatus.HAR_OMSORGEN, omsorgStatus)
     }
 
     @Test
-    internal fun `gitt at søker ikke har omsorg for pleiepetrengende, forvent false`() {
+    internal fun `gitt at søker ikke har omsorg for pleiepetrengende, forvent HAR_IKKE_OMSORGEN`() {
         val søkerAktørId = "11111111111"
         val pleietrengendeAktørId = "22222222222"
         omsorgRepository.save(
@@ -78,16 +78,29 @@ internal class OmsorgServiceTest {
             )
         )
 
-        val harOmsorgen = omsorgService.harOmsorgen(
+        val omsorgStatus = omsorgService.hentOmsorgStatus(
             søkerAktørId = søkerAktørId,
             pleietrengendeAktørId = pleietrengendeAktørId
         )
-        assertThat(harOmsorgen).isNotNull()
-        assertFalse { harOmsorgen }
+
+        assertEquals(OmsorgStatus.HAR_IKKE_OMSORGEN, omsorgStatus)
     }
 
     @Test
-    fun `gitt at omsorg for pleiepetrengende oppdateres, forvent true`() {
+    internal fun `gitt at omsorg ikke er evaluert, forvent HAR_IKKE_EVALUERT_OMSORGEN`() {
+        val søkerAktørId = "11111111111"
+        val pleietrengendeAktørId = "22222222222"
+
+        val omsorgStatus = omsorgService.hentOmsorgStatus(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+
+        assertEquals(OmsorgStatus.HAR_IKKE_EVALUERT_OMSORGEN, omsorgStatus)
+    }
+
+    @Test
+    fun `gitt at omsorg for pleiepetrengende oppdateres, forvent HAR_OMSORGEN`() {
         val søkerAktørId = "11111111111"
         val pleietrengendeAktørId = "22222222222"
         omsorgRepository.save(
@@ -101,14 +114,17 @@ internal class OmsorgServiceTest {
             )
         )
 
-        val harOmsorgen = omsorgService.harOmsorgen(
+        val omsorgStatus = omsorgService.hentOmsorgStatus(
             søkerAktørId = søkerAktørId,
             pleietrengendeAktørId = pleietrengendeAktørId
         )
-        assertThat(harOmsorgen).isNotNull()
-        assertFalse { harOmsorgen }
+        assertEquals(OmsorgStatus.HAR_IKKE_OMSORGEN, omsorgStatus)
 
         assertTrue { omsorgService.oppdaterOmsorg(søkerAktørId, pleietrengendeAktørId, true) }
-        assertTrue { omsorgService.hentOmsorg(søkerAktørId, pleietrengendeAktørId)!!.harOmsorgen }
+        val omsorgStatus2 = omsorgService.hentOmsorgStatus(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørId = pleietrengendeAktørId
+        )
+        assertEquals(OmsorgStatus.HAR_OMSORGEN, omsorgStatus2)
     }
 }

@@ -17,23 +17,17 @@ class SøknadSammenslåerTest {
     @Test
     @Disabled("Kjør lokalt for å feilsøke sammenslåtte søknader")
     fun test() {
-        val søkerIdent = TODO("Fyll inn søkerident her")
         val søknadList = jsonToSøknad()
         println("Slår sammen ${søknadList.size} søknader")
         val sammenslåttSøknad = søknadList.stream()
-            .map { søknad -> kunPleietrengendeDataFraAndreSøkere(søkerIdent, søknad) }
             .reduce(Søknadsammenslåer::slåSammen)
             .orElse(null)
 
         println("Sammenslått søknad: ${JsonUtils.toString(sammenslåttSøknad)}")
+
     }
 }
 
-private fun kunPleietrengendeDataFraAndreSøkere(søkerIdent: String, søknad: Søknad) =
-    when (søknad.søker.personIdent.verdi) {
-        søkerIdent -> søknad
-        else -> Søknadsammenslåer.kunPleietrengendedata(søknad)
-    }
 
 fun jsonToSøknad(): List<Søknad> {
     //language=json

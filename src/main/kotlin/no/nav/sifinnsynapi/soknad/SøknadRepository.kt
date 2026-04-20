@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Transactional(TRANSACTION_MANAGER)
 interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
-    fun findAllByPleietrengendeAktørIdOrderByOppdatertDatoAsc(pleietrengendeAktørIder: String): Stream<PsbSøknadDAO>
+    fun findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String): List<PsbSøknadDAO>
+    fun findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String, pleietrengendeAktørId: String): List<PsbSøknadDAO>
 
     /**
      * Oppdaterer Aktørid for søker (aktørsplitt/merge)

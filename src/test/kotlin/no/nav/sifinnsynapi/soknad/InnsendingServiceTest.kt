@@ -169,7 +169,9 @@ internal class InnsendingServiceTest {
     }
 
     @Test
-    fun `gitt søknader med tilsyn og arbeidstid fra flere søkere på samme barn, forvent kun at tilsynsperioder blir slått sammen`() {
+    fun `gitt søknader med tilsyn og arbeidstid fra flere søkere på samme barn, forvent kun data fra innlogget søker`() {
+        omsorgRepository.oppdaterOmsorg(true, hovedSøkerAktørId, barn1AktørId)
+
         val organisasjonsnummer = "987654321"
 
         // gitt at det eksiterer to søknader med arbeidstid og omsorgstilbud fra 2 søkere på samme barn...
@@ -234,8 +236,12 @@ internal class InnsendingServiceTest {
             )
         )
 
-        // forvent at søknadene blir slått sammen.
-        val søknad: Søknad? = innsendingService.slåSammenSøknaderFor(hovedSøkerAktørId, barn1AktørId)
+        // forvent at kun søknader fra innlogget søker blir returnert.
+        val søknader = innsendingService.slåSammenSøknadsopplysningerPerBarn()
+        assertThat(søknader).isNotEmpty
+        assertThat(søknader).size().isEqualTo(1)
+
+        val søknad: Søknad? = søknader.firstOrNull()?.søknad
         assertNotNull(søknad)
 
         val ytelse = søknad!!.getYtelse<PleiepengerSyktBarn>()
@@ -256,26 +262,23 @@ internal class InnsendingServiceTest {
             )
         )
 
-        // Samt, at periodene med omsorgstilbd fra de to søknadene med forskjellige søkere er slått sammen.
+        // Tilsynsordning skal kun inneholde perioder fra innlogget søker, ikke fra andre søkere.
         assertResultet(
             faktiskePerioder = sammenslåttTilsynsordning.perioder,
             forventedePerioder = mapOf(
-                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-09-24")) to
-                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(4)),
-                Periode(LocalDate.parse("2021-09-25"), LocalDate.parse("2021-12-01")) to
-                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(2).plusMinutes(30))
+                Periode(LocalDate.parse("2021-08-01"), LocalDate.parse("2021-10-11")) to
+                        TilsynPeriodeInfo().medEtablertTilsynTimerPerDag(Duration.ofHours(4))
             )
         )
     }
 
     @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
-        every { oppslagsService.hentBarn() } answers { listOf() }
+        every { oppslagsService.systemoppslagBarn(any()) } returns emptyList()
         assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
     }
 
     @Test
-    //@Disabled("Har deaktivert sjekk på omsorg i SøknadService.kt:28")
     fun `gitt at søker ikke har omsorg for barna, forvent tom liste`() {
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn1AktørId)
         omsorgRepository.oppdaterOmsorg(false, hovedSøkerAktørId, barn2AktørId)
@@ -294,7 +297,44 @@ internal class InnsendingServiceTest {
         )
 
         assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()
+    }
 
+    @Test
+    fun `gitt at søker ikke har fått evaluert omsorg for ennå, forvent anonymisert resultat`() {
+        omsorgRepository.deleteAll()
+
+        assertNull(
+            omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(
+                hovedSøkerAktørId,
+                barn1AktørId
+            )?.harOmsorgen
+        )
+        assertNull(
+            omsorgRepository.findBySøkerAktørIdAndPleietrengendeAktørId(
+                hovedSøkerAktørId,
+                barn2AktørId
+            )?.harOmsorgen
+        )
+
+        val resultat = innsendingService.slåSammenSøknadsopplysningerPerBarn()
+        assertThat(resultat).isNotEmpty
+        assertThat(resultat).size().isEqualTo(1)
+
+        val søknadDTO = resultat.first()
+
+        // Forvent at BarnOppslagDTO er anonymisert
+        assertThat(søknadDTO.barn.fornavn).isEmpty()
+        assertThat(søknadDTO.barn.etternavn).isEmpty()
+        assertThat(søknadDTO.barn.mellomnavn).isNull()
+        assertThat(søknadDTO.barn.identitetsnummer).isNull()
+        assertThat(søknadDTO.barn.fødselsdato).isEqualTo(LocalDate.EPOCH)
+        assertThat(søknadDTO.barn.aktørId).isEqualTo(barn1AktørId)
+
+        // Forvent at Barn i ytelsen også er anonymisert
+        assertNotNull(søknadDTO.søknad)
+        val ytelse = søknadDTO.søknad.getYtelse<PleiepengerSyktBarn>()
+        assertThat(ytelse.barn.personIdent).isNull()
+        assertThat(ytelse.barn.fødselsdato).isNull()
     }
 
     @Test
