@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "9.0.0"
+    id("com.expediagroup.graphql") version "9.1.0"
     kotlin("jvm") version "2.3.20"
     kotlin("plugin.spring") version "2.3.20"
     kotlin("plugin.jpa") version "2.3.20"
@@ -13,7 +13,9 @@ plugins {
 
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_25
+
+extra["tomcat.version"] = "11.0.21"
 
 configurations {
     compileOnly {
@@ -24,11 +26,11 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "9.0.0"
+val graphQLKotlinVersion = "9.1.0"
 val springdocVersion = "3.0.2"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.4"
-val k9FormatVersion = "12.9.2"
+val tokenSupportVersion = "6.0.5"
+val k9FormatVersion = "12.10.0"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
@@ -36,9 +38,9 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.9"
 val guavaVersion = "33.5.0-jre"
 val orgJsonVersion = "20251224"
-val k9FellesVersion = "10.5.2"
+val k9FellesVersion = "11.0.0"
 val k9FormidlingVersion = "10.1.15"
-val k9SakVersion = "6.0.12"
+val k9SakVersion = "7.0.0"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
@@ -172,7 +174,7 @@ tasks {
     withType<KotlinCompile> {
         compilerOptions {
             freeCompilerArgs.set(listOf("-Xjsr305=strict"))
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_25)
         }
     }
 
