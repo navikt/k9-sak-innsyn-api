@@ -97,7 +97,7 @@ fun defaultSøknadTrukket(
 fun defaultSøknad(
     søknadId: UUID = UUID.randomUUID(),
     søknadsPeriode: Periode = Periode(LocalDate.now().plusDays(5), LocalDate.now().plusDays(5)),
-    søkersIdentitetsnummer: String = "01017000299",
+    søkersIdentitetsnummer: String = "23500180528",
     arbeidstid: Arbeidstid? = Arbeidstid().medArbeidstaker(listOf(defaultArbeidstid(listOf(søknadsPeriode)))),
     tilsynsordning: Tilsynsordning? = defaultTilsynsordning(
         mapOf(
@@ -124,7 +124,7 @@ fun defaultSøknad(
 
 fun defaultEttersendelse(
     søknadId: UUID = UUID.randomUUID(),
-    søkersIdentitetsnummer: String = "01017000299",
+    søkersIdentitetsnummer: String = "23500180528",
     pleietrengendeIdentitetsnummer: String = "24026223267",
     mottattDato: ZonedDateTime = ZonedDateTime.now()
 ): Ettersendelse = Ettersendelse.builder()
@@ -139,7 +139,7 @@ fun defaultEttersendelse(
 
 fun defaultPleiepengerSyktBarn(
     søknadsPeriode: Periode = Periode(LocalDate.now().plusDays(5), LocalDate.now().plusDays(5)),
-    barnNorskIdentitetsnummer: String = "01017000299",
+    barnNorskIdentitetsnummer: String = "23500180528",
     arbeidstid: Arbeidstid? = Arbeidstid().medArbeidstaker(listOf(defaultArbeidstid(listOf(søknadsPeriode)))),
     tilsynsordning: Tilsynsordning? = defaultTilsynsordning(
         mapOf(
