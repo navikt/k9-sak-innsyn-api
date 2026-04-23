@@ -67,7 +67,7 @@ internal class InnsendingServiceMedMockRepoTest {
                 fornavn = "Ole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "01017000299"
+                identitetsnummer = "23500180528"
             ),
             BarnOppslagDTO(
                 aktørId = barn2AktørId,
@@ -75,7 +75,7 @@ internal class InnsendingServiceMedMockRepoTest {
                 fornavn = "Dole",
                 mellomnavn = null,
                 etternavn = "Doffen",
-                identitetsnummer = "01017000299"
+                identitetsnummer = "23500180528"
             )
         )
 
