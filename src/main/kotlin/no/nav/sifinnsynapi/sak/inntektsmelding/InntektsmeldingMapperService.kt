@@ -1,57 +1,12 @@
 package no.nav.sifinnsynapi.sak.inntektsmelding
 
-import no.nav.k9.innsyn.inntektsmelding.Arbeidsgiver
-import no.nav.k9.innsyn.inntektsmelding.Gradering
-import no.nav.k9.innsyn.inntektsmelding.Inntektsmelding
-import no.nav.k9.innsyn.inntektsmelding.InntektsmeldingInnsendingsårsak
-import no.nav.k9.innsyn.inntektsmelding.InntektsmeldingStatus
-import no.nav.k9.innsyn.inntektsmelding.InntektsmeldingType
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelse
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.AKSJER_GRUNNFONDSBEVIS_TIL_UNDERKURS
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.ANNET
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.BEDRIFTSBARNEHAGEPLASS
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.BESØKSREISER_HJEMMET_ANNET
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.BIL
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.BOLIG
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.ELEKTRISK_KOMMUNIKASJON
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.FRI_TRANSPORT
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.INNBETALING_TIL_UTENLANDSK_PENSJONSORDNING
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.KOSTBESPARELSE_I_HJEMMET
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.KOST_DAGER
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.KOST_DØGN
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.LOSJI
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.OPSJONER
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.RENTEFORDEL_LÅN
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.SKATTEPLIKTIG_DEL_FORSIKRINGER
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.TILSKUDD_BARNEHAGEPLASS
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.UDEFINERT
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.YRKEBIL_TJENESTLIGBEHOV_KILOMETER
-import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.YRKEBIL_TJENESTLIGBEHOV_LISTEPRIS
-import no.nav.k9.innsyn.inntektsmelding.PeriodeAndel
-import no.nav.k9.innsyn.inntektsmelding.Refusjon
-import no.nav.k9.innsyn.inntektsmelding.UtsettelsePeriode
-import no.nav.k9.innsyn.inntektsmelding.UtsettelseÅrsak
+import no.nav.k9.innsyn.inntektsmelding.*
+import no.nav.k9.innsyn.inntektsmelding.NaturalYtelseType.*
 import no.nav.k9.innsyn.sak.FagsakYtelseType
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.sifinnsynapi.enhetsregisteret.EnhetsregisterService
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.ArbeidsgiverDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.ArbeidsgiverOrganisasjonDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.EndringRefusjonDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.GraderingDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.InnsendingsårsakDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.InntektsmeldingStatusDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.InntektsmeldingTypeDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.NaturalYtelseDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.NaturalYtelseTypeDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.OppholdDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.PeriodeDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.RefusjonDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.SakInntektsmeldingDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.UtsettelseDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.UtsettelseÅrsakDTO
-import no.nav.sifinnsynapi.sak.inntektsmelding.typer.YtekseTypeDTO
+import no.nav.sifinnsynapi.sak.inntektsmelding.typer.*
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -62,7 +17,7 @@ class InntektsmeldingMapperService(private val enhetsregisterService: Enhetsregi
     }
 
     fun mapTilInntektsmeldingDTO(inntektsmeldingDAO: InntektsmeldingDAO): SakInntektsmeldingDTO? {
-        val im = JsonUtils.fromString(inntektsmeldingDAO.inntektsmelding, Inntektsmelding::class.java)
+        val im = K9Jackson2ObjectMapper.fromString(inntektsmeldingDAO.inntektsmelding, Inntektsmelding::class.java)
 
         if (im.arbeidsgiver.arbeidsgiverAktørId != null) {
             logger.warn("Privat arbeidsgiver i inntektsmeldingen er ikke implementert enda, filtrerer den bort. journalpostId=${inntektsmeldingDAO.journalpostId}")

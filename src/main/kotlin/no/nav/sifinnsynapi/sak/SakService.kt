@@ -5,7 +5,6 @@ import no.nav.k9.ettersendelse.Ettersendelse
 import no.nav.k9.innsyn.sak.*
 import no.nav.k9.konstant.Konstant
 import no.nav.k9.søknad.Innsending
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
@@ -22,6 +21,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.sak.behandling.SaksbehandlingstidUtleder
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -486,10 +486,10 @@ class SakService(
     private fun InnsendingInfo.mapTilK9Format(): Innsending? {
         return when (type) {
             null, InnsendingType.SØKNAD -> innsendingService.hentSøknad(journalpostId)
-                ?.let { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+                ?.let { K9Jackson2ObjectMapper.fromString(it.søknad, Søknad::class.java) }
 
             InnsendingType.ETTERSENDELSE -> innsendingService.hentEttersendelse(journalpostId)
-                ?.let { JsonUtils.fromString(it.ettersendelse, Ettersendelse::class.java) }
+                ?.let { K9Jackson2ObjectMapper.fromString(it.ettersendelse, Ettersendelse::class.java) }
         }
     }
 
@@ -519,5 +519,5 @@ class SakService(
 
 
     private fun List<BehandlingDAO>.somBehandling(): List<Behandling> =
-        map { JsonUtils.fromString(it.behandling, Behandling::class.java) }
+        map { K9Jackson2ObjectMapper.fromString(it.behandling, Behandling::class.java) }
 }

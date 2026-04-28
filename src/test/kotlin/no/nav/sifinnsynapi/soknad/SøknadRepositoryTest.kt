@@ -1,11 +1,11 @@
 package no.nav.sifinnsynapi.soknad
 
 import assertk.assertions.isEqualTo
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.personopplysninger.Søker
 import no.nav.k9.søknad.felles.type.NorskIdentitetsnummer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
@@ -92,7 +92,7 @@ class SøknadRepositoryTest {
         journalpostId = journalpostId,
         søkerAktørId = søkerAktørId,
         pleietrengendeAktørId = pleietrengendeAktørId,
-        søknad = JsonUtils.toString(
+        søknad = K9Jackson2ObjectMapper.toString(
             Søknad()
                 .medSøknadId(søknadId.toString())
                 .medSøker(Søker(NorskIdentitetsnummer.of(søkerPersonIdentifikator)))

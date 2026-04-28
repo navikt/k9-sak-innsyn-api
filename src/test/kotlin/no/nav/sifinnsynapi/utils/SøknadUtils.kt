@@ -12,7 +12,6 @@ import no.nav.k9.innsyn.InnsynHendelse
 import no.nav.k9.innsyn.Omsorg
 import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Versjon
 import no.nav.k9.søknad.felles.personopplysninger.Barn
@@ -26,6 +25,7 @@ import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.ArbeidstidPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.TilsynPeriodeInfo
 import no.nav.k9.søknad.ytelse.psb.v1.tilsyn.Tilsynsordning
 import no.nav.sifinnsynapi.soknad.SøknadDTO
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.assertj.core.api.Assertions
 import java.time.Duration
 import java.time.LocalDate
@@ -37,9 +37,9 @@ import java.util.stream.Collectors
 
 fun List<SøknadDTO>.somJson(mapper: ObjectMapper) = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
 fun SøknadDTO.somJson(mapper: ObjectMapper) = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-fun InnsynHendelse<*>.somJson() = JsonUtils.toString(this)
+fun InnsynHendelse<*>.somJson() = K9Jackson2ObjectMapper.toString(this)
 
-fun Søknad.somJson(): String = JsonUtils.toString(this)
+fun Søknad.somJson(): String = K9Jackson2ObjectMapper.toString(this)
 
 fun defaultPsbSøknadInnholdHendelse(
     søknadId: UUID = UUID.randomUUID(),

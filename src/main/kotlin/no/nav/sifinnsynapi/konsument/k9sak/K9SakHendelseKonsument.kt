@@ -6,7 +6,6 @@ import no.nav.k9.innsyn.PsbSøknadsinnhold
 import no.nav.k9.innsyn.SøknadTrukket
 import no.nav.k9.innsyn.inntektsmelding.Inntektsmelding
 import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.config.TxConfiguration.Companion.TRANSACTION_MANAGER
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
 import no.nav.sifinnsynapi.omsorg.OmsorgService
@@ -18,6 +17,7 @@ import no.nav.sifinnsynapi.soknad.EttersendelseDAO
 import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.util.Constants
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import no.nav.sifinnsynapi.util.MDCUtil
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -59,7 +59,7 @@ class K9SakHendelseKonsument(
                 try {
                     logger.info("DRY RUN - Mapper om innsynhendelse...")
                     val innsynHendelse =
-                        JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+                        K9Jackson2ObjectMapper.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
                     when (innsynHendelse.data) {
                         is PsbSøknadsinnhold -> {
                             innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>
@@ -94,7 +94,7 @@ class K9SakHendelseKonsument(
             else -> {
                 logger.info("Mapper om innsynhendelse...")
                 val innsynHendelse =
-                    JsonUtils.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
+                    K9Jackson2ObjectMapper.fromString(innsynHendelseJson, InnsynHendelse::class.java) as InnsynHendelse<*>
                 try {
                     when (innsynHendelse.data) {
                         is PsbSøknadsinnhold -> håndterPsbSøknadsInnhold(innsynHendelse as InnsynHendelse<PsbSøknadsinnhold>)
@@ -247,7 +247,7 @@ private fun InnsynHendelse<Inntektsmelding>.somInntektsmelingDAO() = Inntektsmel
     journalpostId = data.journalpostId.journalpostId,
     søkerAktørId = data.søkerAktørId.id,
     saksnummer = data.saksnummer.verdi,
-    inntektsmelding = JsonUtils.toString(data),
+    inntektsmelding = K9Jackson2ObjectMapper.toString(data),
     ytelsetype = data.fagsakYtelseType,
     status = data.status,
     opprettetDato = ZonedDateTime.now(UTC),
@@ -261,7 +261,7 @@ private fun InnsynHendelse<Behandling>.somBehandlingDAO(): BehandlingDAO {
         pleietrengendeAktørId = data.fagsak.pleietrengendeAktørId.id,
         saksnummer = data.fagsak.saksnummer.verdi,
         ytelsetype = data.fagsak.ytelseType,
-        behandling = JsonUtils.toString(data),
+        behandling = K9Jackson2ObjectMapper.toString(data),
         opprettetDato = ZonedDateTime.now(UTC),
         oppdatertDato = oppdateringstidspunkt
     )
@@ -271,7 +271,7 @@ private fun InnsynHendelse<PsbSøknadsinnhold>.somPsbSøknadDAO() = PsbSøknadDA
     journalpostId = data.journalpostId,
     søkerAktørId = data.søkerAktørId,
     pleietrengendeAktørId = data.pleietrengendeAktørId,
-    søknad = JsonUtils.toString(data.søknad),
+    søknad = K9Jackson2ObjectMapper.toString(data.søknad),
     opprettetDato = ZonedDateTime.now(UTC),
     oppdatertDato = oppdateringstidspunkt
 )
@@ -281,7 +281,7 @@ private fun InnsynHendelse<PsbSøknadsinnhold>.somEttersendelseDAO() = Ettersend
     journalpostId = data.journalpostId,
     søkerAktørId = data.søkerAktørId,
     pleietrengendeAktørId = data.pleietrengendeAktørId,
-    ettersendelse = JsonUtils.toString(data.ettersendelse),
+    ettersendelse = K9Jackson2ObjectMapper.toString(data.ettersendelse),
     opprettetDato = ZonedDateTime.now(UTC),
     oppdatertDato = oppdateringstidspunkt
 )

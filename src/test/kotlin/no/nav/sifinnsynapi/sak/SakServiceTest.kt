@@ -10,7 +10,6 @@ import no.nav.k9.ettersendelse.EttersendelseType
 import no.nav.k9.ettersendelse.Pleietrengende
 import no.nav.k9.ettersendelse.Ytelse
 import no.nav.k9.innsyn.sak.*
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.Kildesystem
 import no.nav.k9.søknad.felles.Versjon
@@ -28,8 +27,9 @@ import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
 import no.nav.sifinnsynapi.soknad.EttersendelseDAO
-import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -563,14 +563,14 @@ class SakServiceTest {
         journalpostId = journalpostId,
         søkerAktørId = "sak1234",
         pleietrengendeAktørId = "søknadId",
-        søknad = JsonUtils.toString(lagSøknad())
+        søknad = K9Jackson2ObjectMapper.toString(lagSøknad())
     )
 
     private fun lagEttersendelse(ettersendelseJournalpostId: String): EttersendelseDAO = EttersendelseDAO(
         journalpostId = ettersendelseJournalpostId,
         søkerAktørId = "sak1234",
         pleietrengendeAktørId = "søknadId",
-        ettersendelse = JsonUtils.toString(lagEttersendelse())
+        ettersendelse = K9Jackson2ObjectMapper.toString(lagEttersendelse())
     )
 
     private fun lagSøknad() = Søknad(
@@ -598,7 +598,7 @@ class SakServiceTest {
             hovedSøkerAktørId,
             barn1AktørId,
             "sak1234",
-            JsonUtils.toString(lagBehandling(søknadInfos, opprettetTidspunkt, behandlingStatus)),
+            K9Jackson2ObjectMapper.toString(lagBehandling(søknadInfos, opprettetTidspunkt, behandlingStatus)),
             FagsakYtelseType.PLEIEPENGER_SYKT_BARN
         )
     }

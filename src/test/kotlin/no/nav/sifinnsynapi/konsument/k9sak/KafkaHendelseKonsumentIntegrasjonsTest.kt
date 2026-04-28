@@ -8,7 +8,6 @@ import com.ninjasquad.springmockk.MockkSpyBean
 import io.mockk.every
 import io.mockk.verify
 import no.nav.k9.ettersendelse.Ettersendelse
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.felles.type.Periode
 import no.nav.k9.søknad.ytelse.psb.v1.PleiepengerSyktBarn
 import no.nav.k9.søknad.ytelse.psb.v1.arbeidstid.Arbeidstid
@@ -25,20 +24,22 @@ import no.nav.sifinnsynapi.omsorg.OmsorgStatus
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
-import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import no.nav.sifinnsynapi.utils.*
 import org.apache.kafka.clients.producer.Producer
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.resttestclient.TestRestTemplate
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
@@ -366,7 +367,7 @@ class KafkaHendelseKonsumentIntegrasjonsTest {
 
         await.atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted {
             val dao = innsendingService.hentEttersendelse(journalpostId)?.ettersendelse
-            val ettersendelse = JsonUtils.fromString(dao, Ettersendelse::class.java)
+            val ettersendelse = K9Jackson2ObjectMapper.fromString(dao!!, Ettersendelse::class.java)
 
             Assertions.assertNotNull(ettersendelse)
         }

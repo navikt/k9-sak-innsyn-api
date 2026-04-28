@@ -18,7 +18,6 @@ import org.springframework.http.HttpHeaders.CONTENT_TYPE
 import org.springframework.http.MediaType
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.function.Supplier
 
 @Configuration
@@ -66,7 +65,6 @@ class EnhetsregisterKlientKonfig(
             .requestFactory(Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(enhetsregisterBaseUrl)
-            .defaultMessageConverters()
             .interceptors(mdcInterceptor, requestLoggerInterceptor(logger))
             .build()
     }

@@ -22,7 +22,6 @@ import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.function.Supplier
 
 @Configuration
@@ -84,7 +83,6 @@ class OppslagsKlientKonfig(
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
             .rootUri(oppslagsUrl)
-            .defaultMessageConverters()
             .interceptors(bearerTokenInterceptor(), mdcInterceptor)
             .build()
     }

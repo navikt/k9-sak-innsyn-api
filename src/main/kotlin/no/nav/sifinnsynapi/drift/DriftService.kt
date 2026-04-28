@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.drift
 
 import no.nav.k9.innsyn.Søknadsammenslåer
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
 import no.nav.sifinnsynapi.omsorg.OmsorgService
@@ -9,6 +8,7 @@ import no.nav.sifinnsynapi.sak.behandling.BehandlingRepository
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -40,7 +40,7 @@ class DriftService(
             .mapNotNull { pleietrengendeAktørId ->
                 val alleSøknader =
                     søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId, pleietrengendeAktørId)
-                        .map { it: PsbSøknadDAO -> JsonUtils.fromString(it.søknad, Søknad::class.java) }
+                        .map { it: PsbSøknadDAO -> K9Jackson2ObjectMapper.fromString(it.søknad, Søknad::class.java) }
                         .filter { it: Søknad -> !ekskluderteSøknadIder.contains(it.søknadId.id) }
 
                 slåSammenSøknaderFor(søkerAktørId, pleietrengendeAktørId, ekskluderteSøknadIder)?.somDebugDTO(
@@ -58,7 +58,7 @@ class DriftService(
     ): Søknad? {
         return søknadRepository.findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkersAktørId, pleietrengendeAktørId)
             .map { psbSøknadDAO: PsbSøknadDAO ->
-                JsonUtils.fromString(psbSøknadDAO.søknad, Søknad::class.java)
+                K9Jackson2ObjectMapper.fromString(psbSøknadDAO.søknad, Søknad::class.java)
             }
             .filter { søknad: Søknad -> !ekskluderteSøknadIder.contains(søknad.søknadId.id) }
             .reduceOrNull(Søknadsammenslåer::slåSammen)
