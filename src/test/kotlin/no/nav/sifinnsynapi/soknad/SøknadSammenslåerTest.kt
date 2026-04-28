@@ -2,8 +2,8 @@ package no.nav.sifinnsynapi.soknad
 
 import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import no.nav.k9.innsyn.Søknadsammenslåer
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -23,7 +23,7 @@ class SøknadSammenslåerTest {
             .reduce(Søknadsammenslåer::slåSammen)
             .orElse(null)
 
-        println("Sammenslått søknad: ${JsonUtils.toString(sammenslåttSøknad)}")
+        println("Sammenslått søknad: ${K9Jackson2ObjectMapper.toString(sammenslåttSøknad)}")
 
     }
 }
@@ -34,6 +34,6 @@ fun jsonToSøknad(): List<Søknad> {
     val json = """
         
     """.trimIndent() // Fyll inn søknad her
-    return JsonUtils.getObjectMapper().readValue(json, jacksonTypeRef())
+    return K9Jackson2ObjectMapper.objectMapper.readValue(json, jacksonTypeRef())
 }
 

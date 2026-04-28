@@ -62,6 +62,7 @@ dependencies {
     }
 
     // NAV
+    implementation("no.nav.k9:soknad-jackson2:${k9FormatVersion}")
     implementation("no.nav.k9:soknad:$k9FormatVersion")
     implementation("no.nav.k9:innsyn:$k9FormatVersion")
     implementation("no.nav.k9:konstant:$k9FormatVersion")

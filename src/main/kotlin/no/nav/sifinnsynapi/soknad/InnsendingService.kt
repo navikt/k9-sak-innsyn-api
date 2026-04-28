@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.soknad
 
 import no.nav.k9.innsyn.Søknadsammenslåer
-import no.nav.k9.søknad.JsonUtils
 import no.nav.k9.søknad.Søknad
 import no.nav.k9.søknad.felles.personopplysninger.Barn
 import no.nav.k9.søknad.ytelse.Ytelse
@@ -21,6 +20,7 @@ import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingNavNoPDFGenerator
 import no.nav.sifinnsynapi.pdf.ArbeidsgiverMeldingPDFGenerator
 import no.nav.sifinnsynapi.pdf.PleiepengerArbeidsgiverMelding
 import no.nav.sifinnsynapi.pdf.SøknadsPeriode
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -103,7 +103,7 @@ class InnsendingService(
 
     private fun slåSammenPsbSøknader(psbSøknader: List<PsbSøknadDAO>): Søknad? {
         return psbSøknader
-            .map { JsonUtils.fromString(it.søknad, Søknad::class.java) }
+            .map { K9Jackson2ObjectMapper.fromString(it.søknad, Søknad::class.java) }
             .filter { it.getYtelse<Ytelse>() is PleiepengerSyktBarn }
             .reduceOrNull(Søknadsammenslåer::slåSammen)
     }

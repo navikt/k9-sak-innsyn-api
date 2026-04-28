@@ -1,11 +1,5 @@
 package no.nav.sifinnsynapi.config.kafka
 
-import no.nav.k9.innsyn.InnsynHendelse
-import no.nav.k9.innsyn.Omsorg
-import no.nav.k9.innsyn.PsbSøknadsinnhold
-import no.nav.k9.innsyn.SøknadTrukket
-import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.søknad.JsonUtils
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.util.MDCUtil
 import org.apache.kafka.clients.CommonClientConfigs
@@ -18,17 +12,12 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.header.Header
 import org.slf4j.Logger
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.ConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.core.ProducerFactory
+import org.springframework.kafka.core.*
 import org.springframework.kafka.listener.ConsumerRecordRecoverer
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultAfterRollbackProcessor
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.kafka.transaction.KafkaTransactionManager
-import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.util.backoff.FixedBackOff
 import java.nio.ByteBuffer
 import java.time.Duration

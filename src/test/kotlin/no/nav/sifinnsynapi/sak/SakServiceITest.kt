@@ -2,18 +2,7 @@ package no.nav.sifinnsynapi.sak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import no.nav.k9.innsyn.sak.Aksjonspunkt
-import no.nav.k9.innsyn.sak.AktørId
-import no.nav.k9.innsyn.sak.Behandling
-import no.nav.k9.innsyn.sak.BehandlingResultat
-import no.nav.k9.innsyn.sak.BehandlingStatus
-import no.nav.k9.innsyn.sak.Fagsak
-import no.nav.k9.innsyn.sak.FagsakYtelseType
-import no.nav.k9.innsyn.sak.InnsendingInfo
-import no.nav.k9.innsyn.sak.InnsendingStatus
-import no.nav.k9.innsyn.sak.InnsendingType
-import no.nav.k9.innsyn.sak.Saksnummer
-import no.nav.k9.søknad.JsonUtils
+import no.nav.k9.innsyn.sak.*
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.dokumentoversikt.DokumentService
 import no.nav.sifinnsynapi.omsorg.OmsorgDAO
@@ -23,12 +12,9 @@ import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.SøkerOppslagRespons
 import no.nav.sifinnsynapi.sak.behandling.BehandlingDAO
 import no.nav.sifinnsynapi.sak.behandling.BehandlingService
+import no.nav.sifinnsynapi.util.K9Jackson2ObjectMapper
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -171,7 +157,7 @@ class SakServiceITest {
                     søkerAktørId = hovedSøkerAktørId,
                     pleietrengendeAktørId = barn1AktørId,
                     saksnummer = saksnummer,
-                    behandling = JsonUtils.toString(lagBehandling(setOf(
+                    behandling = K9Jackson2ObjectMapper.toString(lagBehandling(setOf(
                         InnsendingInfo(InnsendingStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
@@ -230,7 +216,7 @@ class SakServiceITest {
                     søkerAktørId = hovedSøkerAktørId,
                     pleietrengendeAktørId = barn1AktørId,
                     saksnummer = saksnummer,
-                    behandling = JsonUtils.toString(lagBehandling(setOf(
+                    behandling = K9Jackson2ObjectMapper.toString(lagBehandling(setOf(
                         InnsendingInfo(InnsendingStatus.MOTTATT, journalpostId, ZonedDateTime.now(), null, InnsendingType.SØKNAD)
                     ))),
                     ytelsetype = FagsakYtelseType.PLEIEPENGER_SYKT_BARN
