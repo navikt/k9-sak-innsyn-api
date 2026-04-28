@@ -26,21 +26,21 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "9.1.0"
-val springdocVersion = "3.0.2"
+val graphQLKotlinVersion = "9.2.0"
+val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.5"
-val k9FormatVersion = "12.10.0"
+val tokenSupportVersion = "6.0.6"
+val k9FormatVersion = "13.0.1"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
 val assertkJvmVersion = "0.28.1"
 val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.9"
-val guavaVersion = "33.5.0-jre"
+val guavaVersion = "33.6.0-jre"
 val orgJsonVersion = "20251224"
-val k9FellesVersion = "11.0.0"
+val k9FellesVersion = "11.1.1"
 val k9FormidlingVersion = "10.1.15"
-val k9SakVersion = "7.0.0"
+val k9SakVersion = "7.0.4"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.0"
 
