@@ -22,7 +22,6 @@ import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.function.Supplier
 
 @Configuration
@@ -76,7 +75,6 @@ class K9SakKlientKonfig(
             .requestFactory(Supplier { requestFactory })
             .defaultHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(k9SakUrl)
-            .defaultMessageConverters()
             .interceptors(bearerTokenInterceptor(), mdcInterceptor)
             .build()
     }

@@ -22,7 +22,6 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.retry.RetryListener
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.function.Supplier
 
 @Configuration
@@ -77,7 +76,6 @@ class LegacyInnsynApiClientConfig(
             .requestFactory(Supplier { requestFactory })
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .rootUri(sifInnsynApiBaseUrl)
-            .defaultMessageConverters()
             .interceptors(bearerTokenInterceptor(), mdcInterceptor, requestLoggerInterceptor())
             .build()
     }
