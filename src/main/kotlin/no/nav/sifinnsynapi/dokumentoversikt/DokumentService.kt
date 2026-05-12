@@ -70,7 +70,7 @@ class DokumentService(
                 val dokumentvariant =
                     dokumentInfo.dokumentvarianter.first { it!!.variantformat == Variantformat.ARKIV }!!
                 val brukerHarTilgang = dokumentvariant.brukerHarTilgang
-                val tittel = dokumentInfo.tittel!!
+                val tittel = dokumentInfo.tittel ?: "Dokument uten tittel"
 
                 val dokumentType = utledDokumentType(dokumentInfo)
 
