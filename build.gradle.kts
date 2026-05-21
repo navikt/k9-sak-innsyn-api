@@ -27,7 +27,7 @@ configurations {
 val graphQLKotlinVersion = "9.2.0"
 val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.7"
+val tokenSupportVersion = "6.0.8"
 val k9FormatVersion = "13.2.0"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
