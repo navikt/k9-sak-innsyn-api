@@ -5,10 +5,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "9.2.0"
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.spring") version "2.3.21"
-    kotlin("plugin.jpa") version "2.3.21"
+    id("com.expediagroup.graphql") version "10.0.0"
+    kotlin("jvm") version "2.4.0"
+    kotlin("plugin.spring") version "2.4.0"
+    kotlin("plugin.jpa") version "2.4.0"
 }
 
 group = "no.nav"
@@ -24,10 +24,10 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "9.2.0"
+val graphQLKotlinVersion = "10.0.0"
 val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
-val tokenSupportVersion = "6.0.8"
+val tokenSupportVersion = "6.0.9"
 val k9FormatVersion = "13.2.2"
 val retryVersion = "2.0.12"
 val awailitilityKotlinVersion = "4.3.0"
