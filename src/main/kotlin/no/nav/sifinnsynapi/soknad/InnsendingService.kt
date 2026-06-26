@@ -157,7 +157,7 @@ class InnsendingService(
                 val funnetOrg: JSONObject =
                     pleiepengesøknadJson.finnOrganisasjon(søknadId.toString(), organisasjonsnummer)
 
-                logger.info("Venererer arbeidsgivermelding.")
+                logger.info("Genererer arbeidsgivermelding.")
                 arbeidsgiverMeldingNavNoPDFGenerator.genererPDF(
                     pleiepengesøknadJson.tilPleiepengerAreidsgivermelding(
                         funnetOrg
