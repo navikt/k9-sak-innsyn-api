@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "10.1.1"
+    id("com.expediagroup.graphql") version "9.2.1"
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.spring") version "2.4.0"
     kotlin("plugin.jpa") version "2.4.0"
@@ -24,7 +24,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "10.1.1"
+val graphQLKotlinVersion = "9.2.1"
 val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
 val tokenSupportVersion = "6.0.11"
