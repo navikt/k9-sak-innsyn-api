@@ -5,10 +5,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "9.2.1"
-    kotlin("jvm") version "2.4.0"
-    kotlin("plugin.spring") version "2.4.0"
-    kotlin("plugin.jpa") version "2.4.0"
+    id("com.expediagroup.graphql") version "10.1.2"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.spring") version "2.4.10"
+    kotlin("plugin.jpa") version "2.4.10"
 }
 
 group = "no.nav"
@@ -24,7 +24,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "9.2.1"
+val graphQLKotlinVersion = "10.1.2"
 val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
 val tokenSupportVersion = "6.0.11"
@@ -36,11 +36,11 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.11"
 val guavaVersion = "33.6.0-jre"
 val orgJsonVersion = "20260522"
-val k9FellesVersion = "11.2.8"
+val k9FellesVersion = "11.2.9"
 val k9FormidlingVersion = "10.1.15"
 val k9SakVersion = "7.3.1"
 val openhtmltopdfVersion = "1.0.10"
-val handlebarsVersion = "4.5.2"
+val handlebarsVersion = "4.5.3"
 
 
 repositories {
@@ -153,7 +153,7 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 
-    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.2.1")
+    testImplementation("org.wiremock.integrations:wiremock-spring-boot:4.2.2")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
