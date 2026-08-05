@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.expediagroup.graphql") version "10.1.2"
+    id("com.expediagroup.graphql") version "10.2.0"
     kotlin("jvm") version "2.4.10"
     kotlin("plugin.spring") version "2.4.10"
     kotlin("plugin.jpa") version "2.4.10"
@@ -24,7 +24,7 @@ configurations {
     }
 }
 
-val graphQLKotlinVersion = "10.1.2"
+val graphQLKotlinVersion = "10.2.0"
 val springdocVersion = "3.0.3"
 val logstashLogbackEncoderVersion = "9.0"
 val tokenSupportVersion = "6.0.11"
@@ -36,7 +36,7 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.11"
 val guavaVersion = "33.6.0-jre"
 val orgJsonVersion = "20260719"
-val k9FellesVersion = "11.2.9"
+val k9FellesVersion = "11.2.11"
 val k9FormidlingVersion = "10.1.15"
 val k9SakVersion = "7.3.1"
 val openhtmltopdfVersion = "1.0.10"
