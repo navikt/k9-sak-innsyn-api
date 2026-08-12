@@ -112,7 +112,7 @@ services:
 
   db:
     container_name: db
-    image: 'postgres:11'
+    image: 'postgres:15'
     networks:
       - app-tier
     restart: on-failure
