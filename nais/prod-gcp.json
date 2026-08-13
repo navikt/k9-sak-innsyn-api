@@ -54,7 +54,7 @@
   ],
   "database": {
     "name": "k9-sak-innsyn-api-db",
-    "type": "POSTGRES_14",
+    "type": "POSTGRES_15",
     "tier": "db-custom-2-7680",
     "diskSize": "100",
     "diskAutoresize": "true",
