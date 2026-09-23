@@ -128,7 +128,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteSøknadsdato = null
             )
         )
     }
@@ -162,7 +162,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteSøknadsdato = null
             )
         )
     }
