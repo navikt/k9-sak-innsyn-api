@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@ProtectedWithClaims(issuer = "selvbetjening", claimMap = ["acr=Level4"])
+@ProtectedWithClaims(issuer = "selvbetjening", claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
 @Validated
 class DokumentController(
     private val dokumentService: DokumentService,

@@ -20,7 +20,7 @@ import java.util.*
 
 @RestController
 @RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4"])
+    ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
 )
 class SøknadController(
     private val innsendingService: InnsendingService
