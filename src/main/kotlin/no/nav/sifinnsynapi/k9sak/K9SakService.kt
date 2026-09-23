@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.k9sak
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.k9sak.opplaeringsinstitusjon.Opplæringsinstitusjon
@@ -144,6 +145,7 @@ data class HentSisteGyldigeVedtakForAktorIdResponse(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val vedtakTomDato: LocalDate?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonProperty("førsteSøknadsdato")
     val førsteSøknadsdato: LocalDate?,
 )
 
