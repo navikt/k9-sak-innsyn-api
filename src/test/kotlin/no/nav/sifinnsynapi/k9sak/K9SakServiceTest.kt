@@ -64,7 +64,9 @@ internal class K9SakServiceTest {
             { 
               "harInnvilgedeBehandlinger": true,            
               "saksnummer": "${Saksnummer("12345678").verdi}",
-              "vedtaksdato": "2024-05-21"
+              "vedtaksdato": "2024-05-21",
+              "vedtakTomDato": "2024-12-31",
+              "førsteSøknadsdato": "2024-10-01"
             }
             """.trimIndent()
         )
@@ -87,7 +89,9 @@ internal class K9SakServiceTest {
             { 
               "harInnvilgedeBehandlinger": false,            
               "saksnummer": null,
-              "vedtaksdato": null
+              "vedtaksdato": null,
+              "vedtakTomDato": null,
+              "førsteSøknadsdato": null
             }
             """.trimIndent()
         )
