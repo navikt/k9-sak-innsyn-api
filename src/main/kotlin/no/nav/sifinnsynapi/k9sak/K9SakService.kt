@@ -73,7 +73,7 @@ class K9SakService(
             saksnummer = null,
             vedtaksdato = null,
             vedtakTomDato = null,
-            førsteSøknadsdato = null
+            førsteMuligeSøknadsdato = null
         )
     }
 
@@ -88,7 +88,7 @@ class K9SakService(
             saksnummer = null,
             vedtaksdato = null,
             vedtakTomDato = null,
-            førsteSøknadsdato = null
+            førsteMuligeSøknadsdato = null
         )
     }
 
@@ -145,8 +145,8 @@ data class HentSisteGyldigeVedtakForAktorIdResponse(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val vedtakTomDato: LocalDate?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonProperty("førsteSøknadsdato")
-    val førsteSøknadsdato: LocalDate?,
+    @JsonProperty("førsteMuligeSøknadsdato")
+    val førsteMuligeSøknadsdato: LocalDate?,
 )
 
 class K9SakException(

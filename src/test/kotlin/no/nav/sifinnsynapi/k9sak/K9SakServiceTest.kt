@@ -69,7 +69,7 @@ internal class K9SakServiceTest {
               "saksnummer": "${Saksnummer("12345678").verdi}",
               "vedtaksdato": "2024-05-21",
               "vedtakTomDato": "2024-12-31",
-              "førsteSøknadsdato": "2024-10-01"
+              "førsteMuligeSøknadsdato": "2024-10-01"
             }
             """.trimIndent()
         )
@@ -80,7 +80,7 @@ internal class K9SakServiceTest {
             )
         )
         assertThat(response?.vedtakTomDato).isEqualTo(LocalDate.of(2024, 12, 31))
-        assertThat(response?.førsteSøknadsdato).isEqualTo(LocalDate.of(2024, 10, 1))
+        assertThat(response?.førsteMuligeSøknadsdato).isEqualTo(LocalDate.of(2024, 10, 1))
     }
 
     @Test
@@ -96,7 +96,7 @@ internal class K9SakServiceTest {
               "saksnummer": null,
               "vedtaksdato": null,
               "vedtakTomDato": null,
-              "førsteSøknadsdato": null
+              "førsteMuligeSøknadsdato": null
             }
             """.trimIndent()
         )
@@ -137,7 +137,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteSøknadsdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteMuligeSøknadsdato = null
             )
         )
     }
@@ -171,7 +171,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteSøknadsdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteMuligeSøknadsdato = null
             )
         )
     }

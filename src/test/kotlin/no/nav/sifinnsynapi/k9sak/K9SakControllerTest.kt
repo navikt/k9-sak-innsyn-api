@@ -45,7 +45,7 @@ class K9SakControllerTest {
             saksnummer = Saksnummer("123456"),
             vedtaksdato = LocalDate.now(),
             vedtakTomDato = LocalDate.now().withMonth(12).withDayOfMonth(31),
-            førsteSøknadsdato = LocalDate.now().withMonth(10).withDayOfMonth(1)
+            førsteMuligeSøknadsdato = LocalDate.now().withMonth(10).withDayOfMonth(1)
         )
 
         mockMvc.post("/k9sak/omsorgsdager-kronisk-sykt-barn/har-gyldig-vedtak") {
@@ -66,7 +66,7 @@ class K9SakControllerTest {
                         "saksnummer": "123456",
                         "vedtaksdato": "${LocalDate.now()}",
                         "vedtakTomDato": "${LocalDate.now().withMonth(12).withDayOfMonth(31)}",
-                        "førsteSøknadsdato": "${LocalDate.now().withMonth(10).withDayOfMonth(1)}"
+                        "førsteMuligeSøknadsdato": "${LocalDate.now().withMonth(10).withDayOfMonth(1)}"
                     }
                     """.trimIndent()
                 )
