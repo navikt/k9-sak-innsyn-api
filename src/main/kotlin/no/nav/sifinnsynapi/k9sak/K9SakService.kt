@@ -145,7 +145,6 @@ data class HentSisteGyldigeVedtakForAktorIdResponse(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val vedtakTomDato: LocalDate?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonProperty("førsteMuligeSøknadsdato")
     val førsteMuligeSøknadsdato: LocalDate?,
 )
 
