@@ -1,5 +1,7 @@
 package no.nav.sifinnsynapi.k9sak
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -22,6 +24,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
+import java.time.LocalDate
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -64,16 +67,20 @@ internal class K9SakServiceTest {
             { 
               "harInnvilgedeBehandlinger": true,            
               "saksnummer": "${Saksnummer("12345678").verdi}",
-              "vedtaksdato": "2024-05-21"
+              "vedtaksdato": "2024-05-21",
+              "vedtakTomDato": "2024-12-31",
+              "førsteMuligeSøknadsdato": "2024-10-01"
             }
             """.trimIndent()
         )
 
-        k9SakService.hentSisteGyldigeVedtakForAktorId(
+        var response = k9SakService.hentSisteGyldigeVedtakForAktorId(
             HentSisteGyldigeVedtakForAktorIdDto(
                 pleietrengendeAktør
             )
         )
+        assertThat(response?.vedtakTomDato).isEqualTo(LocalDate.of(2024, 12, 31))
+        assertThat(response?.førsteMuligeSøknadsdato).isEqualTo(LocalDate.of(2024, 10, 1))
     }
 
     @Test
@@ -87,7 +94,9 @@ internal class K9SakServiceTest {
             { 
               "harInnvilgedeBehandlinger": false,            
               "saksnummer": null,
-              "vedtaksdato": null
+              "vedtaksdato": null,
+              "vedtakTomDato": null,
+              "førsteMuligeSøknadsdato": null
             }
             """.trimIndent()
         )
@@ -128,7 +137,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteMuligeSøknadsdato = null
             )
         )
     }
@@ -162,7 +171,7 @@ internal class K9SakServiceTest {
 
         Assertions.assertEquals(
             resultat, HentSisteGyldigeVedtakForAktorIdResponse(
-                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null
+                harInnvilgedeBehandlinger = false, saksnummer = null, vedtaksdato = null, vedtakTomDato = null, førsteMuligeSøknadsdato = null
             )
         )
     }

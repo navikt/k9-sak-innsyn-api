@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.k9sak
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.k9.sak.typer.Saksnummer
 import no.nav.sifinnsynapi.common.AktørId
 import no.nav.sifinnsynapi.k9sak.opplaeringsinstitusjon.Opplæringsinstitusjon
@@ -71,6 +72,8 @@ class K9SakService(
             harInnvilgedeBehandlinger = false,
             saksnummer = null,
             vedtaksdato = null,
+            vedtakTomDato = null,
+            førsteMuligeSøknadsdato = null
         )
     }
 
@@ -84,6 +87,8 @@ class K9SakService(
             harInnvilgedeBehandlinger = false,
             saksnummer = null,
             vedtaksdato = null,
+            vedtakTomDato = null,
+            førsteMuligeSøknadsdato = null
         )
     }
 
@@ -136,7 +141,11 @@ data class HentSisteGyldigeVedtakForAktorIdResponse(
     val harInnvilgedeBehandlinger: Boolean,
     val saksnummer: Saksnummer?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    val vedtaksdato: LocalDate?
+    val vedtaksdato: LocalDate?,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    val vedtakTomDato: LocalDate?,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    val førsteMuligeSøknadsdato: LocalDate?,
 )
 
 class K9SakException(
