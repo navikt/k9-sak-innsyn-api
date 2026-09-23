@@ -177,6 +177,42 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["Level4", "idporten-loa-high"])
+    fun `gitt request med token med tilstrekkelig acr, forvent 200`(acr: String) {
+        every {
+            innsendingService.slåSammenSøknadsopplysningerPerBarn()
+        } returns emptyList()
+
+        val token = mockOAuth2Server.hentToken(claims = mapOf("acr" to acr)).serialize()
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["Level3", "idporten-loa-substantial"])
+    fun `gitt request med token med utilstrekkelig acr, forvent 401`(acr: String) {
+        val token = mockOAuth2Server.hentToken(claims = mapOf("acr" to acr)).serialize()
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get(URI(URLDecoder.decode(SØKNAD, Charset.defaultCharset())))
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.type").value("/problem-details/uautentisert-forespørsel"))
+            .andExpect(jsonPath("$.title").value("Ikke autentisert"))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.stackTrace").doesNotExist())
+    }
+
     @Test
     fun `forvent generert filnavn med mellomrom`() {
         every {
