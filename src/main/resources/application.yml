@@ -145,6 +145,7 @@ kafka:
       retries: 3
 
 springdoc:
+  use-fqn: true
   api-docs:
     enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
