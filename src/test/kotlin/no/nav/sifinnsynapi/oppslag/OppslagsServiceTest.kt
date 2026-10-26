@@ -5,12 +5,14 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.size
+import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.util.Constants
 import no.nav.sifinnsynapi.utils.stubSystemoppslagForHentBarn
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.anyString
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -26,6 +28,7 @@ import org.springframework.web.client.RestTemplate
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 import java.time.Duration
+import java.time.LocalDate
 import java.util.*
 
 @SpringBootTest(
@@ -97,5 +100,64 @@ internal class OppslagsServiceTest {
 
         val barn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(listOf(barnIdent)))
         assertThat(barn).isEmpty()
+    }
+
+    @Test
+    fun `hent arbeidsgivere ber om alle ansettelsesperioder for perioden og ignorerer ukjente felt`() {
+        stubArbeidsgivere(
+            status = 200,
+            //language=json
+            body = """
+                {
+                  "arbeidsgivere": {
+                    "organisasjoner": [
+                      { "organisasjonsnummer": "111", "navn": "Ignoreres", "ansatt_fom": "2024-01-01", "ansatt_tom": "2024-01-10" },
+                      { "organisasjonsnummer": "111", "ansatt_fom": "2024-01-15", "ansatt_tom": null }
+                    ]
+                  }
+                }
+            """.trimIndent()
+        )
+
+        val respons = oppslagsService.hentArbeidsgivere(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31"))
+
+        assertThat(respons.arbeidsgivere.organisasjoner).isEqualTo(
+            listOf(
+                OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
+                OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-15"), null),
+            )
+        )
+    }
+
+    @Test
+    fun `feil ved henting av arbeidsgivere gir exception med fast melding, ikke tom liste`() {
+        stubArbeidsgivere(status = 500, body = "{}")
+
+        val feil = assertThrows<IllegalStateException> {
+            oppslagsService.hentArbeidsgivere(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31"))
+        }
+        assertThat(feil.message).isEqualTo("Feil ved henting av arbeidsgivere")
+    }
+
+    private fun stubArbeidsgivere(status: Int, body: String) {
+        WireMock.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo("/k9-selvbetjening-oppslag-mock/meg"))
+                .withQueryParam("fom", WireMock.equalTo("2024-01-01"))
+                .withQueryParam("tom", WireMock.equalTo("2024-01-31"))
+                .withQueryParam("inkluderAlleAnsettelsesperioder", WireMock.equalTo("true"))
+                .withQueryParam(
+                    "a",
+                    WireMock.havingExactly(
+                        "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
+                        "arbeidsgivere[].organisasjoner[].ansettelsesperiode"
+                    )
+                )
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(status)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                )
+        )
     }
 }

@@ -2,6 +2,8 @@ package no.nav.sifinnsynapi.oppslag
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -22,6 +24,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Service
 @Retryable(
@@ -65,6 +68,14 @@ class OppslagsService(
         val systemBarnUrl = UriComponentsBuilder
             .fromUriString("/system/hent-barn")
             .build()
+
+        // Bare organisasjoner. Private arbeidsgivere inneholder fnr og hentes ikke.
+        val arbeidsgivereAttributter = listOf(
+            "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
+            "arbeidsgivere[].organisasjoner[].ansettelsesperiode"
+        )
+
+        const val ARBEIDSGIVERE_OPPSLAG_FEIL = "Feil ved henting av arbeidsgivere"
     }
 
     fun hentSøker(): SøkerOppslagRespons? {
@@ -202,6 +213,60 @@ class OppslagsService(
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 
+    /**
+     * Henter brukerens arbeidsgivere (organisasjoner) med alle ansettelsesperioder i perioden.
+     *
+     * Feil gir alltid exception, aldri tom liste. En tom liste kan gi tilgang på feil grunnlag i
+     * tilgangskontrollen for endringsmelding.
+     */
+    fun hentArbeidsgivere(fraOgMed: LocalDate, tilOgMed: LocalDate): ArbeidsgivereOppslagResponsDTO {
+        logger.info("Slår opp arbeidsgivere...")
+        val url = UriComponentsBuilder
+            .fromUriString("/meg")
+            .queryParam("a", arbeidsgivereAttributter)
+            .queryParam("fom", fraOgMed.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            .queryParam("tom", tilOgMed.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            .queryParam("inkluderAlleAnsettelsesperioder", true)
+            .build()
+
+        val exchange = oppslagsKlient.getForEntity(url.toUriString(), ArbeidsgivereOppslagResponsDTO::class.java)
+        logger.info("Fikk response {} for oppslag av arbeidsgivere.", exchange.statusCode)
+
+        return exchange.body ?: throw IllegalStateException(ARBEIDSGIVERE_OPPSLAG_FEIL)
+    }
+
+    // Recover-metodene for arbeidsgivere logger verken responsbody, URL med datoer eller feilmelding,
+    // og kaster en fast melding. ExceptionHandler sender meldingen videre til klienten.
+    @Recover
+    private fun recoverArbeidsgivere(
+        error: HttpServerErrorException,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
+    ): ArbeidsgivereOppslagResponsDTO {
+        logger.error("Oppslag av arbeidsgivere fra '/meg' feilet med status {}", error.statusCode)
+        throw IllegalStateException(ARBEIDSGIVERE_OPPSLAG_FEIL)
+    }
+
+    @Recover
+    private fun recoverArbeidsgivere(
+        error: HttpClientErrorException,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
+    ): ArbeidsgivereOppslagResponsDTO {
+        logger.error("Oppslag av arbeidsgivere fra '/meg' feilet med status {}", error.statusCode)
+        throw IllegalStateException(ARBEIDSGIVERE_OPPSLAG_FEIL)
+    }
+
+    @Recover
+    private fun recoverArbeidsgivere(
+        error: RestClientException,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
+    ): ArbeidsgivereOppslagResponsDTO {
+        logger.error("Oppslag av arbeidsgivere fra '/meg' feilet ({})", error::class.simpleName)
+        throw IllegalStateException(ARBEIDSGIVERE_OPPSLAG_FEIL)
+    }
+
     override fun health(): Mono<Health> {
         return try {
             oppslagsKlient.exchange("/isalive", HttpMethod.GET, null, String::class.java)
@@ -296,6 +361,19 @@ data class PdlBarnIdent(val value: String) {
         return "PdlBarnIdent(value='******')"
     }
 }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ArbeidsgivereOppslagResponsDTO(val arbeidsgivere: ArbeidsgivereOppslagDTO)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ArbeidsgivereOppslagDTO(val organisasjoner: List<OrganisasjonOppslagDTO> = emptyList())
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class OrganisasjonOppslagDTO(
+    val organisasjonsnummer: String,
+    @JsonProperty("ansatt_fom") val ansattFom: LocalDate? = null,
+    @JsonProperty("ansatt_tom") val ansattTom: LocalDate? = null,
+)
 
 class Organisasjon(
     val organisasjonsnummer: String,
