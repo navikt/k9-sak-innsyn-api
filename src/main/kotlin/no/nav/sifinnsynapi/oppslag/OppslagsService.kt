@@ -366,7 +366,7 @@ data class PdlBarnIdent(val value: String) {
 data class ArbeidsgivereOppslagResponsDTO(val arbeidsgivere: ArbeidsgivereOppslagDTO)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ArbeidsgivereOppslagDTO(val organisasjoner: List<OrganisasjonOppslagDTO> = emptyList())
+data class ArbeidsgivereOppslagDTO(val organisasjoner: List<OrganisasjonOppslagDTO>)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OrganisasjonOppslagDTO(
