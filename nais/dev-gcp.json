@@ -58,6 +58,11 @@
       "cluster": "dev-gcp"
     },
     {
+      "app": "endringsmelding-pleiepenger",
+      "namespace": "dusseldorf",
+      "cluster": "dev-gcp"
+    },
+    {
       "app": "opplaringspenger-soknad",
       "namespace": "dusseldorf",
       "cluster": "dev-gcp"
