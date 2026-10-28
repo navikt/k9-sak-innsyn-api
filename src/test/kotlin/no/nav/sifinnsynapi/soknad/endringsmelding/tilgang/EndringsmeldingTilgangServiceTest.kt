@@ -75,8 +75,8 @@ class EndringsmeldingTilgangServiceTest {
             listOf(innsynSøknad("2024-01-01/2024-01-31"))
         every { oppslagsService.hentArbeidsgivere(any(), any()) } returns
             arbeidsgivere(
-                OrganisasjonOppslagDTO("999", null, LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
-                OrganisasjonOppslagDTO("999", null, LocalDate.parse("2024-01-15"), LocalDate.parse("2024-01-20")),
+                OrganisasjonOppslagDTO("999", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
+                OrganisasjonOppslagDTO("999", LocalDate.parse("2024-01-15"), LocalDate.parse("2024-01-20")),
             )
 
         assertEquals(

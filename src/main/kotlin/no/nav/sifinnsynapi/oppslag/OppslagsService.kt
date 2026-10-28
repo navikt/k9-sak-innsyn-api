@@ -68,13 +68,13 @@ class OppslagsService(
             .fromUriString("/system/hent-barn")
             .build()
 
-        // Bare organisasjoner. Private arbeidsgivere inneholder fnr og hentes ikke.
+        // Bare orgnr og ansettelsesperioder. Private arbeidsgivere inneholder fnr, og navn gir ett kall til
+        // Enhetsregisteret per ansettelsesperiode.
         val arbeidsgivereUrl = UriComponentsBuilder
             .fromUriString("/meg")
             .queryParam(
                 "a",
                 "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
-                "arbeidsgivere[].organisasjoner[].navn",
                 "arbeidsgivere[].organisasjoner[].ansettelsesperiode"
             )
             .build()
@@ -364,7 +364,6 @@ data class ArbeidsgivereOppslagDTO(val organisasjoner: List<OrganisasjonOppslagD
 
 data class OrganisasjonOppslagDTO(
     val organisasjonsnummer: String,
-    val navn: String? = null,
     @JsonProperty("ansatt_fom") val ansattFom: LocalDate? = null,
     @JsonProperty("ansatt_tom") val ansattTom: LocalDate? = null,
 )

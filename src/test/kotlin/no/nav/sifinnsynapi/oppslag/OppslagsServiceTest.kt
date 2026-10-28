@@ -111,8 +111,8 @@ internal class OppslagsServiceTest {
             {
               "arbeidsgivere": {
                 "organisasjoner": [
-                  { "organisasjonsnummer": "111111111", "navn": "A", "ansatt_fom": "2024-01-01", "ansatt_tom": "2024-01-10" },
-                  { "organisasjonsnummer": "111111111", "navn": "A", "ansatt_fom": "2024-01-15" }
+                  { "organisasjonsnummer": "111111111", "ansatt_fom": "2024-01-01", "ansatt_tom": "2024-01-10" },
+                  { "organisasjonsnummer": "111111111", "ansatt_fom": "2024-01-15" }
                 ]
               }
             }
@@ -123,8 +123,8 @@ internal class OppslagsServiceTest {
 
         assertThat(organisasjoner).isEqualTo(
             listOf(
-                OrganisasjonOppslagDTO("111111111", "A", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
-                OrganisasjonOppslagDTO("111111111", "A", LocalDate.parse("2024-01-15"), null),
+                OrganisasjonOppslagDTO("111111111", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
+                OrganisasjonOppslagDTO("111111111", LocalDate.parse("2024-01-15"), null),
             )
         )
         WireMock.verify(
@@ -132,7 +132,13 @@ internal class OppslagsServiceTest {
                 .withQueryParam("fom", WireMock.equalTo("2024-01-01"))
                 .withQueryParam("tom", WireMock.equalTo("2024-01-31"))
                 .withQueryParam("inkluderAlleAnsettelsesperioder", WireMock.equalTo("true"))
-                .withQueryParam("a", WireMock.equalTo("arbeidsgivere[].organisasjoner[].organisasjonsnummer"))
+                .withQueryParam(
+                    "a",
+                    WireMock.havingExactly(
+                        "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
+                        "arbeidsgivere[].organisasjoner[].ansettelsesperiode",
+                    )
+                )
         )
     }
 

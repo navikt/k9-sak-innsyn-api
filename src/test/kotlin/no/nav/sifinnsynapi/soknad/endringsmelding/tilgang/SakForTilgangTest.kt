@@ -114,9 +114,9 @@ class SakForTilgangTest {
     @Test
     fun `grupperer ansettelsesperioder per orgnr`() {
         val gruppert = listOf(
-            OrganisasjonOppslagDTO("111", null, LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-02")),
-            OrganisasjonOppslagDTO("222", null, null, null),
-            OrganisasjonOppslagDTO("111", null, LocalDate.parse("2024-01-04"), null),
+            OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-02")),
+            OrganisasjonOppslagDTO("222", null, null),
+            OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-04"), null),
         ).grupperPerArbeidsgiver()
 
         assertEquals(
