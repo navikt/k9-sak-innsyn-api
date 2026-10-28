@@ -3,12 +3,7 @@ package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 
-/**
- * Lukket periode der både [fom] og [tom] er med. Alltid gyldig, så reglene slipper null-sjekker.
- *
- * Egen type fordi k9-formatets Periode kan ha åpne ender. Åpne perioder fra AA-reg gjøres om med
- * [Ansettelsesperiode.fyllÅpneEnder].
- */
+/** Lukket periode der både [fom] og [tom] er med. Åpne perioder gjøres om med [Ansettelsesperiode.fyllÅpneEnder]. */
 data class Datoperiode(val fom: LocalDate, val tom: LocalDate) {
     init {
         // Meldingen kan havne i feilresponsen, så den inneholder ikke datoene.
@@ -28,10 +23,7 @@ data class Datoperiode(val fom: LocalDate, val tom: LocalDate) {
 
 /** Ansettelsesperiode fra AA-registeret. Både fom og tom kan mangle (åpen periode). */
 data class Ansettelsesperiode(val fom: LocalDate?, val tom: LocalDate?) {
-    /**
-     * Fyller åpne ender med datoene fra [utfylling]. Returnerer null hvis resultatet blir ugyldig
-     * (for eksempel fom = null og tom før utfylling.fom). Perioden overlapper da ikke [utfylling].
-     */
+    /** Fyller åpne ender fra [utfylling]. Null hvis perioden da blir ugyldig, altså ikke overlapper [utfylling]. */
     fun fyllÅpneEnder(utfylling: Datoperiode): Datoperiode? {
         val fom = fom ?: utfylling.fom
         val tom = tom ?: utfylling.tom

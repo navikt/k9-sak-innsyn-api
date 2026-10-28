@@ -10,12 +10,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * Vurderer om innlogget bruker kan bruke endringsmeldingen for pleiepenger.
- *
- * Tar ingen parametere. Saker og arbeidsgivere hentes for innlogget bruker, så bruker kan bare
- * få vurdert egne data.
- */
+/** Tar ingen parametere, så bruker kan bare få vurdert egne data. */
 @RestController
 @RequiredIssuers(
     ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
@@ -27,7 +22,7 @@ class EndringsmeldingTilgangController(
     @GetMapping(PSB_ENDRINGSMELDING_TILGANG, produces = [MediaType.APPLICATION_JSON_VALUE])
     fun hentTilgang(): ResponseEntity<TilgangResultat> =
         ResponseEntity.ok()
-            // Svaret er utledet av brukerens saker og skal ikke mellomlagres i nettleser eller proxy.
+            // Utledet av brukerens saker, så det skal ikke mellomlagres.
             .cacheControl(CacheControl.noStore())
             .body(endringsmeldingTilgangService.vurderTilgang())
 }

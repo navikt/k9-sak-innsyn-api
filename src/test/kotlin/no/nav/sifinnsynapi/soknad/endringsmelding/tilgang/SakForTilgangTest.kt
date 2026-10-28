@@ -94,7 +94,7 @@ class SakForTilgangTest {
     }
 
     @Test
-    fun `SN uten normalarbeidstid over null gir ikke SN-arbeidstid, som i frontend`() {
+    fun `SN uten normalarbeidstid over null gir ikke SN-arbeidstid`() {
         val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(arbeidstidInfo(Duration.ZERO))
 
         val sak = innsynSøknad(defaultSøknad(arbeidstid = arbeidstid)).tilSakForTilgang()
@@ -103,7 +103,7 @@ class SakForTilgangTest {
     }
 
     @Test
-    fun `SN uten perioder gir ikke SN-arbeidstid, som i frontend`() {
+    fun `SN uten perioder gir ikke SN-arbeidstid`() {
         val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(ArbeidstidInfo())
 
         val sak = innsynSøknad(defaultSøknad(arbeidstid = arbeidstid)).tilSakForTilgang()

@@ -216,13 +216,10 @@ class OppslagsService(
     }
 
     /**
-     * Henter organisasjonene bruker er eller har vært ansatt i, med én rad per ansettelsesperiode.
+     * Henter organisasjonene bruker er eller har vært ansatt i, én rad per ansettelsesperiode.
      *
-     * Feiler hardt: alle feil, også tomt svar, gir unntak og aldri tom liste. En tom liste ville gitt
-     * tilgang til endringsmelding på feil grunnlag.
-     *
-     * Egen @Retryable binder recover-metodene eksplisitt, så Spring Retry ikke velger en annen
-     * @Recover i klassen med feil returtype.
+     * Alle feil, også tomt svar, gir unntak og aldri tom liste. En tom liste ville gitt tilgang på feil grunnlag.
+     * Egen @Retryable binder recover-metodene, så Spring Retry ikke velger en annen @Recover i klassen.
      */
     @Retryable(
         recover = "recoverArbeidsgivere",

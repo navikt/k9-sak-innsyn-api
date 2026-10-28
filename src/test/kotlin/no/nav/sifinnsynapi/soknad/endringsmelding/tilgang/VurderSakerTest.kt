@@ -12,10 +12,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-/**
- * Saker med ugyldig format testes ikke her, fordi hele oppslaget feiler (5xx) når en sak ikke kan
- * deserialiseres.
- */
 class VurderSakerTest {
 
     @Test

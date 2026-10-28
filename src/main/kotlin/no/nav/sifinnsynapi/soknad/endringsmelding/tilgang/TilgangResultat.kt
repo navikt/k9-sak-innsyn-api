@@ -2,14 +2,17 @@ package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import io.swagger.v3.oas.annotations.media.Schema
 
 /**
- * Respons fra GET /pleiepenger-sykt-barn/endringsmelding/tilgang.
+ * Respons fra GET /psb/endringsmelding/tilgang.
  *
  * [årsaker] er tom når [kanBruke] er true. Første årsak er hovedårsaken, så rekkefølgen er en del av
  * kontrakten.
  */
 data class TilgangResultat(
+    // Uten eget eksempel lager springdoc kanBruke=true sammen med en årsak.
+    @field:Schema(example = "false")
     val kanBruke: Boolean,
     // Uten eksplisitt navn utleder springdoc «getårsaker» fra getteren getÅrsaker().
     @get:JsonProperty("årsaker")
