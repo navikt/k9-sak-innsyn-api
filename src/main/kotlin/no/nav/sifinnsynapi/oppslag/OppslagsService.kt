@@ -68,8 +68,8 @@ class OppslagsService(
             .fromUriString("/system/hent-barn")
             .build()
 
-        // Bare orgnr og ansettelsesperioder. Private arbeidsgivere inneholder fnr, og navn gir ett kall til
-        // Enhetsregisteret per ansettelsesperiode.
+        // Ikke navn, som gir ett kall til Enhetsregisteret per ansettelsesperiode, og ikke private
+        // arbeidsgivere, som inneholder fnr.
         val arbeidsgivereUrl = UriComponentsBuilder
             .fromUriString("/meg")
             .queryParam(
@@ -245,7 +245,7 @@ class OppslagsService(
         return checkNotNull(exchange.body?.arbeidsgivere?.organisasjoner) { "Tomt svar ved henting av arbeidsgivere." }
     }
 
-    // Logger bare status og unntakstype. Svaret fra oppslag kan inneholde personopplysninger.
+    // Ikke responsbody, den kan inneholde personopplysninger.
     @Recover
     private fun recoverArbeidsgivere(error: HttpStatusCodeException): List<OrganisasjonOppslagDTO> {
         logger.error("Feil ved henting av arbeidsgivere. Status {} fra '{}'.", error.statusCode, arbeidsgivereUrl.path)
