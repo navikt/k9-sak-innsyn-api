@@ -8,6 +8,7 @@ import no.nav.sifinnsynapi.Routes.PSB_ENDRINGSMELDING_TILGANG
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.EN_ARBEIDSGIVER_TO_ANSETTELSER_SAMME_UKE_MED_OPPHOLD
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_ARBEIDSTID_SOM_SELVSTENDIG_NÆRINGSDRIVENDE
+import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.periode
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Test
@@ -38,15 +39,17 @@ class EndringsmeldingTilgangControllerTest {
     @MockkBean
     private lateinit var endringsmeldingTilgangService: EndringsmeldingTilgangService
 
+    private val endringsperiode = periode("2023-12-01/2025-03-31")
+
     @Test
     fun `tilgang gir kanBruke true, tom liste og no-store`() {
-        every { endringsmeldingTilgangService.vurderTilgang() } returns TilgangResultat.tilgang()
+        every { endringsmeldingTilgangService.vurderTilgang() } returns TilgangResultat.tilgang(endringsperiode)
 
         mockMvc.perform(get(PSB_ENDRINGSMELDING_TILGANG).header(HttpHeaders.AUTHORIZATION, bearer()))
             .andExpect(status().isOk)
             .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
             //language=json
-            .andExpect(content().json("""{ "kanBruke": true, "årsaker": [] }""", true))
+            .andExpect(content().json("""{ "kanBruke": true, "årsaker": [], "tillattEndringsperiode": { "fom": "2023-12-01", "tom": "2025-03-31" }}""", true))
     }
 
     @Test
@@ -66,7 +69,8 @@ class EndringsmeldingTilgangControllerTest {
                       "årsaker": [
                         "harArbeidstidSomSelvstendigNæringsdrivende",
                         "enArbeidsgiverToAnsettelserSammeUkeMedOpphold"
-                      ]
+                      ],
+                      "tillattEndringsperiode": null
                     }
                     """.trimIndent(),
                     true

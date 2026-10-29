@@ -17,9 +17,16 @@ data class TilgangResultat(
     // Uten eksplisitt navn utleder springdoc «getårsaker» fra getteren getÅrsaker().
     @get:JsonProperty("årsaker")
     val årsaker: List<IngenTilgangÅrsak>,
+    // Denne settes kun hvis kanBruke=true
+    @field:Schema(nullable = true, description = "Satt bare når kanBruke er true.")
+    val tillattEndringsperiode: Datoperiode? = null,
 ) {
     companion object {
-        fun tilgang() = TilgangResultat(kanBruke = true, årsaker = emptyList())
+        fun tilgang(tillattEndringsperiode: Datoperiode) = TilgangResultat(
+            kanBruke = true,
+            årsaker = emptyList(),
+            tillattEndringsperiode = tillattEndringsperiode
+        )
         fun ingenTilgang(årsaker: List<IngenTilgangÅrsak>): TilgangResultat {
             require(årsaker.isNotEmpty()) { "Avslag uten årsak." }
             return TilgangResultat(kanBruke = false, årsaker = årsaker)

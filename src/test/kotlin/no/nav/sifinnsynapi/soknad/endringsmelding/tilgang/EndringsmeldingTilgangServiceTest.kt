@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.OrganisasjonOppslagDTO
+import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.periode
 import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.soknad.SøknadDTO
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER
@@ -36,6 +37,7 @@ class EndringsmeldingTilgangServiceTest {
         ZonedDateTime.of(2024, 3, 15, 12, 0, 0, 0, OSLO_ZONE_ID).toInstant(),
         OSLO_ZONE_ID
     )
+    private val endringsperiode = periode("2023-12-01/2025-03-31")
 
     private val service = EndringsmeldingTilgangService(
         innsendingService, oppslagsService, clock
@@ -60,7 +62,7 @@ class EndringsmeldingTilgangServiceTest {
         every { innsendingService.slåSammenSøknadsopplysningerPerBarn() } returns
             listOf(innsynSøknad("2023-06-01/2024-01-31"))
 
-        assertEquals(TilgangResultat.tilgang(), service.vurderTilgang())
+        assertEquals(TilgangResultat.tilgang(endringsperiode), service.vurderTilgang())
         verify {
             oppslagsService.hentArbeidsgivere(
                 fraOgMed = LocalDate.parse("2023-12-01"),

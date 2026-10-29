@@ -36,7 +36,7 @@ class EndringsmeldingTilgangService(
             is SakVurdering.Tilgang -> {
                 val arbeidsgivere = hentArbeidsgivere(sakVurdering.oppslagsperiode)
                 val årsaker = vurderArbeidsforhold(sakVurdering.sak, arbeidsgivere, endringsperiode)
-                if (årsaker.isEmpty()) TilgangResultat.tilgang() else TilgangResultat.ingenTilgang(årsaker)
+                if (årsaker.isEmpty()) TilgangResultat.tilgang(endringsperiode) else TilgangResultat.ingenTilgang(årsaker)
             }
         }
 
