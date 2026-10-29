@@ -1,10 +1,13 @@
 package no.nav.sifinnsynapi.oppslag
 
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.size
+import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
@@ -26,6 +29,7 @@ import org.springframework.web.client.RestTemplate
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 import java.time.Duration
+import java.time.LocalDate
 import java.util.*
 
 @SpringBootTest(
@@ -97,5 +101,75 @@ internal class OppslagsServiceTest {
 
         val barn = oppslagsService.systemoppslagBarn(HentBarnForespørsel(listOf(barnIdent)))
         assertThat(barn).isEmpty()
+    }
+
+    @Test
+    fun `hent arbeidsgivere sender periode og alle ansettelsesperioder, og mapper organisasjonene`() {
+        stubArbeidsgivere(
+            //language=json
+            """
+            {
+              "arbeidsgivere": {
+                "organisasjoner": [
+                  { "organisasjonsnummer": "111111111", "ansatt_fom": "2024-01-01", "ansatt_tom": "2024-01-10" },
+                  { "organisasjonsnummer": "111111111", "ansatt_fom": "2024-01-15" }
+                ]
+              }
+            }
+            """.trimIndent()
+        )
+
+        val organisasjoner = oppslagsService.hentArbeidsgivere(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31"))
+
+        assertThat(organisasjoner).isEqualTo(
+            listOf(
+                OrganisasjonOppslagDTO("111111111", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-10")),
+                OrganisasjonOppslagDTO("111111111", LocalDate.parse("2024-01-15"), null),
+            )
+        )
+        WireMock.verify(
+            WireMock.getRequestedFor(WireMock.urlPathEqualTo("/k9-selvbetjening-oppslag-mock/meg"))
+                .withQueryParam("fom", WireMock.equalTo("2024-01-01"))
+                .withQueryParam("tom", WireMock.equalTo("2024-01-31"))
+                .withQueryParam("inkluderAlleAnsettelsesperioder", WireMock.equalTo("true"))
+                .withQueryParam(
+                    "a",
+                    WireMock.havingExactly(
+                        "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
+                        "arbeidsgivere[].organisasjoner[].ansettelsesperiode",
+                    )
+                )
+        )
+    }
+
+    @Test
+    fun `hent arbeidsgivere kaster ved serverfeil og gir aldri tom liste`() {
+        stubArbeidsgivere(body = "", status = 500)
+
+        assertFailure { oppslagsService.hentArbeidsgivere(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31")) }
+            .isInstanceOf(IllegalStateException::class)
+    }
+
+    @Test
+    fun `hent arbeidsgivere kaster når svaret mangler arbeidsgivere`() {
+        stubArbeidsgivere(body = "{}")
+
+        assertFailure { oppslagsService.hentArbeidsgivere(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31")) }
+            .isInstanceOf(IllegalStateException::class)
+    }
+
+    // Høy prioritet, så stubben vinner over de generelle /meg-mappingene i test-resources.
+    private fun stubArbeidsgivere(body: String, status: Int = 200) {
+        WireMock.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo("/k9-selvbetjening-oppslag-mock/meg"))
+                .withQueryParam("inkluderAlleAnsettelsesperioder", WireMock.matching(".*"))
+                .atPriority(1)
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(status)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                )
+        )
     }
 }

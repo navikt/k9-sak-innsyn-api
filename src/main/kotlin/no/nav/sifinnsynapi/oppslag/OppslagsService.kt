@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.oppslag
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -17,6 +18,7 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
@@ -64,6 +66,15 @@ class OppslagsService(
 
         val systemBarnUrl = UriComponentsBuilder
             .fromUriString("/system/hent-barn")
+            .build()
+
+        val arbeidsgivereUrl = UriComponentsBuilder
+            .fromUriString("/meg")
+            .queryParam(
+                "a",
+                "arbeidsgivere[].organisasjoner[].organisasjonsnummer",
+                "arbeidsgivere[].organisasjoner[].ansettelsesperiode"
+            )
             .build()
     }
 
@@ -202,6 +213,49 @@ class OppslagsService(
         throw IllegalStateException("Feil ved systemoppslag av barn")
     }
 
+    /**
+     * Henter organisasjonene bruker er eller har vært ansatt i.
+     *
+     * Alle feil, også tomt svar, gir unntak og aldri tom liste. En tom liste ville gitt tilgang på feil grunnlag.
+     * Egen @Retryable binder recover-metodene, så Spring Retry ikke velger en annen @Recover i klassen.
+     */
+    @Retryable(
+        recover = "recoverArbeidsgivere",
+        exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class],
+        backoff = Backoff(
+            delayExpression = "\${spring.rest.retry.initialDelay}",
+            multiplierExpression = "\${spring.rest.retry.multiplier}",
+            maxDelayExpression = "\${spring.rest.retry.maxDelay}"
+        ),
+        maxAttemptsExpression = "\${spring.rest.retry.maxAttempts}"
+    )
+    fun hentArbeidsgivere(fraOgMed: LocalDate, tilOgMed: LocalDate): List<OrganisasjonOppslagDTO> {
+        val url = UriComponentsBuilder.fromUri(arbeidsgivereUrl.toUri())
+            .queryParam("fom", fraOgMed)
+            .queryParam("tom", tilOgMed)
+            .queryParam("inkluderAlleAnsettelsesperioder", true)
+            .build()
+
+        logger.info("Slår opp arbeidsgivere...")
+        val exchange = oppslagsKlient.getForEntity(url.toUriString(), ArbeidsgivereOppslagResponsDTO::class.java)
+        logger.info("Fikk response {} for oppslag av arbeidsgivere.", exchange.statusCode)
+
+        return checkNotNull(exchange.body?.arbeidsgivere?.organisasjoner) { "Tomt svar ved henting av arbeidsgivere." }
+    }
+
+    // Ikke responsbody, den kan inneholde personopplysninger.
+    @Recover
+    private fun recoverArbeidsgivere(error: HttpStatusCodeException): List<OrganisasjonOppslagDTO> {
+        logger.error("Feil ved henting av arbeidsgivere. Status {} fra '{}'.", error.statusCode, arbeidsgivereUrl.path)
+        throw IllegalStateException("Feil ved henting av arbeidsgivere.")
+    }
+
+    @Recover
+    private fun recoverArbeidsgivere(error: Exception): List<OrganisasjonOppslagDTO> {
+        logger.error("Feil ved henting av arbeidsgivere ({}) fra '{}'.", error::class.simpleName, arbeidsgivereUrl.path)
+        throw IllegalStateException("Feil ved henting av arbeidsgivere.")
+    }
+
     override fun health(): Mono<Health> {
         return try {
             oppslagsKlient.exchange("/isalive", HttpMethod.GET, null, String::class.java)
@@ -300,4 +354,14 @@ data class PdlBarnIdent(val value: String) {
 class Organisasjon(
     val organisasjonsnummer: String,
     val navn: String?,
+)
+
+data class ArbeidsgivereOppslagResponsDTO(val arbeidsgivere: ArbeidsgivereOppslagDTO?)
+
+data class ArbeidsgivereOppslagDTO(val organisasjoner: List<OrganisasjonOppslagDTO>?)
+
+data class OrganisasjonOppslagDTO(
+    val organisasjonsnummer: String,
+    @JsonProperty("ansatt_fom") val ansattFom: LocalDate? = null,
+    @JsonProperty("ansatt_tom") val ansattTom: LocalDate? = null,
 )
