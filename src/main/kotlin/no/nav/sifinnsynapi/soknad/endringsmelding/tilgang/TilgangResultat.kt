@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  *
  * [årsaker] er tom når [kanBruke] er true. Første årsak er hovedårsaken, så rekkefølgen er en del av
  * kontrakten.
+ * [tillattEndringsperiode] er perioden som kan endres, og settes kun når [kanBruke] er true.
  */
 data class TilgangResultat(
     // Uten eget eksempel lager springdoc kanBruke=true sammen med en årsak.
@@ -34,9 +35,6 @@ data class TilgangResultat(
     }
 }
 
-/**
- * [kode] er verdien i JSON-responsen og en del av kontrakten. Konstantnavnene er ikke det.
- */
 enum class IngenTilgangÅrsak(@get:JsonValue val kode: String) {
     HAR_INGEN_SAK("harIngenSak"),
     SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE("søknadsperioderUtenforTillattEndringsperiode"),

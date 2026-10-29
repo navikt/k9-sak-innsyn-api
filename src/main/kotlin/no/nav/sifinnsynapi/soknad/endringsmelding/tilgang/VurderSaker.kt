@@ -16,26 +16,29 @@ fun vurderSaker(saker: List<SakForTilgang>, endringsperiode: Datoperiode): SakVu
     // Eldre saker blokkerer ikke og telles ikke som flere saker.
     val aktuelle = saker.filterNot { it.erEldreEnn(endringsperiode) }
 
-    if (saker.isEmpty()) return SakVurdering.IngenTilgang(HAR_INGEN_SAK)
-    if (aktuelle.isEmpty()) return SakVurdering.IngenTilgang(SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE)
-    if (aktuelle.size > 1) return SakVurdering.IngenTilgang(HAR_MER_ENN_EN_SAK)
+    if (saker.isEmpty())
+        return SakVurdering.IngenTilgang(HAR_INGEN_SAK)
+    if (aktuelle.isEmpty())
+        return SakVurdering.IngenTilgang(SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE)
+    if (aktuelle.size > 1)
+        return SakVurdering.IngenTilgang(HAR_MER_ENN_EN_SAK)
 
     val sak = aktuelle.single()
 
-    // Feil i dataene, ikke et avslag. Meldingen havner i svaret og skal ikke ha personopplysninger.
+    // Feil i dataene/barn er anonymisert
     check(sak.barnHarIdentitetsnummer) { "Barnet i saken mangler identitetsnummer." }
 
     val samletSøknadsperiode = sak.samletSøknadsperiode()
         ?: return SakVurdering.IngenTilgang(HAR_INGEN_PERIODER)
 
     // Saken er ikke eldre, så manglende overlapp betyr at den starter etter endringsperioden.
-    val oppslagsperiode = samletSøknadsperiode.fellesPeriode(endringsperiode)
+    val oppslagsperiode = samletSøknadsperiode.overlappendePeriode(endringsperiode)
         ?: return SakVurdering.IngenTilgang(SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE)
 
     return SakVurdering.Tilgang(sak = sak, oppslagsperiode = oppslagsperiode)
 }
 
-/** Alle søknadsperiodene slutter før endringsperioden. Uten perioder er saken ikke eldre. */
+/** Alle søknadsperiodene slutter før endringsperioden */
 private fun SakForTilgang.erEldreEnn(endringsperiode: Datoperiode): Boolean =
     søknadsperioder.isNotEmpty() && søknadsperioder.all { it.tom.isBefore(endringsperiode.fom) }
 

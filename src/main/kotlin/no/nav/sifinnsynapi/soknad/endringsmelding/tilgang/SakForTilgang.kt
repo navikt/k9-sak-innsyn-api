@@ -6,7 +6,7 @@ import no.nav.sifinnsynapi.oppslag.OrganisasjonOppslagDTO
 import no.nav.sifinnsynapi.soknad.SøknadDTO
 import java.time.Duration
 
-/** Det tilgangsreglene trenger fra en sak, uavhengig av k9-format. Orgnr skal ikke logges. */
+/** Det tilgangsreglene trenger fra en sak, uavhengig av k9-format. */
 data class SakForTilgang(
     val søknadsperioder: List<Datoperiode>,
     /** Arbeidsgivere med normalarbeidstid over null. Private arbeidsgivere (uten orgnr) er utelatt. */
@@ -56,7 +56,7 @@ fun List<OrganisasjonOppslagDTO>.grupperPerArbeidsgiver(): List<ArbeidsgiverForT
             ArbeidsgiverForTilgang(
                 organisasjonsnummer = orgnr,
                 ansettelsesperioder = rader.map {
-                    // AA-reg har alltid fom. Mangler den, gir det 5xx.
+                    // AA-reg skal alltid ha fom. Mangler den, gir det 5xx.
                     Ansettelsesperiode(
                         fom = requireNotNull(it.ansattFom) { "Ansettelsesperiode mangler fom." },
                         tom = it.ansattTom,

@@ -68,8 +68,6 @@ class OppslagsService(
             .fromUriString("/system/hent-barn")
             .build()
 
-        // Ikke navn, som gir ett kall til Enhetsregisteret per ansettelsesperiode, og ikke private
-        // arbeidsgivere, som inneholder fnr.
         val arbeidsgivereUrl = UriComponentsBuilder
             .fromUriString("/meg")
             .queryParam(
@@ -216,7 +214,7 @@ class OppslagsService(
     }
 
     /**
-     * Henter organisasjonene bruker er eller har vært ansatt i, én rad per ansettelsesperiode.
+     * Henter organisasjonene bruker er eller har vært ansatt i.
      *
      * Alle feil, også tomt svar, gir unntak og aldri tom liste. En tom liste ville gitt tilgang på feil grunnlag.
      * Egen @Retryable binder recover-metodene, så Spring Retry ikke velger en annen @Recover i klassen.

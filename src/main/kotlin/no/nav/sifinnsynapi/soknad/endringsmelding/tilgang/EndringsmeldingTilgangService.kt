@@ -13,7 +13,6 @@ import java.time.LocalDate
  * Avgjør om innlogget bruker kan bruke endringsmeldingen for pleiepenger, og gir årsakene når svaret er nei.
  *
  * Flyt: hent saker → [vurderSaker] → hent arbeidsgivere for oppslagsperioden → [vurderArbeidsforhold].
- * Reglene er rene funksjoner. All I/O skjer her.
  *
  * Feil fra oppslagene gir 5xx, aldri tilgang. Se [OppslagsService.hentArbeidsgivere].
  */
@@ -36,11 +35,15 @@ class EndringsmeldingTilgangService(
             is SakVurdering.Tilgang -> {
                 val arbeidsgivere = hentArbeidsgivere(sakVurdering.oppslagsperiode)
                 val årsaker = vurderArbeidsforhold(sakVurdering.sak, arbeidsgivere, endringsperiode)
-                if (årsaker.isEmpty()) TilgangResultat.tilgang(endringsperiode) else TilgangResultat.ingenTilgang(årsaker)
+
+                if (årsaker.isEmpty())
+                    TilgangResultat.tilgang(endringsperiode)
+                else
+                    TilgangResultat.ingenTilgang(årsaker)
             }
         }
 
-        // Egne JSON-felt i loggen, så vurderingene kan telles per årsak.
+        // Logg resultat og bruk første årsak hvis !kanBruke
         val felter = buildMap<String, Any> {
             put("hendelse", "endringsmelding_tilgang_vurdert")
             put("kan_bruke", resultat.kanBruke)

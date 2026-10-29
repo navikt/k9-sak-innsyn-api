@@ -14,7 +14,7 @@ data class Datoperiode(val fom: LocalDate, val tom: LocalDate) {
     fun overlapper(annen: Datoperiode): Boolean = !fom.isAfter(annen.tom) && !annen.fom.isAfter(tom)
 
     /** Dagene som er med i begge periodene, eller null hvis de ikke overlapper. */
-    fun fellesPeriode(annen: Datoperiode): Datoperiode? {
+    fun overlappendePeriode(annen: Datoperiode): Datoperiode? {
         val fom = maxOf(fom, annen.fom)
         val tom = minOf(tom, annen.tom)
         return if (tom.isBefore(fom)) null else Datoperiode(fom, tom)

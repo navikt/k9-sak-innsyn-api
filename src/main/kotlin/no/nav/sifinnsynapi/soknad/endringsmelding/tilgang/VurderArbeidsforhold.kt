@@ -26,7 +26,7 @@ fun vurderArbeidsforhold(
             add(EN_ARBEIDSGIVER_TO_ANSETTELSER_SAMME_UKE_MED_OPPHOLD)
         }
 
-        val søknadsperioderIEndringsperioden = sak.søknadsperioder.mapNotNull { it.fellesPeriode(endringsperiode) }
+        val søknadsperioderIEndringsperioden = sak.søknadsperioder.mapNotNull { it.overlappendePeriode(endringsperiode) }
         if (ukjente.any { it.harFlereAnsettelserIPerioder(søknadsperioderIEndringsperioden) }) {
             add(HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER)
         }
@@ -37,7 +37,7 @@ fun vurderArbeidsforhold(
 private fun ArbeidsgiverForTilgang.harToAnsettelserSammeUkeMedOpphold(endringsperiode: Datoperiode): Boolean {
     val perioderIEndringsperioden = ansettelsesperioder
         .mapNotNull { it.lukk(endringsperiode) }
-        .mapNotNull { it.fellesPeriode(endringsperiode) }
+        .mapNotNull { it.overlappendePeriode(endringsperiode) }
 
     return perioderSlutterOgStarterSammeUkeMedOpphold(perioderIEndringsperioden)
 }
@@ -45,8 +45,6 @@ private fun ArbeidsgiverForTilgang.harToAnsettelserSammeUkeMedOpphold(endringspe
 /**
  * True når to perioder har et opphold som starter og slutter i samme isouke.
  * Eksempel: ansatt man–tir, ikke ansatt ons, ansatt tor–fre.
- *
- * Perioder kan overlappe, så hver periode sammenlignes med seneste tom så langt, ikke med forrige periode.
  */
 fun perioderSlutterOgStarterSammeUkeMedOpphold(perioder: List<Datoperiode>): Boolean {
     val sortert = perioder.sortedBy { it.fom }
