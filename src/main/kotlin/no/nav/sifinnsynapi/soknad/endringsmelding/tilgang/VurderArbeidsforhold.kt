@@ -36,7 +36,7 @@ fun vurderArbeidsforhold(
 /** Periodene klippes til endringsperioden, så et opphold før den gir ikke avslag. */
 private fun ArbeidsgiverForTilgang.harToAnsettelserSammeUkeMedOpphold(endringsperiode: Datoperiode): Boolean {
     val perioderIEndringsperioden = ansettelsesperioder
-        .mapNotNull { it.fyllÅpneEnder(endringsperiode) }
+        .mapNotNull { it.lukk(endringsperiode) }
         .mapNotNull { it.fellesPeriode(endringsperiode) }
 
     return perioderSlutterOgStarterSammeUkeMedOpphold(perioderIEndringsperioden)
@@ -63,11 +63,11 @@ fun perioderSlutterOgStarterSammeUkeMedOpphold(perioder: List<Datoperiode>): Boo
     return false
 }
 
-/** Mer enn én ansettelsesperiode overlapper søknadsperiodene. Åpne ender fylles med søknadsperioden. */
+/** Mer enn én ansettelsesperiode overlapper søknadsperiodene. Pågående ansettelser lukkes med søknadsperioden. */
 private fun ArbeidsgiverForTilgang.harFlereAnsettelserIPerioder(søknadsperioder: List<Datoperiode>): Boolean {
     val antallSomOverlapper = ansettelsesperioder.count { ansettelse ->
-        søknadsperioder.any { søknadsperiode ->
-            ansettelse.fyllÅpneEnder(søknadsperiode)?.overlapper(søknadsperiode) ?: false
+        søknadsperioder.any {
+            søknadsperiode -> ansettelse.lukk(søknadsperiode)?.overlapper(søknadsperiode) == true
         }
     }
     return antallSomOverlapper > 1

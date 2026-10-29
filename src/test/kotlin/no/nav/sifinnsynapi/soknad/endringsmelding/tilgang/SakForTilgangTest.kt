@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullAndEmptySource
 import org.junit.jupiter.params.provider.ValueSource
@@ -115,7 +116,7 @@ class SakForTilgangTest {
     fun `grupperer ansettelsesperioder per orgnr`() {
         val gruppert = listOf(
             OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-02")),
-            OrganisasjonOppslagDTO("222", null, null),
+            OrganisasjonOppslagDTO("222", LocalDate.parse("2024-01-03"), null),
             OrganisasjonOppslagDTO("111", LocalDate.parse("2024-01-04"), null),
         ).grupperPerArbeidsgiver()
 
@@ -128,10 +129,17 @@ class SakForTilgangTest {
                         Ansettelsesperiode(LocalDate.parse("2024-01-04"), null),
                     )
                 ),
-                ArbeidsgiverForTilgang("222", listOf(Ansettelsesperiode(null, null))),
+                ArbeidsgiverForTilgang("222", listOf(Ansettelsesperiode(LocalDate.parse("2024-01-03"), null))),
             ),
             gruppert
         )
+    }
+
+    @Test
+    fun `ansettelsesperiode uten fom gir feil`() {
+        assertThrows<IllegalArgumentException> {
+            listOf(OrganisasjonOppslagDTO("111", null, null)).grupperPerArbeidsgiver()
+        }
     }
 
     private fun innsynSøknad(

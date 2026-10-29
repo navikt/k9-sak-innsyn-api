@@ -3,7 +3,7 @@ package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 
-/** Lukket periode der både [fom] og [tom] er med. Åpne perioder gjøres om med [Ansettelsesperiode.fyllÅpneEnder]. */
+/** Lukket periode der både [fom] og [tom] er med. Pågående ansettelser gjøres om med [Ansettelsesperiode.lukk]. */
 data class Datoperiode(val fom: LocalDate, val tom: LocalDate) {
     init {
         // Meldingen kan havne i feilresponsen, så den inneholder ikke datoene.
@@ -21,17 +21,16 @@ data class Datoperiode(val fom: LocalDate, val tom: LocalDate) {
     }
 }
 
-/** Ansettelsesperiode fra AA-registeret. Både fom og tom kan mangle (åpen periode). */
-data class Ansettelsesperiode(val fom: LocalDate?, val tom: LocalDate?) {
-    /** Fyller åpne ender fra [utfylling]. Null hvis perioden da blir ugyldig, altså ikke overlapper [utfylling]. */
-    fun fyllÅpneEnder(utfylling: Datoperiode): Datoperiode? {
-        val fom = fom ?: utfylling.fom
+/** Ansettelsesperiode fra AA-registeret. [tom] mangler når ansettelsen pågår. */
+data class Ansettelsesperiode(val fom: LocalDate, val tom: LocalDate?) {
+    /** Bruker tom fra [utfylling] når [tom] mangler. Null hvis tom da er før fom, som når en pågående ansettelse starter etter [utfylling]. */
+    fun lukk(utfylling: Datoperiode): Datoperiode? {
         val tom = tom ?: utfylling.tom
         return if (tom.isBefore(fom)) null else Datoperiode(fom, tom)
     }
 }
 
-/** Isouke: mandag–søndag, og uke 1 er uka med årets første torsdag. */
+/** Isouke: mandag–søndag */
 fun LocalDate.erSammeIsoukeSom(annen: LocalDate): Boolean =
     get(WeekFields.ISO.weekBasedYear()) == annen.get(WeekFields.ISO.weekBasedYear()) &&
         get(WeekFields.ISO.weekOfWeekBasedYear()) == annen.get(WeekFields.ISO.weekOfWeekBasedYear())

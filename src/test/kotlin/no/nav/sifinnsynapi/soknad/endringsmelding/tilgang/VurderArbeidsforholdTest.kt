@@ -110,21 +110,22 @@ class VurderArbeidsforholdTest {
     }
 
     @Test
-    fun `ukjent arbeidsgiver med åpne ansettelser som begge overlapper gir avslag`() {
+    fun `ukjent arbeidsgiver med avsluttet og pågående ansettelse som begge overlapper gir avslag`() {
         assertEquals(
             listOf(HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER),
             vurderArbeidsforhold(
                 kjentSak,
-                listOf(ArbeidsgiverForTilgang(UKJENT, listOf(ansettelse(null, "2024-01-10"), ansettelse("2024-01-15", null)))),
+                listOf(ArbeidsgiverForTilgang(UKJENT, listOf(ansettelse("2023-12-01", "2024-01-10"), ansettelse("2024-01-15", null)))),
                 ENDRINGSPERIODE
             )
         )
     }
 
     @Test
-    fun `åpen ansettelse som slutter før endringsperioden ignoreres ved opphold samme uke`() {
+    fun `pågående ansettelse som starter etter endringsperioden ignoreres ved opphold samme uke`() {
+        // 31.12.2024 og 02.01.2025 er i samme isouke.
         assertTilgang(
-            ArbeidsgiverForTilgang(KJENT, listOf(ansettelse(null, "2019-01-01"), ansettelse("2024-01-01", null)))
+            ArbeidsgiverForTilgang(KJENT, listOf(ansettelse("2024-01-01", "2024-12-31"), ansettelse("2025-01-02", null)))
         )
     }
 
@@ -163,7 +164,7 @@ class VurderArbeidsforholdTest {
             },
         )
 
-        fun ansettelse(fom: String?, tom: String?) =
-            Ansettelsesperiode(fom = fom?.let(LocalDate::parse), tom = tom?.let(LocalDate::parse))
+        fun ansettelse(fom: String, tom: String?) =
+            Ansettelsesperiode(fom = LocalDate.parse(fom), tom = tom?.let(LocalDate::parse))
     }
 }

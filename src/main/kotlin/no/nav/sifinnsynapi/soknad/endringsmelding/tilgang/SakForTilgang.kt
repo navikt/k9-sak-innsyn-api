@@ -55,6 +55,12 @@ fun List<OrganisasjonOppslagDTO>.grupperPerArbeidsgiver(): List<ArbeidsgiverForT
         .map { (orgnr, rader) ->
             ArbeidsgiverForTilgang(
                 organisasjonsnummer = orgnr,
-                ansettelsesperioder = rader.map { Ansettelsesperiode(fom = it.ansattFom, tom = it.ansattTom) },
+                ansettelsesperioder = rader.map {
+                    // AA-reg har alltid fom. Mangler den, gir det 5xx.
+                    Ansettelsesperiode(
+                        fom = requireNotNull(it.ansattFom) { "Ansettelsesperiode mangler fom." },
+                        tom = it.ansattTom,
+                    )
+                },
             )
         }
