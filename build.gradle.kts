@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "4.1.1"
+    id("org.springframework.boot") version "4.1.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.expediagroup.graphql") version "11.0.0"
     kotlin("jvm") version "2.4.21"
@@ -36,9 +36,9 @@ val springMockkVersion = "5.0.1"
 val mockkVersion = "1.14.11"
 val guavaVersion = "33.7.2-jre"
 val orgJsonVersion = "20260814"
-val k9FellesVersion = "12.2.6"
+val k9FellesVersion = "12.2.7"
 val k9FormidlingVersion = "10.1.15"
-val k9SakVersion = "7.5.0"
+val k9SakVersion = "7.5.1"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.5"
 
