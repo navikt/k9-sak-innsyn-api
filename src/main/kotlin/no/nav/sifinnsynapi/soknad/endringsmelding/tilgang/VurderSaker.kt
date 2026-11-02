@@ -1,5 +1,6 @@
 package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 
+import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.BARN_MANGLER_IDENTITETSNUMMER
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_PERIODER
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_SAK
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_MER_ENN_EN_SAK
@@ -25,8 +26,9 @@ fun vurderSaker(saker: List<SakForTilgang>, endringsperiode: Datoperiode): SakVu
 
     val sak = aktuelle.single()
 
-    // Feil i dataene/barn er anonymisert
-    check(sak.barnHarIdentitetsnummer) { "Barnet i saken mangler identitetsnummer." }
+    // Feil i dataene, eller barnet er anonymisert fordi omsorgen ikke er vurdert.
+    if (!sak.barnHarIdentitetsnummer)
+        return SakVurdering.IngenTilgang(BARN_MANGLER_IDENTITETSNUMMER)
 
     val samletSøknadsperiode = sak.samletSøknadsperiode()
         ?: return SakVurdering.IngenTilgang(HAR_INGEN_PERIODER)

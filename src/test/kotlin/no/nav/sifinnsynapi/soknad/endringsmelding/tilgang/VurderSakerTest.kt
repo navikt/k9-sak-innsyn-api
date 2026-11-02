@@ -10,7 +10,6 @@ import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.sak
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.standardSak
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class VurderSakerTest {
 
@@ -91,12 +90,12 @@ class VurderSakerTest {
     }
 
     @Test
-    fun `aktuell sak uten barnets identitetsnummer gir feil uten personopplysninger`() {
+    fun `aktuell sak uten barnets identitetsnummer gir ingen tilgang`() {
         val sak = sak("2024-01-01/2024-01-31", barnHarIdentitetsnummer = false)
-
-        val feil = assertThrows<IllegalStateException> { vurderSaker(listOf(sak), ENDRINGSPERIODE) }
-
-        assertEquals("Barnet i saken mangler identitetsnummer.", feil.message)
+        assertEquals(
+            SakVurdering.IngenTilgang(IngenTilgangÅrsak.BARN_MANGLER_IDENTITETSNUMMER),
+            vurderSaker(listOf(sak), ENDRINGSPERIODE)
+        )
     }
 
     @Test
