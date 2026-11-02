@@ -90,7 +90,7 @@ class VurderSakerTest {
     }
 
     @Test
-    fun `aktuell sak uten barnets identitetsnummer gir ingen tilgang`() {
+    fun `aktuell sak hvor barnets mangler identitetsnummer gir ingen tilgang`() {
         val sak = sak("2024-01-01/2024-01-31", barnHarIdentitetsnummer = false)
         assertEquals(
             SakVurdering.IngenTilgang(IngenTilgangÅrsak.BARN_MANGLER_IDENTITETSNUMMER),
