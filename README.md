@@ -227,4 +227,3 @@ Spørsmål koden eller prosjekttet kan rettes til team dusseldorf på:
 * [\#sif-brukerdialog](https://nav-it.slack.com/archives/CQ7QKSHJR)
 * [\#sif-innsynsplattform](https://nav-it.slack.com/archives/C013ZJTKUNB)
 
-
