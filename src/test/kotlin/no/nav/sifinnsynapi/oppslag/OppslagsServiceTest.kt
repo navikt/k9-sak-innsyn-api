@@ -158,6 +158,60 @@ internal class OppslagsServiceTest {
             .isInstanceOf(IllegalStateException::class)
     }
 
+    @Test
+    fun `systemoppslag av arbeidsgivere poster identen og perioden, og mapper organisasjonene`() {
+        stubSystemArbeidsgivere(
+            //language=json
+            """
+            {
+              "arbeidsgivere": {
+                "organisasjoner": [
+                  { "organisasjonsnummer": "111111111", "ansatt_fom": "2024-01-01", "ansatt_tom": null }
+                ]
+              }
+            }
+            """.trimIndent()
+        )
+
+        val organisasjoner = oppslagsService.systemoppslagArbeidsgivere(
+            "12345678910", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31")
+        )
+
+        assertThat(organisasjoner).isEqualTo(
+            listOf(OrganisasjonOppslagDTO("111111111", LocalDate.parse("2024-01-01"), null))
+        )
+        WireMock.verify(
+            WireMock.postRequestedFor(WireMock.urlPathEqualTo("/k9-selvbetjening-oppslag-mock/system/hent-arbeidsgivere"))
+                .withRequestBody(
+                    WireMock.equalToJson(
+                        //language=json
+                        """{ "ident": "12345678910", "fraOgMed": "2024-01-01", "tilOgMed": "2024-01-31", "inkluderAlleAnsettelsesperioder": true }"""
+                    )
+                )
+        )
+    }
+
+    @Test
+    fun `systemoppslag av arbeidsgivere kaster ved serverfeil og gir aldri tom liste`() {
+        stubSystemArbeidsgivere(body = "", status = 500)
+
+        assertFailure {
+            oppslagsService.systemoppslagArbeidsgivere("12345678910", LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31"))
+        }.isInstanceOf(IllegalStateException::class)
+    }
+
+    private fun stubSystemArbeidsgivere(body: String, status: Int = 200) {
+        WireMock.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/k9-selvbetjening-oppslag-mock/system/hent-arbeidsgivere"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(status)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                )
+        )
+    }
+
     // Høy prioritet, så stubben vinner over de generelle /meg-mappingene i test-resources.
     private fun stubArbeidsgivere(body: String, status: Int = 200) {
         WireMock.stubFor(

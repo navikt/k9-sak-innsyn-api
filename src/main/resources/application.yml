@@ -11,6 +11,8 @@ no.nav:
 
   security:
     k9-drift-gruppe: ${K9_DRIFT_GRUPPE_ID}
+    azure-pre-authorized-apps: ${AZURE_APP_PRE_AUTHORIZED_APPS}
+    k9-sak-azure-app-navn: ${K9_SAK_AZURE_APP_NAVN}
     jwt:
       issuer:
         tokenx:

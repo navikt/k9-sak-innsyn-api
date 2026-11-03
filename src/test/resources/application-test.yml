@@ -7,6 +7,8 @@ no.nav:
     enhetsregister-base-url: http://localhost:${wiremock.server.port}/enhetsregister-mock
   security:
     k9-drift-gruppe: testdrift
+    azure-pre-authorized-apps: '[{"name":"dev-fss:k9saksbehandling:k9-sak","clientId":"k9-sak-client-id"},{"name":"dev-gcp:dusseldorf:sif-innsyn-api","clientId":"sif-innsyn-api-client-id"}]'
+    k9-sak-azure-app-navn: dev-fss:k9saksbehandling:k9-sak
     jwt:
       issuer:
         tokenx:

@@ -52,6 +52,12 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
+        return slåSammenSøknadsopplysningerPerBarn(søkersAktørId)
+    }
+
+    /** For saksbehandling, der søkeren ikke er innlogget. Kalleren har ansvar for tilgangskontrollen. */
+    @Transactional(readOnly = true)
+    fun slåSammenSøknadsopplysningerPerBarn(søkersAktørId: String): List<SøknadDTO> {
         val søknaderPerPleietrengende: Map<String, List<PsbSøknadDAO>> =
             søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
                 .groupBy { it.pleietrengendeAktørId }
