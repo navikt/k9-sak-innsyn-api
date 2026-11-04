@@ -1,5 +1,6 @@
 package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
 import no.nav.k9.felles.log.audit.Auditdata
@@ -93,5 +94,6 @@ class SaksbehandlingEndringsmeldingTilgangController(
 data class SaksbehandlingTilgangForespørsel(
     // Ikke ${validatedValue} i meldingen, den havner i feilsvaret og loggen.
     @field:Pattern(regexp = "^\\d{13}$", message = "søkerAktørId må være 13 siffer")
+    @JsonProperty("søkerAktørId")
     val søkerAktørId: String,
 )
