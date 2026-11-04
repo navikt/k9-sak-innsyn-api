@@ -81,7 +81,7 @@ class SaksbehandlingEndringsmeldingTilgangController(
                     .medEventClassId(EventClassId.AUDIT_ACCESS)
                     .build(),
                 setOf(
-                    CefField(CefFieldName.EVENT_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) * 1000L),
+                    CefField(CefFieldName.EVENT_TIME, LocalDateTime.now(ZoneOffset.UTC).toEpochSecond(ZoneOffset.UTC) * 1000L),
                     CefField(CefFieldName.REQUEST, SAKSBEHANDLING_PSB_ENDRINGSMELDING_TILGANG),
                     CefField(CefFieldName.USER_ID, innloggetIdent),
                     CefField(CefFieldName.BERORT_BRUKER_ID, berørtBrukerIdent)
