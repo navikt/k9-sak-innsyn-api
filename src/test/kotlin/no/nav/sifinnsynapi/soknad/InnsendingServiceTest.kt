@@ -273,6 +273,20 @@ internal class InnsendingServiceTest {
     }
 
     @Test
+    fun `søknader fra en annen søker avvises`() {
+        val annenSøkersSøknad = PsbSøknadDAO(
+            journalpostId = "99",
+            søkerAktørId = annenSøkerAktørId,
+            pleietrengendeAktørId = barn1AktørId,
+            søknad = "{}",
+        )
+
+        assertThrows<IllegalArgumentException> {
+            innsendingService.slåSammenSøknadsopplysningerPerBarn(hovedSøkerAktørId, listOf(annenSøkersSøknad))
+        }
+    }
+
+    @Test
     fun `gitt at søker ikke har barn, forvent tom liste`() {
         every { oppslagsService.systemoppslagBarn(any()) } returns emptyList()
         assertThat(innsendingService.slåSammenSøknadsopplysningerPerBarn()).isEmpty()

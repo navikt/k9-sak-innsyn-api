@@ -16,6 +16,7 @@ import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.sikkerhet.AuthorizationService
 import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
+import no.nav.sifinnsynapi.soknad.InnsendingService
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -40,6 +41,7 @@ import java.time.ZoneOffset
     ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
 )
 class SaksbehandlingEndringsmeldingTilgangController(
+    private val innsendingService: InnsendingService,
     private val endringsmeldingTilgangService: EndringsmeldingTilgangService,
     private val auditlogger: Auditlogger,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
@@ -65,14 +67,20 @@ class SaksbehandlingEndringsmeldingTilgangController(
             ?.jwtTokenClaims
             ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
-        tilgangskontrollService.krevLesetilgangTilSøkerOgPleietrengende(forespørsel.søkerAktørId)
+        // Søknadene leses én gang, så tilgangssjekken og vurderingen gjelder de samme pleietrengende.
+        val søknader = innsendingService.hentSøknader(forespørsel.søkerAktørId)
+
+        tilgangskontrollService.krevLesetilgangTilSøkerOgPleietrengende(
+            søkerAktørId = forespørsel.søkerAktørId,
+            pleietrengendeAktørIder = søknader.map { it.pleietrengendeAktørId },
+        )
 
         auditLogg(innloggetIdent = navIdent, berørtBrukerIdent = forespørsel.søkerAktørId)
 
         return ResponseEntity.ok()
             // Utledet av søkerens saker, så det skal ikke mellomlagres.
             .cacheControl(CacheControl.noStore())
-            .body(endringsmeldingTilgangService.vurderTilgang(forespørsel.søkerAktørId))
+            .body(endringsmeldingTilgangService.vurderTilgang(forespørsel.søkerAktørId, søknader))
     }
 
     private fun auditLogg(innloggetIdent: String, berørtBrukerIdent: String) {

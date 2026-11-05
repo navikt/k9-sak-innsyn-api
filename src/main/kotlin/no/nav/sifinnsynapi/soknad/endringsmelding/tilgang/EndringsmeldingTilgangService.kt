@@ -6,6 +6,7 @@ import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.OrganisasjonOppslagDTO
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadDTO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,10 +38,13 @@ class EndringsmeldingTilgangService(
         hentArbeidsgivere = { oppslagsService.hentArbeidsgivere(fraOgMed = it.fom, tilOgMed = it.tom) },
     )
 
-    /** For saksbehandler. Kalleren har ansvar for at saksbehandleren har tilgang til søkeren. */
-    fun vurderTilgang(søkerAktørId: String): TilgangResultat = vurderTilgang(
+    /**
+     * For saksbehandler. Kalleren har ansvar for at saksbehandleren har tilgang til søkeren
+     * og alle pleietrengende i [søknader].
+     */
+    fun vurderTilgang(søkerAktørId: String, søknader: List<PsbSøknadDAO>): TilgangResultat = vurderTilgang(
         kaltAv = "saksbehandler",
-        søknader = innsendingService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId),
+        søknader = innsendingService.slåSammenSøknadsopplysningerPerBarn(søkerAktørId, søknader),
         hentArbeidsgivere = {
             oppslagsService.systemoppslagArbeidsgivere(
                 fødselsnummer = hentFødselsnummer(søkerAktørId),

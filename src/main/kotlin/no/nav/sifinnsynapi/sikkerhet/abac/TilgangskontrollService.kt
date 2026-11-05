@@ -5,7 +5,6 @@ import no.nav.sif.abac.kontrakt.abac.ResourceType
 import no.nav.sif.abac.kontrakt.abac.dto.OperasjonDto
 import no.nav.sif.abac.kontrakt.abac.dto.PersonerOperasjonDto
 import no.nav.sif.abac.kontrakt.person.AktørId
-import no.nav.sifinnsynapi.soknad.SøknadRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -16,20 +15,21 @@ import org.springframework.web.ErrorResponseException
 /**
  * Egen tilgangskontroll for saksbehandler, i tillegg til den k9-sak gjør.
  *
- * Pleietrengende i søkerens søknader sjekkes også, fordi svaret sier noe om sakene deres.
+ * Pleietrengende sjekkes også, fordi svaret sier noe om sakene deres. Kalleren sender inn pleietrengende
+ * fra de samme søknadene som vurderes, så en søknad som lagres underveis ikke slipper unna sjekken.
  * Bare et eksplisitt ja fra sif-abac-pdp gir tilgang. Avslag gir 403, feil gir 5xx.
  */
 @Service
 class TilgangskontrollService(
     private val sifAbacPdpService: SifAbacPdpService,
-    private val søknadRepository: SøknadRepository,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(TilgangskontrollService::class.java)
     }
 
-    fun krevLesetilgangTilSøkerOgPleietrengende(søkerAktørId: String) {
-        val aktørIder = (listOf(søkerAktørId) + søknadRepository.hentPleietrengendeAktørIder(søkerAktørId))
+    fun krevLesetilgangTilSøkerOgPleietrengende(søkerAktørId: String, pleietrengendeAktørIder: Collection<String>) {
+        val aktørIder = (listOf(søkerAktørId) + pleietrengendeAktørIder)
+            .distinct()
             .map { AktørId(it) }
 
         val beslutning = sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(

@@ -19,7 +19,8 @@ import no.nav.sif.abac.kontrakt.abac.resultat.Tilgangsbeslutning
 import no.nav.sifinnsynapi.sikkerhet.AuthorizationConfig
 import no.nav.sifinnsynapi.sikkerhet.abac.SifAbacPdpService
 import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
-import no.nav.sifinnsynapi.soknad.SøknadRepository
+import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_SAK
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
@@ -48,6 +49,16 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
         const val SØKER_AKTØR_ID = "1000000000002"
         const val PLEIETRENGENDE_AKTØR_ID = "1000000000003"
 
+        // To innsendinger for samme barn
+        val SØKNADER = listOf(søknadDAO("1"), søknadDAO("2"))
+
+        fun søknadDAO(journalpostId: String) = PsbSøknadDAO(
+            journalpostId = journalpostId,
+            søkerAktørId = SØKER_AKTØR_ID,
+            pleietrengendeAktørId = PLEIETRENGENDE_AKTØR_ID,
+            søknad = "{}",
+        )
+
         // Fra application-test.yml
         const val K9_SAK_CLIENT_ID = "k9-sak-client-id"
         const val ANNEN_PREAUTORISERT_CLIENT_ID = "sif-innsyn-api-client-id"
@@ -73,17 +84,17 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
     private lateinit var sifAbacPdpService: SifAbacPdpService
 
     @MockkBean
-    private lateinit var søknadRepository: SøknadRepository
+    private lateinit var innsendingService: InnsendingService
 
     @BeforeEach
     fun setUp() {
-        every { søknadRepository.hentPleietrengendeAktørIder(SØKER_AKTØR_ID) } returns listOf(PLEIETRENGENDE_AKTØR_ID)
+        every { innsendingService.hentSøknader(SØKER_AKTØR_ID) } returns SØKNADER
         every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns Tilgangsbeslutning(true, emptySet())
     }
 
     @Test
     fun `sif-abac-pdp får søker og pleietrengende med lesetilgang til fagsak`() {
-        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID) } returns
+        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) } returns
             TilgangResultat.ingenTilgang(listOf(HAR_INGEN_SAK))
 
         mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
@@ -97,6 +108,18 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
     }
 
     @Test
+    fun `tilgangssjekken og vurderingen bruker søknadene fra samme oppslag`() {
+        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) } returns
+            TilgangResultat.ingenTilgang(listOf(HAR_INGEN_SAK))
+
+        mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
+            .andExpect(status().isOk)
+
+        verify(exactly = 1) { innsendingService.hentSøknader(SØKER_AKTØR_ID) }
+        verify(exactly = 1) { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) }
+    }
+
+    @Test
     fun `avslag fra sif-abac-pdp gir 403 uten audit-logg eller vurdering`() {
         every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns
             Tilgangsbeslutning(false, setOf(ÅrsakIkkeTilgang.HAR_IKKE_TILGANG_ANNEN_GRUNN))
@@ -105,7 +128,7 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
             .andExpect(status().isForbidden)
 
         verify(exactly = 0) { auditlogger.logg(any()) }
-        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any(), any()) }
     }
 
     @Test
@@ -116,12 +139,12 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
             .andExpect(status().isInternalServerError)
 
         verify(exactly = 0) { auditlogger.logg(any()) }
-        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any(), any()) }
     }
 
     @Test
     fun `saksbehandler får vurderingen for søkeren, no-store og audit-logg`() {
-        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID) } returns
+        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) } returns
             TilgangResultat.ingenTilgang(listOf(HAR_INGEN_SAK))
 
         mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
@@ -140,7 +163,7 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
 
         verify(exactly = 0) { auditlogger.logg(any()) }
         verify(exactly = 0) { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) }
-        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any(), any()) }
     }
 
     @Test
@@ -148,7 +171,7 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
         mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID, claims = emptyMap())))
             .andExpect(status().isUnauthorized)
 
-        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any(), any()) }
     }
 
     @Test
@@ -169,7 +192,7 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
         )
             .andExpect(status().isBadRequest)
 
-        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any(), any()) }
     }
 
     private fun azureToken(azp: String, claims: Map<String, String> = mapOf("NAVident" to "Z999999")) =
