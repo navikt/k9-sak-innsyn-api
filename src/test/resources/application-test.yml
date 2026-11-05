@@ -5,6 +5,7 @@ no.nav:
     saf-selvbetjening-base-url: http://localhost:${wiremock.server.port}/saf-selvbetjening-graphql-mock
     sif-innsyn-api-base-url: http://localhost:${wiremock.server.port}/sif-innsyn-api-base-url-mock
     enhetsregister-base-url: http://localhost:${wiremock.server.port}/enhetsregister-mock
+    sif-abac-pdp: http://localhost:${wiremock.server.port}/sif-abac-pdp-mock
   security:
     k9-drift-gruppe: testdrift
     azure-pre-authorized-apps: '[{"name":"dev-fss:k9saksbehandling:k9-sak","clientId":"k9-sak-client-id"},{"name":"dev-gcp:dusseldorf:sif-innsyn-api","clientId":"sif-innsyn-api-client-id"}]'
@@ -33,6 +34,15 @@ no.nav:
             token-endpoint-url: http://localhost:${mock-oauth2-server.port}/oauth2/v2.0/token
             grant-type: client_credentials
             scope: api://dev-fss:dusseldorf:k9-selvbetjening-oppslag
+            authentication:
+              client-auth-method: private_key_jwt
+              client-id: dev-gcp:dusseldorf:k9-sak-innsyn-api
+              client-jwk: src/test/resources/private_jwk.json
+
+          azure-sif-abac-pdp:
+            token-endpoint-url: http://localhost:${mock-oauth2-server.port}/oauth2/v2.0/token
+            grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+            scope: api://dev-gcp.k9saksbehandling.sif-abac-pdp/.default
             authentication:
               client-auth-method: private_key_jwt
               client-id: dev-gcp:dusseldorf:k9-sak-innsyn-api

@@ -11,6 +11,12 @@ interface SøknadRepository : JpaRepository<PsbSøknadDAO, String> {
     fun findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String): List<PsbSøknadDAO>
     fun findAllBySøkerAktørIdAndPleietrengendeAktørIdOrderByOppdatertDatoAsc(søkerAktørId: String, pleietrengendeAktørId: String): List<PsbSøknadDAO>
 
+    @Query(
+        nativeQuery = true,
+        value = "SELECT DISTINCT pleietrengende_aktør_id FROM psb_søknad WHERE søker_aktør_id = ?1"
+    )
+    fun hentPleietrengendeAktørIder(søkerAktørId: String): List<String>
+
     /**
      * Oppdaterer Aktørid for søker (aktørsplitt/merge)
      * @param gyldigAktørId: Gyldig aktørid

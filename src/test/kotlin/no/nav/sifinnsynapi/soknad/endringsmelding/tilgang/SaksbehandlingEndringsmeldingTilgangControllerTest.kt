@@ -2,7 +2,9 @@ package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.slot
 import io.mockk.verify
+import no.nav.k9.felles.sikkerhet.abac.ÅrsakIkkeTilgang
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -10,10 +12,19 @@ import no.nav.sifinnsynapi.Routes.SAKSBEHANDLING_PSB_ENDRINGSMELDING_TILGANG
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
+import no.nav.sif.abac.kontrakt.abac.BeskyttetRessursActionAttributt
+import no.nav.sif.abac.kontrakt.abac.ResourceType
+import no.nav.sif.abac.kontrakt.abac.dto.PersonerOperasjonDto
+import no.nav.sif.abac.kontrakt.abac.resultat.Tilgangsbeslutning
 import no.nav.sifinnsynapi.sikkerhet.AuthorizationConfig
+import no.nav.sifinnsynapi.sikkerhet.abac.SifAbacPdpService
+import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
+import no.nav.sifinnsynapi.soknad.SøknadRepository
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_SAK
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -28,13 +39,14 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @EnableMockOAuth2Server
-@Import(CallIdGenerator::class, SecurityConfiguration::class, AuthorizationConfig::class)
+@Import(CallIdGenerator::class, SecurityConfiguration::class, AuthorizationConfig::class, TilgangskontrollService::class)
 @WebMvcTest(controllers = [SaksbehandlingEndringsmeldingTilgangController::class])
 @ActiveProfiles("test")
 class SaksbehandlingEndringsmeldingTilgangControllerTest {
 
     private companion object {
         const val SØKER_AKTØR_ID = "1000000000002"
+        const val PLEIETRENGENDE_AKTØR_ID = "1000000000003"
 
         // Fra application-test.yml
         const val K9_SAK_CLIENT_ID = "k9-sak-client-id"
@@ -57,6 +69,56 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
     @MockkBean(relaxed = true)
     private lateinit var auditlogger: Auditlogger
 
+    @MockkBean
+    private lateinit var sifAbacPdpService: SifAbacPdpService
+
+    @MockkBean
+    private lateinit var søknadRepository: SøknadRepository
+
+    @BeforeEach
+    fun setUp() {
+        every { søknadRepository.hentPleietrengendeAktørIder(SØKER_AKTØR_ID) } returns listOf(PLEIETRENGENDE_AKTØR_ID)
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns Tilgangsbeslutning(true, emptySet())
+    }
+
+    @Test
+    fun `sif-abac-pdp får søker og pleietrengende med lesetilgang til fagsak`() {
+        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID) } returns
+            TilgangResultat.ingenTilgang(listOf(HAR_INGEN_SAK))
+
+        mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
+            .andExpect(status().isOk)
+
+        val forespørsel = slot<PersonerOperasjonDto>()
+        verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
+        assertEquals(listOf(SØKER_AKTØR_ID, PLEIETRENGENDE_AKTØR_ID), forespørsel.captured.aktørIder().map { it.aktørId })
+        assertEquals(ResourceType.FAGSAK, forespørsel.captured.operasjon().resource())
+        assertEquals(BeskyttetRessursActionAttributt.READ, forespørsel.captured.operasjon().action())
+    }
+
+    @Test
+    fun `avslag fra sif-abac-pdp gir 403 uten audit-logg eller vurdering`() {
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns
+            Tilgangsbeslutning(false, setOf(ÅrsakIkkeTilgang.HAR_IKKE_TILGANG_ANNEN_GRUNN))
+
+        mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
+            .andExpect(status().isForbidden)
+
+        verify(exactly = 0) { auditlogger.logg(any()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+    }
+
+    @Test
+    fun `feil mot sif-abac-pdp gir 500 uten audit-logg eller vurdering`() {
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } throws IllegalStateException("nede")
+
+        mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
+            .andExpect(status().isInternalServerError)
+
+        verify(exactly = 0) { auditlogger.logg(any()) }
+        verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
+    }
+
     @Test
     fun `saksbehandler får vurderingen for søkeren, no-store og audit-logg`() {
         every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID) } returns
@@ -77,6 +139,7 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
             .andExpect(status().isForbidden)
 
         verify(exactly = 0) { auditlogger.logg(any()) }
+        verify(exactly = 0) { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) }
         verify(exactly = 0) { endringsmeldingTilgangService.vurderTilgang(any<String>()) }
     }
 

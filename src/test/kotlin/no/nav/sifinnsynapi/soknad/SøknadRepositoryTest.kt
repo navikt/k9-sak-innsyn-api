@@ -66,6 +66,15 @@ class SøknadRepositoryTest {
     }
 
     @Test
+    fun `henter hver pleietrengende én gang`() {
+        repository.save(lagSøknadDAO(journalpostId = "00000000001", pleietrengendeAktørId = "10987654321"))
+        repository.save(lagSøknadDAO(journalpostId = "00000000002", pleietrengendeAktørId = "10987654321"))
+        repository.save(lagSøknadDAO(journalpostId = "00000000003", pleietrengendeAktørId = "10987654322"))
+        assertk.assertThat(repository.hentPleietrengendeAktørIder("12345678910").toSet())
+            .isEqualTo(setOf("10987654321", "10987654322"))
+    }
+
+    @Test
     fun `oppdater aktørid`() {
         assertNotNull(repository.save(lagSøknadDAO()))
         assertk.assertThat(repository.oppdaterAktørIdForSøker("12345678911","12345678910"))

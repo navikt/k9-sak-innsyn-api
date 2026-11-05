@@ -45,6 +45,8 @@ spec:
         - application: k9-sak
           namespace: k9saksbehandling
           cluster: {{environment}}-fss
+        - application: sif-abac-pdp
+          namespace: k9saksbehandling
   liveness:
     path: /health/liveness
     initialDelay: 60

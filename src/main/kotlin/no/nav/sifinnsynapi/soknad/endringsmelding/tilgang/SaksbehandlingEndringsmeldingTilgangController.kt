@@ -15,6 +15,7 @@ import no.nav.sifinnsynapi.Routes.SAKSBEHANDLING_PSB_ENDRINGSMELDING_TILGANG
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.sikkerhet.AuthorizationService
+import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -30,8 +31,9 @@ import java.time.ZoneOffset
 /**
  * Lar saksbehandler se om søkeren kan bruke endringsmeldingen, med samme svar som søkeren får.
  *
- * Kalles av k9-sak med OBO-token. k9-sak har ansvar for at saksbehandleren har tilgang til søkeren (ABAC).
- * Derfor godtas bare kall fra k9-sak (azp), og oppslaget audit-logges med saksbehandlerens NAVident.
+ * Kalles av k9-sak med OBO-token. Bare kall fra k9-sak godtas (azp). I tillegg til k9-sak sin ABAC-sjekk
+ * spør vi selv sif-abac-pdp om saksbehandleren har tilgang til søkeren og pleietrengende.
+ * Oppslaget audit-logges med saksbehandlerens NAVident først når tilgangen er gitt.
  */
 @RestController
 @RequiredIssuers(
@@ -42,6 +44,7 @@ class SaksbehandlingEndringsmeldingTilgangController(
     private val auditlogger: Auditlogger,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
     private val authorizationService: AuthorizationService,
+    private val tilgangskontrollService: TilgangskontrollService,
 ) {
 
     @PostMapping(
@@ -61,6 +64,8 @@ class SaksbehandlingEndringsmeldingTilgangController(
             .firstValidToken
             ?.jwtTokenClaims
             ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+
+        tilgangskontrollService.krevLesetilgangTilSøkerOgPleietrengende(forespørsel.søkerAktørId)
 
         auditLogg(innloggetIdent = navIdent, berørtBrukerIdent = forespørsel.søkerAktørId)
 

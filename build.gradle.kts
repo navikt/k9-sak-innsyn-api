@@ -39,6 +39,7 @@ val orgJsonVersion = "20260814"
 val k9FellesVersion = "12.2.6"
 val k9FormidlingVersion = "10.1.15"
 val k9SakVersion = "7.5.0"
+val sifAbacKontraktVersion = "1.15.0"
 val openhtmltopdfVersion = "1.0.10"
 val handlebarsVersion = "4.5.5"
 
@@ -114,6 +115,9 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
     implementation("no.nav.k9.felles:k9-felles-log:$k9FellesVersion")
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
+
+    // Tilgangskontroll
+    implementation("no.nav.sif.abac:kontrakt:$sifAbacKontraktVersion")
 
     // Database
     runtimeOnly("org.postgresql:postgresql")
