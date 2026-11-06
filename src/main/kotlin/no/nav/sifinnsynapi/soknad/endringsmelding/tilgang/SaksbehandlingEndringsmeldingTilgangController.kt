@@ -54,7 +54,7 @@ class SaksbehandlingEndringsmeldingTilgangController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    fun hentTilgang(@Valid @RequestBody forespørsel: SaksbehandlingTilgangForespørsel): ResponseEntity<TilgangResultat> {
+    fun hentTilgang(@Valid @RequestBody forespørsel: SaksbehandlingTilgangForespørsel): ResponseEntity<SaksbehandlingTilgangResultat> {
         if (!authorizationService.kallErFraK9Sak()) {
             val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
             problemDetail.detail = "Endepunktet kan bare kalles fra k9-sak"
@@ -80,7 +80,7 @@ class SaksbehandlingEndringsmeldingTilgangController(
         return ResponseEntity.ok()
             // Utledet av søkerens saker, så det skal ikke mellomlagres.
             .cacheControl(CacheControl.noStore())
-            .body(endringsmeldingTilgangService.vurderTilgang(forespørsel.søkerAktørId, søknader))
+            .body(SaksbehandlingTilgangResultat.fra(endringsmeldingTilgangService.vurderTilgang(forespørsel.søkerAktørId, søknader)))
     }
 
     private fun auditLogg(innloggetIdent: String, berørtBrukerIdent: String) {
