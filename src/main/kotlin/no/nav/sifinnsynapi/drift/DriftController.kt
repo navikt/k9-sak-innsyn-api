@@ -52,6 +52,12 @@ class DriftController(
     )
     @ResponseStatus(OK)
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
+        if (!authorizationService.harTilgangTilDriftRolle()) {
+            val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
+            problemDetail.detail = "Mangler driftsrolle"
+            throw ErrorResponseException(HttpStatus.FORBIDDEN, problemDetail, null)
+        }
+
         val identTilInnloggetBruker: String = tokenValidationContextHolder
             .getTokenValidationContext()
             .firstValidToken

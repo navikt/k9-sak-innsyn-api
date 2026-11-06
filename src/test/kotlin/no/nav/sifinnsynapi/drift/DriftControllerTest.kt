@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.k9.søknad.Søknad
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -74,6 +75,13 @@ class DriftControllerTest {
         assertNotNull(mockOAuth2Server)
     }
 
+    // "testdrift" er drift-gruppen i application-test.yml
+    private fun driftToken() = mockOAuth2Server.issueToken(
+        issuerId = Issuers.AZURE,
+        audience = "aud-localhost",
+        claims = mapOf("NAVident" to "Z99481", "groups" to listOf("testdrift")),
+    ).serialize()
+
     private companion object {
         private const val debugSøknaderEndepunkt = "/debug$SØKNAD"
 
@@ -96,7 +104,7 @@ class DriftControllerTest {
         val errorResponse =
             """{"type":"/problem-details/internal-server-error","title":"Et uventet feil har oppstått","status":500,"detail":"Ooops, noe gikk galt...","instance":"http://localhost/debug/soknad"}""".trimIndent()
 
-        val token = mockOAuth2Server.hentToken(issuerId = "azure", claims = mapOf("NAVident" to "Z99481")).serialize()
+        val token = driftToken()
 
         val result = mockMvc.perform(
             MockMvcRequestBuilders
@@ -131,7 +139,7 @@ class DriftControllerTest {
             .returns(listOf(HentIdenterRespons(ident = "123", identer = listOf(Ident("321", IdentGruppe.AKTORID)))))
             .andThen(listOf(HentIdenterRespons(ident = "456", identer = listOf(Ident("654", IdentGruppe.AKTORID)))))
 
-        val token = mockOAuth2Server.hentToken(issuerId = "azure", claims = mapOf("NAVident" to "Z99481")).serialize()
+        val token = driftToken()
 
         mockMvc.perform(
             MockMvcRequestBuilders
@@ -146,6 +154,28 @@ class DriftControllerTest {
             .andExpect(jsonPath("$[0].pleietrengendeAktørId").isString)
             .andExpect(jsonPath("$[0].søknad").isMap)
             .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
+    }
+
+    @Test
+    fun `token uten drift-gruppe gir 403 uten oppslag eller audit-logg`() {
+        val token = mockOAuth2Server.issueToken(
+            issuerId = Issuers.AZURE,
+            audience = "aud-localhost",
+            claims = mapOf("NAVident" to "Z99481", "groups" to listOf("annen-gruppe")),
+        ).serialize()
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .post(debugSøknaderEndepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .content(payload)
+        )
+            .andExpect(status().isForbidden)
+
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
     }
 
     @Test
