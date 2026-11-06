@@ -22,7 +22,6 @@ import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
 import no.nav.sifinnsynapi.soknad.InnsendingService
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_SAK
-import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.periode
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -152,20 +151,9 @@ class SaksbehandlingEndringsmeldingTilgangControllerTest {
             .andExpect(status().isOk)
             .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
             //language=json
-            .andExpect(content().json("""{ "kanBruke": false, "tekst": "Nei, søkeren har ingen sak" }""", true))
+            .andExpect(content().json("""{ "kanBruke": false, "årsaker": ["harIngenSak"], "tillattEndringsperiode": null }""", true))
 
         verify(exactly = 1) { auditlogger.logg(any()) }
-    }
-
-    @Test
-    fun `saksbehandler får ja-tekst når søkeren kan bruke endringsmeldingen`() {
-        every { endringsmeldingTilgangService.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) } returns
-            TilgangResultat.tilgang(periode("2023-12-01/2025-03-31"))
-
-        mockMvc.perform(kall(azureToken(azp = K9_SAK_CLIENT_ID)))
-            .andExpect(status().isOk)
-            //language=json
-            .andExpect(content().json("""{ "kanBruke": true, "tekst": "Ja, har tilgang" }""", true))
     }
 
     @Test

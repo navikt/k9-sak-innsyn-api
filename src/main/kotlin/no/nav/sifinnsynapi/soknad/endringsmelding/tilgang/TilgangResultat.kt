@@ -35,28 +35,13 @@ data class TilgangResultat(
     }
 }
 
-/**
- * [saksbehandlerTekst] vises for saksbehandleren i k9-sak-web. Søkeren får egne tekster i endringsmeldingen.
- */
-enum class IngenTilgangÅrsak(@get:JsonValue val kode: String, val saksbehandlerTekst: String) {
-    HAR_INGEN_SAK("harIngenSak", "Nei, søkeren har ingen sak"),
-    SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE(
-        "søknadsperioderUtenforTillattEndringsperiode",
-        "Nei, søknadsperiodene er utenfor perioden som kan endres",
-    ),
-    HAR_MER_ENN_EN_SAK("harMerEnnEnSak", "Nei, søkeren har mer enn én sak"),
-    HAR_INGEN_PERIODER("harIngenPerioder", "Nei, søkeren har ingen søknadsperioder"),
-    BARN_MANGLER_IDENTITETSNUMMER("barnManglerIdentitetsnummer", "Nei, barnet mangler identitetsnummer"),
-    HAR_ARBEIDSTID_SOM_SELVSTENDIG_NÆRINGSDRIVENDE(
-        "harArbeidstidSomSelvstendigNæringsdrivende",
-        "Nei, søkeren har arbeidstid som selvstendig næringsdrivende",
-    ),
-    EN_ARBEIDSGIVER_TO_ANSETTELSER_SAMME_UKE_MED_OPPHOLD(
-        "enArbeidsgiverToAnsettelserSammeUkeMedOpphold",
-        "Nei, to ansettelser hos samme arbeidsgiver i samme uke, med opphold",
-    ),
-    HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER(
-        "harFlereAnsettelsesforholdHosUkjentArbeidsgiver",
-        "Nei, flere ansettelsesforhold hos ukjent arbeidsgiver",
-    ),
+enum class IngenTilgangÅrsak(@get:JsonValue val kode: String) {
+    HAR_INGEN_SAK("harIngenSak"),
+    SØKNADSPERIODER_UTENFOR_TILLATT_ENDRINGSPERIODE("søknadsperioderUtenforTillattEndringsperiode"),
+    HAR_MER_ENN_EN_SAK("harMerEnnEnSak"),
+    HAR_INGEN_PERIODER("harIngenPerioder"),
+    BARN_MANGLER_IDENTITETSNUMMER("barnManglerIdentitetsnummer"),
+    HAR_ARBEIDSTID_SOM_SELVSTENDIG_NÆRINGSDRIVENDE("harArbeidstidSomSelvstendigNæringsdrivende"),
+    EN_ARBEIDSGIVER_TO_ANSETTELSER_SAMME_UKE_MED_OPPHOLD("enArbeidsgiverToAnsettelserSammeUkeMedOpphold"),
+    HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER("harFlereAnsettelsesforholdHosUkjentArbeidsgiver"),
 }
