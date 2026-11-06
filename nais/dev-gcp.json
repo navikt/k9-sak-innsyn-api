@@ -17,6 +17,10 @@
       {
         "name": "0000-GA-k9-drift",
         "objectId": "0bc9661c-975c-4adb-86d1-a97172490662"
+      },
+      {
+        "name": "0000-GA-k9-saksbehandler",
+        "objectId": "93e8903d-5c3f-4cbe-929e-0afeb22dec73"
       }
     ]
   },
@@ -27,6 +31,11 @@
     "ereg-services-q2.dev-fss-pub.nais.io"
   ],
   "inboundRules": [
+    {
+      "app": "k9-sak",
+      "namespace": "k9saksbehandling",
+      "cluster": "dev-fss"
+    },
     {
       "app": "sif-demo-app",
       "namespace": "dusseldorf",
@@ -100,9 +109,13 @@
 
     "NO_NAV_GATEWAYS_ENHETSREGISTER_BASE_URL": "https://ereg-services-q2.dev-fss-pub.nais.io",
 
+    "NO_NAV_GATEWAYS_SIF_ABAC_PDP": "http://sif-abac-pdp.k9saksbehandling/sif/sif-abac-pdp/api",
+    "SIF_ABAC_PDP_AZURE_SCOPE": "api://dev-gcp.k9saksbehandling.sif-abac-pdp/.default",
+
     "SWAGGER_ENABLED": "true",
     "AZURE_LOGIN_URL": "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/v2.0",
-    "K9_DRIFT_GRUPPE_ID": "0bc9661c-975c-4adb-86d1-a97172490662"
+    "K9_DRIFT_GRUPPE_ID": "0bc9661c-975c-4adb-86d1-a97172490662",
+    "K9_SAK_AZURE_APP_NAVN": "dev-fss:k9saksbehandling:k9-sak"
   },
   "slack-channel": "sif-alerts-dev",
   "slack-notify-type": "<!here> | k9-sak-innsyn-api | ",

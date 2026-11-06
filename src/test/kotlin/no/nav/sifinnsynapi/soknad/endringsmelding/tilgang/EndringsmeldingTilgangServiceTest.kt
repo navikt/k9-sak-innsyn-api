@@ -4,10 +4,14 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
+import no.nav.sifinnsynapi.oppslag.HentIdenterRespons
+import no.nav.sifinnsynapi.oppslag.Ident
+import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.oppslag.OrganisasjonOppslagDTO
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.TilgangTestUtils.periode
 import no.nav.sifinnsynapi.soknad.InnsendingService
+import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
 import no.nav.sifinnsynapi.soknad.SøknadDTO
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_FLERE_ANSETTELSESFORHOLD_HOS_UKJENT_ARBEIDSGIVER
 import no.nav.sifinnsynapi.soknad.endringsmelding.tilgang.IngenTilgangÅrsak.HAR_INGEN_SAK
@@ -27,6 +31,11 @@ class EndringsmeldingTilgangServiceTest {
 
     private companion object {
         val OSLO_ZONE_ID: ZoneId = ZoneId.of("Europe/Oslo")
+        const val SØKER_AKTØR_ID = "1000000000002"
+        const val SØKER_FNR = "12345678910"
+        val SØKNADER = listOf(
+            PsbSøknadDAO(journalpostId = "1", søkerAktørId = SØKER_AKTØR_ID, pleietrengendeAktørId = "1000000000001", søknad = "{}")
+        )
     }
 
     private val innsendingService = mockk<InnsendingService>()
@@ -95,6 +104,35 @@ class EndringsmeldingTilgangServiceTest {
             IllegalStateException("Feil ved henting av arbeidsgivere")
 
         assertThrows<IllegalStateException> { service.vurderTilgang() }
+    }
+
+    @Test
+    fun `saksbehandler får vurdert søkeren med fødselsnummer fra identoppslaget og systemoppslag av arbeidsgivere`() {
+        every { innsendingService.slåSammenSøknadsopplysningerPerBarn(SØKER_AKTØR_ID, SØKNADER) } returns
+            listOf(innsynSøknad("2023-06-01/2024-01-31"))
+        every { oppslagsService.hentIdenter(any()) } returns
+            listOf(HentIdenterRespons(SØKER_AKTØR_ID, listOf(Ident(SØKER_FNR, IdentGruppe.FOLKEREGISTERIDENT))))
+        every { oppslagsService.systemoppslagArbeidsgivere(any(), any(), any()) } returns arbeidsgivere()
+
+        assertEquals(TilgangResultat.tilgang(endringsperiode), service.vurderTilgang(SØKER_AKTØR_ID, SØKNADER))
+        verify {
+            oppslagsService.systemoppslagArbeidsgivere(
+                fødselsnummer = SØKER_FNR,
+                fraOgMed = LocalDate.parse("2023-12-01"),
+                tilOgMed = LocalDate.parse("2024-01-31"),
+            )
+        }
+        verify(exactly = 0) { oppslagsService.hentArbeidsgivere(any(), any()) }
+    }
+
+    @Test
+    fun `saksbehandler får exception og ikke tilgang når fødselsnummeret mangler`() {
+        every { innsendingService.slåSammenSøknadsopplysningerPerBarn(SØKER_AKTØR_ID, SØKNADER) } returns
+            listOf(innsynSøknad("2024-01-01/2024-01-31"))
+        every { oppslagsService.hentIdenter(any()) } returns listOf(HentIdenterRespons(SØKER_AKTØR_ID, emptyList()))
+
+        assertThrows<IllegalStateException> { service.vurderTilgang(SØKER_AKTØR_ID, SØKNADER) }
+        verify(exactly = 0) { oppslagsService.systemoppslagArbeidsgivere(any(), any(), any()) }
     }
 
     private fun innsynSøknad(søknadsperiode: String) = SøknadDTO(

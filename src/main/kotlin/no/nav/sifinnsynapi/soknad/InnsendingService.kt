@@ -52,9 +52,22 @@ class InnsendingService(
             (oppslagsService.hentSøker()
                 ?: throw IllegalStateException("Feilet med å hente søkers aktørId.")).aktørId
 
+        return slåSammenSøknadsopplysningerPerBarn(søkersAktørId, hentSøknader(søkersAktørId))
+    }
+
+    fun hentSøknader(søkersAktørId: String): List<PsbSøknadDAO> =
+        søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
+
+    /**
+     * For saksbehandling, der søkeren ikke er innlogget. Kalleren har ansvar for tilgangskontrollen,
+     * og må sjekke pleietrengende i de samme [søknader] som sendes inn hit.
+     */
+    @Transactional(readOnly = true)
+    fun slåSammenSøknadsopplysningerPerBarn(søkersAktørId: String, søknader: List<PsbSøknadDAO>): List<SøknadDTO> {
+        require(søknader.all { it.søkerAktørId == søkersAktørId }) { "Søknadene tilhører ikke søkeren." }
+
         val søknaderPerPleietrengende: Map<String, List<PsbSøknadDAO>> =
-            søknadRepository.findAllBySøkerAktørIdOrderByOppdatertDatoAsc(søkersAktørId)
-                .groupBy { it.pleietrengendeAktørId }
+            søknader.groupBy { it.pleietrengendeAktørId }
 
         val allePleietrengendeAktørIder = søknaderPerPleietrengende.keys.toList()
 
