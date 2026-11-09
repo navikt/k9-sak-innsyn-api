@@ -3,6 +3,7 @@ package no.nav.sifinnsynapi
 object Routes{
     const val SØKNAD = "/soknad"
     const val PSB_ENDRINGSMELDING_TILGANG = "/psb/endringsmelding/tilgang"
+    const val SAKSBEHANDLING_PSB_ENDRINGSMELDING_TILGANG = "/saksbehandling$PSB_ENDRINGSMELDING_TILGANG"
     const val SAKER = "/saker"
     const val SAK = "/sak"
     const val SAKER_METADATA = "$SAKER/metadata"

@@ -68,6 +68,10 @@ class OppslagsService(
             .fromUriString("/system/hent-barn")
             .build()
 
+        val systemArbeidsgivereUrl = UriComponentsBuilder
+            .fromUriString("/system/hent-arbeidsgivere")
+            .build()
+
         val arbeidsgivereUrl = UriComponentsBuilder
             .fromUriString("/meg")
             .queryParam(
@@ -256,6 +260,54 @@ class OppslagsService(
         throw IllegalStateException("Feil ved henting av arbeidsgivere.")
     }
 
+    /**
+     * Som [hentArbeidsgivere], men for en oppgitt person og med Azure-token. Brukes fra saksbehandling.
+     * Samme feilhåndtering: alle feil gir unntak og aldri tom liste.
+     */
+    @Retryable(
+        recover = "recoverSystemoppslagArbeidsgivere",
+        exclude = [HttpClientErrorException.Unauthorized::class, HttpClientErrorException.Forbidden::class],
+        backoff = Backoff(
+            delayExpression = "\${spring.rest.retry.initialDelay}",
+            multiplierExpression = "\${spring.rest.retry.multiplier}",
+            maxDelayExpression = "\${spring.rest.retry.maxDelay}"
+        ),
+        maxAttemptsExpression = "\${spring.rest.retry.maxAttempts}"
+    )
+    fun systemoppslagArbeidsgivere(
+        fødselsnummer: String,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
+    ): List<OrganisasjonOppslagDTO> {
+        logger.info("Slår opp arbeidsgivere ved systemoppslag...")
+        val exchange = oppslagsKlient.postForEntity(
+            systemArbeidsgivereUrl.toUriString(),
+            HentArbeidsgivereForespørsel(
+                ident = fødselsnummer,
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+                inkluderAlleAnsettelsesperioder = true,
+            ),
+            ArbeidsgivereOppslagResponsDTO::class.java
+        )
+        logger.info("Fikk response {} for systemoppslag av arbeidsgivere.", exchange.statusCode)
+
+        return checkNotNull(exchange.body?.arbeidsgivere?.organisasjoner) { "Tomt svar ved systemoppslag av arbeidsgivere." }
+    }
+
+    // Ikke responsbody, den kan inneholde personopplysninger.
+    @Recover
+    private fun recoverSystemoppslagArbeidsgivere(error: HttpStatusCodeException): List<OrganisasjonOppslagDTO> {
+        logger.error("Feil ved systemoppslag av arbeidsgivere. Status {} fra '{}'.", error.statusCode, systemArbeidsgivereUrl.path)
+        throw IllegalStateException("Feil ved systemoppslag av arbeidsgivere.")
+    }
+
+    @Recover
+    private fun recoverSystemoppslagArbeidsgivere(error: Exception): List<OrganisasjonOppslagDTO> {
+        logger.error("Feil ved systemoppslag av arbeidsgivere ({}) fra '{}'.", error::class.simpleName, systemArbeidsgivereUrl.path)
+        throw IllegalStateException("Feil ved systemoppslag av arbeidsgivere.")
+    }
+
     override fun health(): Mono<Health> {
         return try {
             oppslagsKlient.exchange("/isalive", HttpMethod.GET, null, String::class.java)
@@ -284,6 +336,15 @@ data class HentIdenterForespørsel(
 data class HentBarnForespørsel(
     val identer: List<String>,
 )
+
+data class HentArbeidsgivereForespørsel(
+    val ident: String,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val inkluderAlleAnsettelsesperioder: Boolean,
+) {
+    override fun toString() = "HentArbeidsgivereForespørsel(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
+}
 
 data class HentIdenterRespons(
     val ident: String,
