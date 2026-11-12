@@ -2,6 +2,9 @@ package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
+import no.nav.sifinnsynapi.legacy.legacyinnsynapi.utils.PSBJsonUtils
+import no.nav.sifinnsynapi.util.personIdent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -22,7 +25,8 @@ import java.util.*
     noRetryFor = [
         HttpClientErrorException.Unauthorized::class,
         HttpClientErrorException.Forbidden::class,
-        HttpClientErrorException.NotFound::class],
+        HttpClientErrorException.NotFound::class,
+        LegacySøknadNotFoundException::class],
     backoff = Backoff(
         delayExpression = "\${spring.rest.retry.initialDelay}",
         multiplierExpression = "\${spring.rest.retry.multiplier}",
@@ -35,6 +39,7 @@ class LegacyInnsynApiService(
     private val sifInnsynClient: RestTemplate,
     private val legacySøknadRepository: LegacySøknadRepository,
     private val objectMapper: ObjectMapper,
+    private val tokenValidationContextHolder: SpringTokenValidationContextHolder,
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(LegacyInnsynApiService::class.java)
@@ -44,21 +49,27 @@ class LegacyInnsynApiService(
             .build()
             .toUriString()
 
-        val søknadOpplysningerOppslafFeil = IllegalStateException("Feilet med henting av søknad fra sif-innsyn-api.")
+        val søknadOpplysningerOppslagFeil = IllegalStateException("Feilet med henting av søknad fra sif-innsyn-api.")
     }
 
-    fun hentLegacySøknad(søknadId: String): LegacySøknadDTO {
-        // Sjekk om søknaden finnes i databasen først
-        val cachedSøknad = legacySøknadRepository.findById(søknadId)
-        if (cachedSøknad.isPresent) {
+    fun hentLegacySøknad(søknadId: String): LegacySøknadDTO =
+        hentLegacySøknad(søknadId, tokenValidationContextHolder.personIdent())
+
+    private fun hentLegacySøknad(søknadId: String, fødselsnummer: String): LegacySøknadDTO {
+        val cachedSøknad = legacySøknadRepository.finnForSøknadIdOgFødselsnummer(søknadId, fødselsnummer)
+        if (cachedSøknad != null) {
             logger.info("Fant søknad med id=$søknadId i databasen, returnerer cached versjon")
-            return cachedSøknad.get().toDTO(objectMapper)
+            return cachedSøknad.toDTO(objectMapper)
         }
 
         val responseEntity = hentLegacySøknadViaRest(søknadId)
 
         return if (responseEntity.statusCode.is2xxSuccessful) {
             val søknadDTO = responseEntity.body!!
+            if (søknadDTO.søkersFødselsnummer() != fødselsnummer) {
+                logger.warn("Søknad med id=$søknadId tilhører ikke innlogget bruker")
+                throw LegacySøknadNotFoundException(søknadId)
+            }
             lagreSøknad(søknadDTO, søknadId)
             søknadDTO
         } else {
@@ -73,7 +84,11 @@ class LegacyInnsynApiService(
 
     fun hentLegacySøknader(søknadsIder: List<String>): List<LegacySøknadDTO> {
         logger.info("Henter ${søknadsIder.size} legacy søknader for søknadsIder: {}", søknadsIder)
-        val legacySøknaderFraDatabasen = legacySøknadRepository.findAllById(søknadsIder).map { it.toDTO(objectMapper) }
+        if (søknadsIder.isEmpty()) return listOf()
+        val fødselsnummer = tokenValidationContextHolder.personIdent()
+        val legacySøknaderFraDatabasen = legacySøknadRepository
+            .finnAlleForSøknadIderOgFødselsnummer(søknadsIder, fødselsnummer)
+            .map { it.toDTO(objectMapper) }
 
         // Diff mellom søknadsIder og de som finnes i databasen
         val eksisterendeIder = legacySøknaderFraDatabasen.map { it.søknadId.toString() }
@@ -82,7 +97,7 @@ class LegacyInnsynApiService(
         val legacySøknaderFraRest: List<LegacySøknadDTO> = if (manglendeIderFraDatabasen.isNotEmpty()) {
             logger.info("Mangler ${manglendeIderFraDatabasen.size} søknader i databasen, henter disse fra sif-innsyn-api")
             manglendeIderFraDatabasen.mapNotNull { søknadId ->
-                runCatching { hentLegacySøknad(søknadId) }.getOrNull()
+                runCatching { hentLegacySøknad(søknadId, fødselsnummer) }.getOrNull()
             }
         } else {
             listOf()
@@ -123,13 +138,18 @@ class LegacyInnsynApiService(
     }
 
     @Recover
+    private fun recover(error: LegacySøknadNotFoundException, søknadId: String): LegacySøknadDTO {
+        throw error
+    }
+
+    @Recover
     private fun recover(error: HttpServerErrorException, søknadId: String): LegacySøknadDTO {
         logger.warn(
             "Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}",
             error.responseBodyAsString,
             error
         )
-        throw søknadOpplysningerOppslafFeil
+        throw søknadOpplysningerOppslagFeil
     }
 
     @Recover
@@ -139,9 +159,12 @@ class LegacyInnsynApiService(
             error.responseBodyAsString,
             error
         )
-        throw søknadOpplysningerOppslafFeil
+        throw søknadOpplysningerOppslagFeil
     }
 }
+
+private fun LegacySøknadDTO.søkersFødselsnummer(): String? =
+    (søknad[PSBJsonUtils.SØKER] as? Map<*, *>)?.get(PSBJsonUtils.FØDSELSNUMMER) as? String
 
 fun LegacySøknadDAO.toDTO(objectMapper: ObjectMapper): LegacySøknadDTO {
     return LegacySøknadDTO(
