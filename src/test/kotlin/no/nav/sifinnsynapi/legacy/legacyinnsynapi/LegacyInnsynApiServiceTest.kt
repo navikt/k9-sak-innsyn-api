@@ -52,8 +52,8 @@ class LegacyInnsynApiServiceTest {
 
     companion object {
         const val sifInnsynApiMockUrl = "sif-innsyn-api-base-url-mock"
-        const val innloggetFnr = "02119970078"
-        const val annenFnr = "23500180528"
+        const val innloggetFnr = "01015450572"
+        const val annenFnr = "01010000382"
     }
 
     @TestConfiguration
