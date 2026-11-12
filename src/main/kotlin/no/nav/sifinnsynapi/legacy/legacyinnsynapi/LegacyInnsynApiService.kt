@@ -143,6 +143,11 @@ class LegacyInnsynApiService(
     }
 
     @Recover
+    private fun recover(error: HttpClientErrorException.NotFound, søknadId: String): LegacySøknadDTO {
+        throw LegacySøknadNotFoundException(søknadId)
+    }
+
+    @Recover
     private fun recover(error: HttpServerErrorException, søknadId: String): LegacySøknadDTO {
         logger.warn(
             "Kall for å hente søknad med id=$søknadId fra $søknadUrl feilet. Response body: {}",
