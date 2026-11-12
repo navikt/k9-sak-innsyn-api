@@ -76,7 +76,7 @@ class LegacyInnsynApiServiceTest {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, ArgumentMatchers.anyString())
                 .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
-                .rootUri(sifInnsynApiBaseUrl)
+                .baseUri(sifInnsynApiBaseUrl)
                 .build()
         }
     }
