@@ -1,11 +1,22 @@
 package no.nav.sifinnsynapi.legacy.legacyinnsynapi
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.security.token.support.spring.validation.interceptor.BearerTokenClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.http.MDCValuesPropagatingClientHttpRequestInterceptor
 import no.nav.sifinnsynapi.util.Constants
+import no.nav.sifinnsynapi.util.personIdent
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -36,8 +47,13 @@ class LegacyInnsynApiServiceTest {
     @Autowired
     lateinit var legacyInnsynApiService: LegacyInnsynApiService
 
+    @Autowired
+    lateinit var legacySøknadRepository: LegacySøknadRepository
+
     companion object {
         const val sifInnsynApiMockUrl = "sif-innsyn-api-base-url-mock"
+        const val innloggetFnr = "01015450572"
+        const val annenFnr = "01010000382"
     }
 
     @TestConfiguration
@@ -60,9 +76,111 @@ class LegacyInnsynApiServiceTest {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, ArgumentMatchers.anyString())
                 .defaultHeader("X-K9-Ytelse", "PLEIEPENGER_SYKT_BARN")
-                .rootUri(sifInnsynApiBaseUrl)
+                .baseUri(sifInnsynApiBaseUrl)
                 .build()
         }
+    }
+
+    @BeforeEach
+    fun setUp() {
+        legacySøknadRepository.deleteAll()
+        mockkStatic("no.nav.sifinnsynapi.util.TokenUtilsKt")
+        every { any<SpringTokenValidationContextHolder>().personIdent() } returns innloggetFnr
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkStatic("no.nav.sifinnsynapi.util.TokenUtilsKt")
+    }
+
+    @Test
+    fun `Gitt cachet søknad som tilhører innlogget bruker, forvent at den returneres uten restkall`() {
+        val søknadId = UUID.randomUUID()
+        legacySøknadRepository.save(legacySøknadDAO(søknadId, innloggetFnr))
+
+        val søknad = legacyInnsynApiService.hentLegacySøknad(søknadId.toString())
+
+        assertEquals(søknadId, søknad.søknadId)
+        WireMock.verify(0, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
+    }
+
+    @Test
+    fun `Gitt cachet søknad som tilhører annen bruker, forvent LegacySøknadNotFoundException`() {
+        val søknadId = UUID.randomUUID()
+        legacySøknadRepository.save(legacySøknadDAO(søknadId, annenFnr))
+        stubSøknad(søknadId, annenFnr)
+
+        assertThrows<LegacySøknadNotFoundException> { legacyInnsynApiService.hentLegacySøknad(søknadId.toString()) }
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
+    }
+
+    @Test
+    fun `Gitt søknad fra sif-innsyn-api som tilhører annen bruker, forvent LegacySøknadNotFoundException og ingen lagring`() {
+        val søknadId = UUID.randomUUID()
+        stubSøknad(søknadId, annenFnr)
+
+        assertThrows<LegacySøknadNotFoundException> { legacyInnsynApiService.hentLegacySøknad(søknadId.toString()) }
+        assertFalse(legacySøknadRepository.existsById(søknadId.toString()))
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId")))
+    }
+
+    @Test
+    fun `Gitt søknad fra sif-innsyn-api som tilhører innlogget bruker, forvent at den returneres og lagres`() {
+        val søknadId = UUID.randomUUID()
+        stubSøknad(søknadId, innloggetFnr)
+
+        val søknad = legacyInnsynApiService.hentLegacySøknad(søknadId.toString())
+
+        assertEquals(søknadId, søknad.søknadId)
+        assertNotNull(legacySøknadRepository.finnForSøknadIdOgFødselsnummer(søknadId.toString(), innloggetFnr))
+    }
+
+    @Test
+    fun `Gitt flere cachede søknader, forvent at kun innlogget brukers søknader returneres`() {
+        val egenSøknadId = UUID.randomUUID()
+        val fremmedSøknadId = UUID.randomUUID()
+        legacySøknadRepository.save(legacySøknadDAO(egenSøknadId, innloggetFnr))
+        legacySøknadRepository.save(legacySøknadDAO(fremmedSøknadId, annenFnr))
+        stubSøknad(fremmedSøknadId, annenFnr)
+
+        val søknader = legacyInnsynApiService.hentLegacySøknader(listOf(egenSøknadId.toString(), fremmedSøknadId.toString()))
+
+        assertEquals(listOf(egenSøknadId), søknader.map { it.søknadId })
+    }
+
+    private fun søknadJson(fnr: String) =
+        //language=json
+        """{"søker": {"fødselsnummer": "$fnr", "fornavn": "Ola", "etternavn": "Nordmann"}}"""
+
+    private fun legacySøknadDAO(søknadId: UUID, fnr: String) = LegacySøknadDAO(
+        søknadId = søknadId.toString(),
+        søknadstype = LegacySøknadstype.PP_SYKT_BARN.name,
+        søknad = søknadJson(fnr),
+        saksId = null,
+        journalpostId = "123456789"
+    )
+
+    private fun stubSøknad(søknadId: UUID, fnr: String) {
+        WireMock.stubFor(
+            WireMock.get(WireMock.urlEqualTo("/$sifInnsynApiMockUrl/soknad/$søknadId"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            //language=json
+                            """
+                            {
+                              "søknadId": "$søknadId",
+                              "søknadstype": "PP_SYKT_BARN",
+                              "søknad": ${søknadJson(fnr)},
+                              "saksId": null,
+                              "journalpostId": "123456789"
+                            }
+                            """.trimIndent()
+                        )
+                )
+        )
     }
 
     @Test
