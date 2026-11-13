@@ -3,7 +3,6 @@ package no.nav.sifinnsynapi.drift
 import no.nav.k9.innsyn.Søknadsammenslåer
 import no.nav.k9.søknad.Søknad
 import no.nav.sifinnsynapi.omsorg.OmsorgRepository
-import no.nav.sifinnsynapi.omsorg.OmsorgService
 import no.nav.sifinnsynapi.sak.behandling.BehandlingRepository
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.soknad.PsbSøknadDAO
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DriftService(
     private val søknadRepository: SøknadRepository,
-    private val omsorgService: OmsorgService,
     private val behandlingRepository: BehandlingRepository,
     private val omsorgRepository: OmsorgRepository,
 
@@ -33,7 +31,6 @@ class DriftService(
         pleietrengendeAktørIder: List<String>,
         ekskluderteSøknadIder: List<String> = emptyList(),
     ): List<DebugDTO> {
-        val pleietrengendeAktørIder = omsorgService.hentPleietrengendeSøkerHarOmsorgFor(søkerAktørId)
         if (pleietrengendeAktørIder.isEmpty()) return listOf()
 
         return pleietrengendeAktørIder

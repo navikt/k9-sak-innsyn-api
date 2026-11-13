@@ -14,6 +14,7 @@ import no.nav.sifinnsynapi.oppslag.HentIdenterForespørsel
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
 import no.nav.sifinnsynapi.sikkerhet.AuthorizationService
+import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -38,8 +39,8 @@ class DriftController(
     private val auditlogger: Auditlogger,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
     private val oppslagsService: OppslagsService,
-    private val authorizationService: AuthorizationService
-
+    private val authorizationService: AuthorizationService,
+    private val tilgangskontrollService: TilgangskontrollService,
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
@@ -65,7 +66,13 @@ class DriftController(
             ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
         val søkerAktørId = hentAktørId(debugForespørsel.søkerNorskIdentitetsnummer)
-        val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }
+        val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }.distinct()
+
+        // sif-abac-pdp avslår blant annet kode 6/7 og egen ansatt. Feil mot sif-abac-pdp gir også avslag.
+        tilgangskontrollService.krevLesetilgangTilSøkerOgPleietrengende(
+            søkerAktørId = søkerAktørId,
+            pleietrengendeAktørIder = pleietrengendeAktørIder,
+        )
 
         auditLogg(
             uri = "/debug$SØKNAD",
@@ -108,6 +115,12 @@ class DriftController(
             .firstValidToken
             ?.jwtTokenClaims
             ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+
+        // Begge aktørene sjekkes, så et bytte ikke kan flytte data fra eller til en person saksbehandleren ikke har tilgang til.
+        tilgangskontrollService.krevLesetilgangTilSøkerOgPleietrengende(
+            søkerAktørId = aktørBytteRequest.gyldigAktør,
+            pleietrengendeAktørIder = listOf(aktørBytteRequest.utgåttAktør),
+        )
 
         val antallOppdaterte = driftService.oppdaterAktørId(
             aktørBytteRequest.gyldigAktør,
