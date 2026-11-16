@@ -5,6 +5,7 @@ import io.mockk.every
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes
+import no.nav.sifinnsynapi.config.Issuers
 import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
@@ -77,6 +78,34 @@ internal class DokumentControllerTest {
                 MockMvcResultMatchers.header()
                     .string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$forventetFilnavn")
             )
+    }
+
+    @Test
+    fun `hent dokument med tokenx-token uten påkrevd acr-nivå, forvent 401`() {
+        val token = mockOAuth2Server.hentToken(claims = mapOf("acr" to "Level3")).serialize()
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get("${Routes.DOKUMENT}/{journalpostId}/{dokumentinfoId}/{variant}", "123456789", "987654321", "ARKIV")
+                .queryParam("dokumentTittel", "dokument.pdf")
+                .accept(MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `hent dokument med azure-token, forvent 401`() {
+        val token = mockOAuth2Server.hentToken(issuerId = Issuers.AZURE).serialize()
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get("${Routes.DOKUMENT}/{journalpostId}/{dokumentinfoId}/{variant}", "123456789", "987654321", "ARKIV")
+                .queryParam("dokumentTittel", "dokument.pdf")
+                .accept(MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+        )
+            .andExpect(status().isUnauthorized)
     }
 
     @Test

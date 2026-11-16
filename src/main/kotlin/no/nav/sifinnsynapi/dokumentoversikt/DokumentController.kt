@@ -1,7 +1,6 @@
 package no.nav.sifinnsynapi.dokumentoversikt
 
 import jakarta.validation.constraints.Pattern
-import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.sifinnsynapi.Routes.DOKUMENT
 import no.nav.sifinnsynapi.config.Issuers
@@ -30,7 +29,6 @@ class DokumentController(
         "$DOKUMENT/{journalpostId}/{dokumentInfoId}/{variantFormat}",
         produces = [MediaType.APPLICATION_PDF_VALUE]
     )
-    @Protected
     @ResponseStatus(HttpStatus.OK)
     fun hentDokument(
         @PathVariable @Pattern(regexp = "\\d{9}", message = "[\${validatedValue}] matcher ikke tillatt pattern [{regexp}]") journalpostId: String,
