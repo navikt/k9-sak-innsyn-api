@@ -26,28 +26,51 @@ class TilgangskontrollService(
 ) {
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(TilgangskontrollService::class.java)
+        private val DRIFT_ACTIONS = setOf(
+            BeskyttetRessursActionAttributt.READ,
+            BeskyttetRessursActionAttributt.UPDATE,
+            BeskyttetRessursActionAttributt.CREATE,
+        )
     }
 
     fun krevLesetilgangTilSøkerOgPleietrengende(søkerAktørId: String, pleietrengendeAktørIder: Collection<String>) {
-        val aktørIder = (listOf(søkerAktørId) + pleietrengendeAktørIder)
-            .distinct()
-            .map { AktørId(it) }
+        krevTilgang(
+            aktørIder = listOf(søkerAktørId) + pleietrengendeAktørIder,
+            resourceType = ResourceType.FAGSAK,
+            action = BeskyttetRessursActionAttributt.READ,
+        )
+    }
 
+    fun krevDriftstilgangTilAktører(action: BeskyttetRessursActionAttributt, aktørIder: Collection<String>) {
+        require(action in DRIFT_ACTIONS) { "Ugyldig action for drift: $action" }
+        require(aktørIder.isNotEmpty()) { "Drifttilgang sjekk krever minst én aktør (på sak det gjelder)" }
+        krevTilgang(
+            aktørIder = aktørIder,
+            resourceType = ResourceType.DRIFT,
+            action = action,
+        )
+    }
+
+    private fun krevTilgang(
+        aktørIder: Collection<String>,
+        resourceType: ResourceType,
+        action: BeskyttetRessursActionAttributt,
+    ) {
         val beslutning = sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(
             PersonerOperasjonDto(
-                aktørIder,
+                aktørIder.distinct().map { AktørId(it) },
                 emptyList(),
-                OperasjonDto(ResourceType.FAGSAK, BeskyttetRessursActionAttributt.READ, emptySet()),
+                OperasjonDto(resourceType, action, emptySet()),
             )
         )
 
         if (!beslutning.harTilgang()) {
             // Årsakene logges ikke, fordi koder som kode 6 og egen ansatt sier noe om personene i saken.
             val tekniskFeil = ÅrsakIkkeTilgang.TEKNISK_FEIL in beslutning.årsakerForIkkeTilgang()
-            logger.info("Saksbehandler fikk ikke tilgang til søker. Teknisk feil: {}", tekniskFeil)
+            logger.info("Bruker fikk ikke tilgang til aktør. Ressurs: {}, action: {}, teknisk feil: {}", resourceType, action, tekniskFeil)
             throw ErrorResponseException(
                 HttpStatus.FORBIDDEN,
-                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Saksbehandler har ikke tilgang til søkeren"),
+                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Forespurt tilgang til person på sak ikke tillat"),
                 null,
             )
         }

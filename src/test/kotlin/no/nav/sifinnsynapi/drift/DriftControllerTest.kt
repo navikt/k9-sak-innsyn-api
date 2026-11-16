@@ -114,7 +114,7 @@ class DriftControllerTest {
         val forespørsel = slot<PersonerOperasjonDto>()
         verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
         assertThat(forespørsel.captured.aktørIder().map { it.aktørId }).isEqualTo(listOf("321", "654"))
-        assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.FAGSAK)
+        assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.DRIFT)
         assertThat(forespørsel.captured.operasjon().action()).isEqualTo(BeskyttetRessursActionAttributt.READ)
         verify(exactly = 1) { driftService.slåSammenSøknadsopplysningerPerBarn("321", listOf("654"), emptyList()) }
     }
@@ -151,7 +151,7 @@ class DriftControllerTest {
         .content("""{ "utgåttAktør": "1000000000001", "gyldigAktør": "1000000000002" }""")
 
     @Test
-    fun `aktørbytte sender gyldig og utgått aktør til sif-abac-pdp før oppdatering`() {
+    fun `aktørbytte sender gyldig og utgått aktør til sif-abac-pdp som drift-update før oppdatering`() {
         every { driftService.oppdaterAktørId("1000000000002", "1000000000001") } returns 1
 
         mockMvc.perform(aktørByttekall()).andExpect(status().isOk)
@@ -159,6 +159,8 @@ class DriftControllerTest {
         val forespørsel = slot<PersonerOperasjonDto>()
         verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
         assertThat(forespørsel.captured.aktørIder().map { it.aktørId }).isEqualTo(listOf("1000000000002", "1000000000001"))
+        assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.DRIFT)
+        assertThat(forespørsel.captured.operasjon().action()).isEqualTo(BeskyttetRessursActionAttributt.UPDATE)
         verify(exactly = 1) { driftService.oppdaterAktørId("1000000000002", "1000000000001") }
     }
 
@@ -181,10 +183,12 @@ class DriftControllerTest {
 
         verify(exactly = 0) { driftService.oppdaterAktørId(any(), any()) }
     }
+
+    // Driftsrollen avgjøres av sif-abac-pdp, så gruppen i tokenet brukes ikke lenger her.
     private fun driftToken() = mockOAuth2Server.issueToken(
         issuerId = Issuers.AZURE,
         audience = "aud-localhost",
-        claims = mapOf("NAVident" to "Z99481", "groups" to listOf("testdrift")),
+        claims = mapOf("NAVident" to "Z99481"),
     ).serialize()
 
     private companion object {
@@ -259,29 +263,6 @@ class DriftControllerTest {
             .andExpect(jsonPath("$[0].pleietrengendeAktørId").isString)
             .andExpect(jsonPath("$[0].søknad").isMap)
             .andExpect(jsonPath("$[0].søknad.søknadId").value(søknadId))
-    }
-
-    @Test
-    fun `token uten drift-gruppe gir 403 uten oppslag eller audit-logg`() {
-        val token = mockOAuth2Server.issueToken(
-            issuerId = Issuers.AZURE,
-            audience = "aud-localhost",
-            claims = mapOf("NAVident" to "Z99481", "groups" to listOf("annen-gruppe")),
-        ).serialize()
-
-        mockMvc.perform(
-            MockMvcRequestBuilders
-                .post(debugSøknaderEndepunkt)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .content(payload)
-        )
-            .andExpect(status().isForbidden)
-
-        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
-        verify(exactly = 0) { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) }
-        verify(exactly = 0) { auditlogger.logg(any()) }
     }
 
     @Test
