@@ -6,6 +6,7 @@ import no.nav.sif.abac.kontrakt.abac.ResourceType
 import no.nav.sif.abac.kontrakt.abac.dto.OperasjonDto
 import no.nav.sif.abac.kontrakt.abac.dto.PersonerOperasjonDto
 import no.nav.sif.abac.kontrakt.person.AktørId
+import no.nav.sif.abac.kontrakt.person.PersonIdent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -51,15 +52,29 @@ class TilgangskontrollService(
         )
     }
 
+    /**
+     * Som [krevDriftstilgangTilAktører], men med fødselsnummer. Da kan tilgangen sjekkes før vi slår opp aktørId.
+     */
+    fun krevDriftstilgangTilPersoner(action: BeskyttetRessursActionAttributt, personIdenter: Collection<String>) {
+        require(action in DRIFT_ACTIONS) { "Ugyldig action for drift: $action" }
+        require(personIdenter.isNotEmpty()) { "Drifttilgang sjekk krever minst én person (på sak det gjelder)" }
+        krevTilgang(
+            personIdenter = personIdenter,
+            resourceType = ResourceType.DRIFT,
+            action = action,
+        )
+    }
+
     private fun krevTilgang(
-        aktørIder: Collection<String>,
+        aktørIder: Collection<String> = emptyList(),
+        personIdenter: Collection<String> = emptyList(),
         resourceType: ResourceType,
         action: BeskyttetRessursActionAttributt,
     ) {
         val beslutning = sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(
             PersonerOperasjonDto(
                 aktørIder.distinct().map { AktørId(it) },
-                emptyList(),
+                personIdenter.distinct().map { PersonIdent(it) },
                 OperasjonDto(resourceType, action, emptySet()),
             )
         )

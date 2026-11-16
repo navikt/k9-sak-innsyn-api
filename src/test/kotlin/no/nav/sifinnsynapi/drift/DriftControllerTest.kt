@@ -106,38 +106,41 @@ class DriftControllerTest {
         .content(payload)
 
     @Test
-    fun `sif-abac-pdp og oppslaget får søker og bare pleietrengende fra forespørselen`() {
+    fun `sif-abac-pdp får fnr til søker og pleietrengende før oppslag, og oppslaget får bare pleietrengende fra forespørselen`() {
         gittIdenter()
 
         mockMvc.perform(debugKall()).andExpect(status().isOk)
 
         val forespørsel = slot<PersonerOperasjonDto>()
         verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
-        assertThat(forespørsel.captured.aktørIder().map { it.aktørId }).isEqualTo(listOf("321", "654"))
+        assertThat(forespørsel.captured.personIdenter().map { it.ident }).isEqualTo(listOf("123", "456"))
+        assertThat(forespørsel.captured.aktørIder().size).isEqualTo(0)
         assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.DRIFT)
         assertThat(forespørsel.captured.operasjon().action()).isEqualTo(BeskyttetRessursActionAttributt.READ)
         verify(exactly = 1) { driftService.slåSammenSøknadsopplysningerPerBarn("321", listOf("654"), emptyList()) }
     }
 
     @Test
-    fun `avslag fra sif-abac-pdp gir 403 uten audit-logg eller søknadsdata`() {
+    fun `avslag fra sif-abac-pdp gir 403 uten oppslag, audit-logg eller søknadsdata`() {
         gittIdenter()
         every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns
             Tilgangsbeslutning(false, setOf(ÅrsakIkkeTilgang.HAR_IKKE_TILGANG_TIL_KODE6_PERSON))
 
         mockMvc.perform(debugKall()).andExpect(status().isForbidden)
 
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
         verify(exactly = 0) { auditlogger.logg(any()) }
         verify(exactly = 0) { driftService.slåSammenSøknadsopplysningerPerBarn(any(), any(), any()) }
     }
 
     @Test
-    fun `feil mot sif-abac-pdp gir 500 uten audit-logg eller søknadsdata`() {
+    fun `feil mot sif-abac-pdp gir 500 uten oppslag, audit-logg eller søknadsdata`() {
         gittIdenter()
         every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } throws IllegalStateException("nede")
 
         mockMvc.perform(debugKall()).andExpect(status().isInternalServerError)
 
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
         verify(exactly = 0) { auditlogger.logg(any()) }
         verify(exactly = 0) { driftService.slåSammenSøknadsopplysningerPerBarn(any(), any(), any()) }
     }

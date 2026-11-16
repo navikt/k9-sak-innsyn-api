@@ -55,14 +55,14 @@ class DriftController(
             ?.jwtTokenClaims
             ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
+        // Sjekk at bruker har driftsrolle og tilgang til personer det søkes med.
+        tilgangskontrollService.krevDriftstilgangTilPersoner(
+            action = BeskyttetRessursActionAttributt.READ,
+            personIdenter = listOf(debugForespørsel.søkerNorskIdentitetsnummer) + debugForespørsel.pleietrengendeNorskIdentitetsnummer,
+        )
+
         val søkerAktørId = hentAktørId(debugForespørsel.søkerNorskIdentitetsnummer)
         val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }.distinct()
-
-        // sif-abac-pdp sjekker driftsrollen og personene (blant annet kode 6/7 og egen ansatt). Feil gir også avslag.
-        tilgangskontrollService.krevDriftstilgangTilAktører(
-            action = BeskyttetRessursActionAttributt.READ,
-            aktørIder = listOf(søkerAktørId) + pleietrengendeAktørIder,
-        )
 
         auditLogg(
             uri = "/debug$SØKNAD",
