@@ -83,8 +83,8 @@ class EndringsmeldingTilgangService(
             put("kan_bruke", resultat.kanBruke)
             resultat.årsaker.firstOrNull()?.let { put("forste_aarsak", it.kode) }
             // Følger hvor ofte frontend og backend svarer ulikt på SN-arbeidstid. Se snKunNormaltidUnderEttMinutt.
-            if (sakVurdering is SakVurdering.Tilgang) {
-                put("sn_kun_normaltid_under_ett_minutt", sakVurdering.sak.snKunNormaltidUnderEttMinutt)
+            if (sakVurdering is SakVurdering.Tilgang && sakVurdering.sak.snKunNormaltidUnderEttMinutt) {
+                put("sn_kun_normaltid_under_ett_minutt", true)
             }
         }
         logger.info("Vurderte tilgang til endringsmelding. {}", entries(felter))
