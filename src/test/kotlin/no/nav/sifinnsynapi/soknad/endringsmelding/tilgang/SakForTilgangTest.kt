@@ -104,6 +104,38 @@ class SakForTilgangTest {
     }
 
     @Test
+    fun `SN med normalarbeidstid under ett minutt gir SN-arbeidstid og flagges`() {
+        val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
+            arbeidstidInfo(Duration.ofSeconds(36), Duration.ofMillis(600))
+        )
+
+        val sak = innsynSøknad(defaultSøknad(arbeidstid = arbeidstid)).tilSakForTilgang()
+
+        assertTrue(sak.harArbeidstidSomSelvstendigNæringsdrivende)
+        assertTrue(sak.snKunNormaltidUnderEttMinutt)
+    }
+
+    @Test
+    fun `SN med minst én periode på ett minutt eller mer flagges ikke`() {
+        val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(
+            arbeidstidInfo(Duration.ofSeconds(36), Duration.ofMinutes(1))
+        )
+
+        val sak = innsynSøknad(defaultSøknad(arbeidstid = arbeidstid)).tilSakForTilgang()
+
+        assertFalse(sak.snKunNormaltidUnderEttMinutt)
+    }
+
+    @Test
+    fun `SN uten normalarbeidstid over null flagges ikke`() {
+        val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(arbeidstidInfo(Duration.ZERO))
+
+        val sak = innsynSøknad(defaultSøknad(arbeidstid = arbeidstid)).tilSakForTilgang()
+
+        assertFalse(sak.snKunNormaltidUnderEttMinutt)
+    }
+
+    @Test
     fun `SN uten perioder gir ikke SN-arbeidstid`() {
         val arbeidstid = Arbeidstid().medSelvstendigNæringsdrivendeArbeidstidInfo(ArbeidstidInfo())
 
@@ -156,12 +188,14 @@ class SakForTilgangTest {
         søknad = søknad,
     )
 
-    private fun arbeidstidInfo(jobberNormaltTimerPerDag: Duration) = ArbeidstidInfo().medPerioder(
-        mapOf(
-            Periode(LocalDate.parse("2024-01-01"), LocalDate.parse("2024-01-31")) to
+    /** Én periode per normaltid, på hver sin dag i januar 2024. */
+    private fun arbeidstidInfo(vararg jobberNormaltTimerPerDag: Duration) = ArbeidstidInfo().medPerioder(
+        jobberNormaltTimerPerDag.withIndex().associate { (index, normaltid) ->
+            val dag = LocalDate.parse("2024-01-01").plusDays(index.toLong())
+            Periode(dag, dag) to
                 ArbeidstidPeriodeInfo()
-                    .medJobberNormaltTimerPerDag(jobberNormaltTimerPerDag)
+                    .medJobberNormaltTimerPerDag(normaltid)
                     .medFaktiskArbeidTimerPerDag(Duration.ZERO)
-        )
+        }
     )
 }

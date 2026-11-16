@@ -62,7 +62,8 @@ class EndringsmeldingTilgangService(
         val endringsperiode = tillattEndringsperiode(LocalDate.now(clock))
         val saker = søknader.map { it.tilSakForTilgang() }
 
-        val resultat = when (val sakVurdering = vurderSaker(saker, endringsperiode)) {
+        val sakVurdering = vurderSaker(saker, endringsperiode)
+        val resultat = when (sakVurdering) {
             is SakVurdering.IngenTilgang -> TilgangResultat.ingenTilgang(listOf(sakVurdering.årsak))
             is SakVurdering.Tilgang -> {
                 val arbeidsgivere = hentArbeidsgivere(sakVurdering.oppslagsperiode).grupperPerArbeidsgiver()
@@ -81,6 +82,10 @@ class EndringsmeldingTilgangService(
             put("kalt_av", kaltAv)
             put("kan_bruke", resultat.kanBruke)
             resultat.årsaker.firstOrNull()?.let { put("forste_aarsak", it.kode) }
+            // Følger hvor ofte frontend og backend svarer ulikt på SN-arbeidstid. Se snKunNormaltidUnderEttMinutt.
+            if (sakVurdering is SakVurdering.Tilgang && sakVurdering.sak.snKunNormaltidUnderEttMinutt) {
+                put("sn_kun_normaltid_under_ett_minutt", true)
+            }
         }
         logger.info("Vurderte tilgang til endringsmelding. {}", entries(felter))
         return resultat
