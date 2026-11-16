@@ -3,7 +3,6 @@ package no.nav.sifinnsynapi.drift
 import jakarta.validation.Valid
 import no.nav.k9.felles.log.audit.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.sif.abac.kontrakt.abac.BeskyttetRessursActionAttributt
 import no.nav.sifinnsynapi.Routes.SØKNAD
@@ -28,9 +27,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @RestController
-@RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.AZURE)
-)
+@ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
 class DriftController(
     private val driftService: DriftService,
     private val auditlogger: Auditlogger,
@@ -92,7 +89,6 @@ class DriftController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
     fun oppdaterAktoerId(@Valid @RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
         val identTilInnloggetBruker: String = tokenValidationContextHolder
             .getTokenValidationContext()

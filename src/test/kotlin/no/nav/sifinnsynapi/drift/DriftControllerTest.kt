@@ -322,4 +322,24 @@ class DriftControllerTest {
             .andExpect(jsonPath("$.status").value(401))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/debug$SØKNAD", "/forvaltning/oppdaterAktoerId"])
+    fun `token uten NAVident gir 401 uten kall til sif-abac-pdp, oppslag eller audit-logg`(endepunkt: String) {
+        val token = mockOAuth2Server.issueToken(issuerId = Issuers.AZURE, audience = "aud-localhost").serialize()
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .post(endepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                //language=json
+                .content("""{ "søkerNorskIdentitetsnummer": "123", "pleietrengendeNorskIdentitetsnummer": ["456"], "utgåttAktør": "1000000000001", "gyldigAktør": "1000000000002" }""")
+        )
+            .andExpect(status().isUnauthorized)
+
+        verify(exactly = 0) { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) }
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
+    }
 }
