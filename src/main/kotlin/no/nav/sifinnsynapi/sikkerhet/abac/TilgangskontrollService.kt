@@ -85,7 +85,7 @@ class TilgangskontrollService(
             logger.info("Bruker fikk ikke tilgang til aktør. Ressurs: {}, action: {}, teknisk feil: {}", resourceType, action, tekniskFeil)
             throw ErrorResponseException(
                 HttpStatus.FORBIDDEN,
-                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Forespurt tilgang til person på sak ikke tillat"),
+                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Forespurt tilgang til person på sak er ikke tillatt"),
                 null,
             )
         }
