@@ -15,6 +15,11 @@ data class SakForTilgang(
     val harArbeidstidSomSelvstendigNæringsdrivende: Boolean,
     /** Uten barnets identitetsnummer kan endringen ikke sendes inn. */
     val barnHarIdentitetsnummer: Boolean,
+    /**
+     * Diagnostikk for logging. Brukes ikke i reglene. SN-arbeidstid finnes, men all normaltid er under ett minutt.
+     * Frontend ser bort fra sekunder og regner den som 0, så her svarer frontend og backend ulikt.
+     */
+    val snKunNormaltidUnderEttMinutt: Boolean = false,
 )
 
 /** En arbeidsgiver fra AA-reg med alle ansettelsesperiodene for samme orgnr samlet. */
@@ -26,6 +31,7 @@ data class ArbeidsgiverForTilgang(
 fun SøknadDTO.tilSakForTilgang(): SakForTilgang {
     val ytelse = søknad.getYtelse<PleiepengerSyktBarn>()
     val arbeidstid = ytelse.arbeidstid
+    val snArbeidstidInfo = arbeidstid?.selvstendigNæringsdrivendeArbeidstidInfo?.orElse(null)
 
     return SakForTilgang(
         søknadsperioder = ytelse.søknadsperiodeList.orEmpty().map {
@@ -39,15 +45,19 @@ fun SøknadDTO.tilSakForTilgang(): SakForTilgang {
             .filter { it.arbeidstidInfo.harNormalarbeidstid() }
             .mapNotNull { it.organisasjonsnummer?.verdi }
             .toSet(),
-        harArbeidstidSomSelvstendigNæringsdrivende = arbeidstid?.selvstendigNæringsdrivendeArbeidstidInfo
-            ?.orElse(null)
-            .harNormalarbeidstid(),
+        harArbeidstidSomSelvstendigNæringsdrivende = snArbeidstidInfo.harNormalarbeidstid(),
         barnHarIdentitetsnummer = !barn.identitetsnummer.isNullOrBlank(),
+        snKunNormaltidUnderEttMinutt = snArbeidstidInfo.harKunNormalarbeidstidUnderEttMinutt(),
     )
 }
 
-private fun ArbeidstidInfo?.harNormalarbeidstid(): Boolean =
-    this?.perioder.orEmpty().values.any { (it.jobberNormaltTimerPerDag ?: Duration.ZERO) > Duration.ZERO }
+private fun ArbeidstidInfo?.normaltider(): List<Duration> =
+    this?.perioder.orEmpty().values.map { it.jobberNormaltTimerPerDag ?: Duration.ZERO }
+
+private fun ArbeidstidInfo?.harNormalarbeidstid(): Boolean = normaltider().any { it > Duration.ZERO }
+
+private fun ArbeidstidInfo?.harKunNormalarbeidstidUnderEttMinutt(): Boolean =
+    harNormalarbeidstid() && normaltider().all { it < Duration.ofMinutes(1) }
 
 /** AA-reg gir én rad per ansettelsesperiode. Samler radene per orgnr. */
 fun List<OrganisasjonOppslagDTO>.grupperPerArbeidsgiver(): List<ArbeidsgiverForTilgang> =

@@ -1,6 +1,7 @@
 package no.nav.sifinnsynapi.soknad.endringsmelding.tilgang
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
 import no.nav.k9.felles.log.audit.Auditdata
@@ -54,6 +55,7 @@ class SaksbehandlingEndringsmeldingTilgangController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @Operation(operationId = "hentSaksbehandlingTilgang")
     fun hentTilgang(@Valid @RequestBody forespørsel: SaksbehandlingTilgangForespørsel): ResponseEntity<SaksbehandlingTilgangResultat> {
         if (!authorizationService.kallErFraK9Sak()) {
             val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
