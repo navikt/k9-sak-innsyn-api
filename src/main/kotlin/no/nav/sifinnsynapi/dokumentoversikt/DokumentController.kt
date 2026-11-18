@@ -7,12 +7,14 @@ import no.nav.sifinnsynapi.config.Issuers
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
+import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.nio.charset.StandardCharsets.UTF_8
 
 @RestController
 @ProtectedWithClaims(issuer = Issuers.TOKEN_X, claimMap = ["acr=Level4", "acr=idporten-loa-high"], combineWithOr = true)
@@ -34,7 +36,7 @@ class DokumentController(
         @PathVariable @Pattern(regexp = "\\d{9}", message = "[\${validatedValue}] matcher ikke tillatt pattern [{regexp}]") journalpostId: String,
         @PathVariable @Pattern(regexp = "\\d{9}", message = "[\${validatedValue}] matcher ikke tillatt pattern [{regexp}]") dokumentInfoId: String,
         @PathVariable @Pattern(regexp = "ARKIV", message = "[\${validatedValue}] matcher ikke tillatt pattern [{regexp}]") variantFormat: String,
-        @RequestParam dokumentTittel: String,
+        @RequestParam @Pattern(regexp = "[^\\p{Cc}]*", message = "Kontrolltegn er ikke tillatt") dokumentTittel: String,
     ): ResponseEntity<Resource> {
         logger.info("Henter dokument for journalpostId: {}", journalpostId)
 
@@ -44,7 +46,7 @@ class DokumentController(
         val formatertFilnavn = filnavn(dokumentTittel)
 
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$formatertFilnavn")
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename(formatertFilnavn, UTF_8).build().toString())
             .contentLength(resource.byteArray.size.toLong())
             .body(resource)
     }
