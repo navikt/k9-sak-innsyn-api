@@ -49,7 +49,7 @@ class SøknadController(
     @ResponseStatus(OK)
     fun lastNedArbeidsgivermelding(
         @PathVariable søknadId: UUID,
-        @RequestParam @Pattern(regexp = "[0-9]+", message = "Organisasjonsnummer må kun inneholde sifrene 0-9") organisasjonsnummer: String
+        @RequestParam @Pattern(regexp = "[0-9]{9}", message = "Organisasjonsnummer må inneholde nøyaktig 9 sifre fra 0-9") organisasjonsnummer: String
     ): ResponseEntity<Resource> {
         val resource = ByteArrayResource(innsendingService.hentArbeidsgiverMeldingFil(søknadId, organisasjonsnummer))
 

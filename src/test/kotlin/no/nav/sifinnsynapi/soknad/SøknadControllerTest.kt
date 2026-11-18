@@ -217,7 +217,7 @@ class SøknadControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["0", "0123456789", "12345678"])
+    @ValueSource(strings = ["012345678", "123456789", "000000000"])
     fun `forvent generert filnavn for numerisk organisasjonsnummer`(organisasjonsnummer: String) {
         every {
             innsendingService.hentArbeidsgiverMeldingFil(any(), any())
@@ -243,11 +243,11 @@ class SøknadControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = [
-        "", " ", "1234567a", "1234 5678", "12345678 ", "1234567\u0668", "\uFF11\uFF12\uFF13",
+        "", "0", "12345678", "0123456789", " ", "12345678a", "1234 5678", "12345678 ", "12345678\u0669", "\uFF11\uFF12\uFF13\uFF14\uFF15\uFF16\uFF17\uFF18\uFF19",
         "12345678; injected=value", "12345678\"; filename=\"injected", "12345678\\\"", "12345678; filename*=UTF-8''injected",
         "12345678\r\nX-Injected: true", "12345678\r", "12345678\n", "12345678\u0000", "12345678\t", "12345678\u007f", "12345678\u0085",
     ])
-    fun `avviser organisasjonsnummer utenfor sifrene 0-9 før arbeidsgivermelding hentes`(organisasjonsnummer: String) {
+    fun `avviser organisasjonsnummer uten nøyaktig 9 sifre fra 0-9 før arbeidsgivermelding hentes`(organisasjonsnummer: String) {
         mockMvc.perform(
             MockMvcRequestBuilders
                 .get("$SØKNAD/${UUID.randomUUID()}/arbeidsgivermelding")
