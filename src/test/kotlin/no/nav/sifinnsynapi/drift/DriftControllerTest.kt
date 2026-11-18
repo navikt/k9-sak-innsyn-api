@@ -4,10 +4,16 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.slot
 import io.mockk.verify
+import no.nav.k9.felles.sikkerhet.abac.ÅrsakIkkeTilgang
 import no.nav.k9.søknad.Søknad
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import no.nav.sif.abac.kontrakt.abac.BeskyttetRessursActionAttributt
+import no.nav.sif.abac.kontrakt.abac.ResourceType
+import no.nav.sif.abac.kontrakt.abac.dto.PersonerOperasjonDto
+import no.nav.sif.abac.kontrakt.abac.resultat.Tilgangsbeslutning
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
@@ -16,13 +22,15 @@ import no.nav.sifinnsynapi.oppslag.HentIdenterRespons
 import no.nav.sifinnsynapi.oppslag.Ident
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.sikkerhet.AuthorizationConfig
+import no.nav.sifinnsynapi.sikkerhet.abac.SifAbacPdpService
+import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
@@ -46,7 +54,7 @@ import java.util.*
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @EnableMockOAuth2Server // Tilgjengliggjør en oicd-provider for test.
-@Import(CallIdGenerator::class, SecurityConfiguration::class, AuthorizationConfig::class)
+@Import(CallIdGenerator::class, SecurityConfiguration::class, TilgangskontrollService::class)
 @WebMvcTest(controllers = [DriftController::class])
 @ActiveProfiles("test")
 class DriftControllerTest {
@@ -70,16 +78,119 @@ class DriftControllerTest {
     @MockkBean(relaxed = true)
     lateinit var oppslagsService: OppslagsService
 
+    @MockkBean
+    lateinit var sifAbacPdpService: SifAbacPdpService
+
     @BeforeAll
     internal fun setUp() {
         assertNotNull(mockOAuth2Server)
     }
 
-    // "testdrift" er drift-gruppen i application-test.yml
+    @BeforeEach
+    fun gittTilgangFraPdp() {
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns Tilgangsbeslutning(true, emptySet())
+    }
+
+    private fun gittIdenter() {
+        every { oppslagsService.hentIdenter(any()) }
+            .returns(listOf(HentIdenterRespons(ident = "123", identer = listOf(Ident("321", IdentGruppe.AKTORID)))))
+            .andThen(listOf(HentIdenterRespons(ident = "456", identer = listOf(Ident("654", IdentGruppe.AKTORID)))))
+    }
+
+    private fun debugKall() = MockMvcRequestBuilders
+        .post(debugSøknaderEndepunkt)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer ${driftToken()}")
+        .content(payload)
+
+    @Test
+    fun `sif-abac-pdp får fnr til søker og pleietrengende før oppslag, og oppslaget får bare pleietrengende fra forespørselen`() {
+        gittIdenter()
+
+        mockMvc.perform(debugKall()).andExpect(status().isOk)
+
+        val forespørsel = slot<PersonerOperasjonDto>()
+        verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
+        assertThat(forespørsel.captured.personIdenter().map { it.ident }).isEqualTo(listOf("123", "456"))
+        assertThat(forespørsel.captured.aktørIder().size).isEqualTo(0)
+        assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.DRIFT)
+        assertThat(forespørsel.captured.operasjon().action()).isEqualTo(BeskyttetRessursActionAttributt.READ)
+        verify(exactly = 1) { driftService.slåSammenSøknadsopplysningerPerBarn("321", listOf("654"), emptyList()) }
+    }
+
+    @Test
+    fun `avslag fra sif-abac-pdp gir 403 uten oppslag, audit-logg eller søknadsdata`() {
+        gittIdenter()
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns
+            Tilgangsbeslutning(false, setOf(ÅrsakIkkeTilgang.HAR_IKKE_TILGANG_TIL_KODE6_PERSON))
+
+        mockMvc.perform(debugKall()).andExpect(status().isForbidden)
+
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
+        verify(exactly = 0) { driftService.slåSammenSøknadsopplysningerPerBarn(any(), any(), any()) }
+    }
+
+    @Test
+    fun `feil mot sif-abac-pdp gir 500 uten oppslag, audit-logg eller søknadsdata`() {
+        gittIdenter()
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } throws IllegalStateException("nede")
+
+        mockMvc.perform(debugKall()).andExpect(status().isInternalServerError)
+
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
+        verify(exactly = 0) { driftService.slåSammenSøknadsopplysningerPerBarn(any(), any(), any()) }
+    }
+
+    private fun aktørByttekall() = MockMvcRequestBuilders
+        .post("/forvaltning/oppdaterAktoerId")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer ${driftToken()}")
+        //language=json
+        .content("""{ "utgåttAktør": "1000000000001", "gyldigAktør": "1000000000002" }""")
+
+    @Test
+    fun `aktørbytte sender gyldig og utgått aktør til sif-abac-pdp som drift-update før oppdatering`() {
+        every { driftService.oppdaterAktørId("1000000000002", "1000000000001") } returns 1
+
+        mockMvc.perform(aktørByttekall()).andExpect(status().isOk)
+
+        val forespørsel = slot<PersonerOperasjonDto>()
+        verify { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(capture(forespørsel)) }
+        assertThat(forespørsel.captured.aktørIder().map { it.aktørId }).isEqualTo(listOf("1000000000002", "1000000000001"))
+        assertThat(forespørsel.captured.operasjon().resource()).isEqualTo(ResourceType.DRIFT)
+        assertThat(forespørsel.captured.operasjon().action()).isEqualTo(BeskyttetRessursActionAttributt.UPDATE)
+        verify(exactly = 1) { driftService.oppdaterAktørId("1000000000002", "1000000000001") }
+    }
+
+    @Test
+    fun `aktørbytte med avslag fra sif-abac-pdp gir 403 uten oppdatering eller audit-logg`() {
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } returns
+            Tilgangsbeslutning(false, setOf(ÅrsakIkkeTilgang.HAR_IKKE_TILGANG_TIL_KODE6_PERSON))
+
+        mockMvc.perform(aktørByttekall()).andExpect(status().isForbidden)
+
+        verify(exactly = 0) { driftService.oppdaterAktørId(any(), any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
+    }
+
+    @Test
+    fun `aktørbytte med feil mot sif-abac-pdp gir 500 uten oppdatering`() {
+        every { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) } throws IllegalStateException("nede")
+
+        mockMvc.perform(aktørByttekall()).andExpect(status().isInternalServerError)
+
+        verify(exactly = 0) { driftService.oppdaterAktørId(any(), any()) }
+    }
+
+    // Driftsrollen avgjøres av sif-abac-pdp, så gruppen i tokenet brukes ikke lenger her.
     private fun driftToken() = mockOAuth2Server.issueToken(
         issuerId = Issuers.AZURE,
         audience = "aud-localhost",
-        claims = mapOf("NAVident" to "Z99481", "groups" to listOf("testdrift")),
+        claims = mapOf("NAVident" to "Z99481"),
     ).serialize()
 
     private companion object {
@@ -157,28 +268,6 @@ class DriftControllerTest {
     }
 
     @Test
-    fun `token uten drift-gruppe gir 403 uten oppslag eller audit-logg`() {
-        val token = mockOAuth2Server.issueToken(
-            issuerId = Issuers.AZURE,
-            audience = "aud-localhost",
-            claims = mapOf("NAVident" to "Z99481", "groups" to listOf("annen-gruppe")),
-        ).serialize()
-
-        mockMvc.perform(
-            MockMvcRequestBuilders
-                .post(debugSøknaderEndepunkt)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .content(payload)
-        )
-            .andExpect(status().isForbidden)
-
-        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
-        verify(exactly = 0) { auditlogger.logg(any()) }
-    }
-
-    @Test
     fun `gitt request uten token, forevnt 401`() {
         mockMvc.perform(
             MockMvcRequestBuilders
@@ -232,5 +321,25 @@ class DriftControllerTest {
             .andExpect(jsonPath("$.title").value("Ikke autentisert"))
             .andExpect(jsonPath("$.status").value(401))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/debug$SØKNAD", "/forvaltning/oppdaterAktoerId"])
+    fun `token uten NAVident gir 401 uten kall til sif-abac-pdp, oppslag eller audit-logg`(endepunkt: String) {
+        val token = mockOAuth2Server.issueToken(issuerId = Issuers.AZURE, audience = "aud-localhost").serialize()
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .post(endepunkt)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                //language=json
+                .content("""{ "søkerNorskIdentitetsnummer": "123", "pleietrengendeNorskIdentitetsnummer": ["456"], "utgåttAktør": "1000000000001", "gyldigAktør": "1000000000002" }""")
+        )
+            .andExpect(status().isUnauthorized)
+
+        verify(exactly = 0) { sifAbacPdpService.sjekkTilgangTilPersonerForInnloggetBruker(any()) }
+        verify(exactly = 0) { oppslagsService.hentIdenter(any()) }
+        verify(exactly = 0) { auditlogger.logg(any()) }
     }
 }

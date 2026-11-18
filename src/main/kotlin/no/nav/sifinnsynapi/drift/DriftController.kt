@@ -3,8 +3,8 @@ package no.nav.sifinnsynapi.drift
 import jakarta.validation.Valid
 import no.nav.k9.felles.log.audit.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.security.token.support.core.api.RequiredIssuers
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
+import no.nav.sif.abac.kontrakt.abac.BeskyttetRessursActionAttributt
 import no.nav.sifinnsynapi.Routes.SØKNAD
 import no.nav.sifinnsynapi.audit.Auditlogger
 import no.nav.sifinnsynapi.config.Issuers
@@ -13,15 +13,12 @@ import no.nav.sifinnsynapi.forvaltning.AktørBytteRespons
 import no.nav.sifinnsynapi.oppslag.HentIdenterForespørsel
 import no.nav.sifinnsynapi.oppslag.IdentGruppe
 import no.nav.sifinnsynapi.oppslag.OppslagsService
-import no.nav.sifinnsynapi.sikkerhet.AuthorizationService
+import no.nav.sifinnsynapi.sikkerhet.abac.TilgangskontrollService
 import no.nav.sifinnsynapi.soknad.DebugDTO
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.MediaType
-import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
-import org.springframework.web.ErrorResponseException
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -30,16 +27,13 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @RestController
-@RequiredIssuers(
-    ProtectedWithClaims(issuer = Issuers.AZURE)
-)
+@ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
 class DriftController(
     private val driftService: DriftService,
     private val auditlogger: Auditlogger,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
     private val oppslagsService: OppslagsService,
-    private val authorizationService: AuthorizationService
-
+    private val tilgangskontrollService: TilgangskontrollService,
 ) {
     companion object {
         val logger = LoggerFactory.getLogger(DriftController::class.java)
@@ -52,20 +46,16 @@ class DriftController(
     )
     @ResponseStatus(OK)
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
-        if (!authorizationService.harTilgangTilDriftRolle()) {
-            val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
-            problemDetail.detail = "Mangler driftsrolle"
-            throw ErrorResponseException(HttpStatus.FORBIDDEN, problemDetail, null)
-        }
+        val identTilInnloggetBruker = hentNavIdentTilInnloggetBruker()
 
-        val identTilInnloggetBruker: String = tokenValidationContextHolder
-            .getTokenValidationContext()
-            .firstValidToken
-            ?.jwtTokenClaims
-            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+        // Sjekk at bruker har driftsrolle og tilgang til personer det søkes med.
+        tilgangskontrollService.krevDriftstilgangTilPersoner(
+            action = BeskyttetRessursActionAttributt.READ,
+            personIdenter = listOf(debugForespørsel.søkerNorskIdentitetsnummer) + debugForespørsel.pleietrengendeNorskIdentitetsnummer,
+        )
 
         val søkerAktørId = hentAktørId(debugForespørsel.søkerNorskIdentitetsnummer)
-        val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }
+        val pleietrengendeAktørIder = debugForespørsel.pleietrengendeNorskIdentitetsnummer.map { hentAktørId(it) }.distinct()
 
         auditLogg(
             uri = "/debug$SØKNAD",
@@ -95,19 +85,14 @@ class DriftController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ProtectedWithClaims(issuer = Issuers.AZURE, claimMap = ["NAVident=*"])
     fun oppdaterAktoerId(@Valid @RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
-        if (!authorizationService.harTilgangTilDriftRolle()) {
-            val problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN)
-            problemDetail.detail = "Mangler driftsrolle"
-            throw ErrorResponseException(HttpStatus.FORBIDDEN, problemDetail, null)
-        }
+        val identTilInnloggetBruker = hentNavIdentTilInnloggetBruker()
 
-        val identTilInnloggetBruker: String = tokenValidationContextHolder
-            .getTokenValidationContext()
-            .firstValidToken
-            ?.jwtTokenClaims
-            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+        // Begge aktørene sjekkes, så et bytte ikke kan flytte data fra eller til en person saksbehandleren ikke har tilgang til.
+        tilgangskontrollService.krevDriftstilgangTilAktører(
+            action = BeskyttetRessursActionAttributt.UPDATE,
+            aktørIder = listOf(aktørBytteRequest.gyldigAktør, aktørBytteRequest.utgåttAktør),
+        )
 
         val antallOppdaterte = driftService.oppdaterAktørId(
             aktørBytteRequest.gyldigAktør,
@@ -135,6 +120,12 @@ class DriftController(
             )
         ).first().identer.first().ident
     }
+
+    private fun hentNavIdentTilInnloggetBruker(): String = tokenValidationContextHolder
+        .getTokenValidationContext()
+        .firstValidToken
+        ?.jwtTokenClaims
+        ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
     private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String, eventClassId: EventClassId) {
         auditlogger.logg(
