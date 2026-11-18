@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.dokumentoversikt
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import no.nav.sifinnsynapi.Routes
@@ -10,10 +11,14 @@ import no.nav.sifinnsynapi.config.SecurityConfiguration
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -28,7 +33,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.net.URI
 
 @ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -74,10 +78,58 @@ internal class DokumentControllerTest {
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.header().exists(HttpHeaders.CONTENT_DISPOSITION))
-            .andExpect(
-                MockMvcResultMatchers.header()
-                    .string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$forventetFilnavn")
-            )
+            .andExpect { result ->
+                val disposition = ContentDisposition.parse(result.response.getHeader(HttpHeaders.CONTENT_DISPOSITION)!!)
+                assertEquals("inline", disposition.type)
+                assertEquals(forventetFilnavn, disposition.filename)
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "rapport; injected=value.pdf",
+        "rapport\"; filename=\"injected.pdf",
+        "rapport; filename*=UTF-8''injected%2Epdf",
+        "rapport\\\".pdf",
+        "Søknad med blåbær.pdf",
+    ])
+    fun `dokumenttittel behandles som filnavn og ikke headerparametere`(tittel: String) {
+        every { dokumentService.hentDokument(any(), any(), any()) } returns ArkivertDokument(
+            body = "pdf".toByteArray(),
+            contentType = "application/pdf",
+            contentDisposition = ContentDisposition.parse("inline; filename=dokument.pdf")
+        )
+
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get("${Routes.DOKUMENT}/123456789/987654321/ARKIV")
+                .queryParam("dokumentTittel", tittel)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
+        )
+            .andExpect(status().isOk)
+            .andExpect { result ->
+                val header = result.response.getHeader(HttpHeaders.CONTENT_DISPOSITION)!!
+                val disposition = ContentDisposition.parse(header)
+                assertEquals("inline", disposition.type)
+                assertEquals(tittel, disposition.filename)
+                assertTrue(header.all { it.code in 32..126 })
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["rapport\r\nX-Injected: true.pdf", "rapport\r.pdf", "rapport\n.pdf", "rapport\u0000.pdf", "rapport\t.pdf", "rapport\u007f.pdf", "rapport\u0085.pdf"])
+    fun `avviser kontrolltegn i dokumenttittel før dokument hentes`(tittel: String) {
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get("${Routes.DOKUMENT}/123456789/987654321/ARKIV")
+                .queryParam("dokumentTittel", tittel)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.header().doesNotExist(HttpHeaders.CONTENT_DISPOSITION))
+            .andExpect(MockMvcResultMatchers.header().doesNotExist("X-Injected"))
+
+        verify(exactly = 0) { dokumentService.hentDokument(any(), any(), any()) }
     }
 
     @Test

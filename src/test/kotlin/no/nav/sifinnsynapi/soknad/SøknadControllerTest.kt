@@ -2,6 +2,7 @@ package no.nav.sifinnsynapi.soknad
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.k9.søknad.Søknad
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -14,6 +15,7 @@ import no.nav.sifinnsynapi.oppslag.BarnOppslagDTO
 import no.nav.sifinnsynapi.util.CallIdGenerator
 import no.nav.sifinnsynapi.utils.hentToken
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
+import org.springframework.http.ContentDisposition
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -213,23 +216,48 @@ class SøknadControllerTest {
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
     }
 
-    @Test
-    fun `forvent generert filnavn med mellomrom`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["012345678", "123456789", "000000000"])
+    fun `forvent generert filnavn for numerisk organisasjonsnummer`(organisasjonsnummer: String) {
         every {
             innsendingService.hentArbeidsgiverMeldingFil(any(), any())
         } returns "some byteArray".toByteArray()
 
-        val forventetFilnavn = "Bekreftelse_til_arbeidsgiver_12345678.pdf"
+        val forventetFilnavn = "Bekreftelse_til_arbeidsgiver_$organisasjonsnummer.pdf"
         mockMvc.perform(
             MockMvcRequestBuilders
                 .get(URI(URLDecoder.decode("$SØKNAD/${UUID.randomUUID()}/arbeidsgivermelding", Charset.defaultCharset())))
-                .queryParam("organisasjonsnummer", "12345678")
+                .queryParam("organisasjonsnummer", organisasjonsnummer)
                 .accept(MediaType.APPLICATION_PDF_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
         )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
-            .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$forventetFilnavn"))
+            .andExpect { result ->
+                val disposition = ContentDisposition.parse(result.response.getHeader(HttpHeaders.CONTENT_DISPOSITION)!!)
+                assertEquals("inline", disposition.type)
+                assertEquals(forventetFilnavn, disposition.filename)
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "", "0", "12345678", "0123456789", " ", "12345678a", "1234 5678", "12345678 ", "12345678\u0669", "\uFF11\uFF12\uFF13\uFF14\uFF15\uFF16\uFF17\uFF18\uFF19",
+        "12345678; injected=value", "12345678\"; filename=\"injected", "12345678\\\"", "12345678; filename*=UTF-8''injected",
+        "12345678\r\nX-Injected: true", "12345678\r", "12345678\n", "12345678\u0000", "12345678\t", "12345678\u007f", "12345678\u0085",
+    ])
+    fun `avviser organisasjonsnummer uten nøyaktig 9 sifre fra 0-9 før arbeidsgivermelding hentes`(organisasjonsnummer: String) {
+        mockMvc.perform(
+            MockMvcRequestBuilders
+                .get("$SØKNAD/${UUID.randomUUID()}/arbeidsgivermelding")
+                .queryParam("organisasjonsnummer", organisasjonsnummer)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${mockOAuth2Server.hentToken().serialize()}")
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(header().doesNotExist(HttpHeaders.CONTENT_DISPOSITION))
+            .andExpect(header().doesNotExist("X-Injected"))
+
+        verify(exactly = 0) { innsendingService.hentArbeidsgiverMeldingFil(any(), any()) }
     }
 }
