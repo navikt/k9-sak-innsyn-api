@@ -46,11 +46,7 @@ class DriftController(
     )
     @ResponseStatus(OK)
     fun debugSøknader(@RequestBody debugForespørsel: DebugSøknadForespørsel): List<DebugDTO> {
-        val identTilInnloggetBruker: String = tokenValidationContextHolder
-            .getTokenValidationContext()
-            .firstValidToken
-            ?.jwtTokenClaims
-            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+        val identTilInnloggetBruker = hentNavIdentTilInnloggetBruker()
 
         // Sjekk at bruker har driftsrolle og tilgang til personer det søkes med.
         tilgangskontrollService.krevDriftstilgangTilPersoner(
@@ -90,11 +86,7 @@ class DriftController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun oppdaterAktoerId(@Valid @RequestBody aktørBytteRequest: AktørBytteRequest): ResponseEntity<AktørBytteRespons> {
-        val identTilInnloggetBruker: String = tokenValidationContextHolder
-            .getTokenValidationContext()
-            .firstValidToken
-            ?.jwtTokenClaims
-            ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
+        val identTilInnloggetBruker = hentNavIdentTilInnloggetBruker()
 
         // Begge aktørene sjekkes, så et bytte ikke kan flytte data fra eller til en person saksbehandleren ikke har tilgang til.
         tilgangskontrollService.krevDriftstilgangTilAktører(
@@ -128,6 +120,12 @@ class DriftController(
             )
         ).first().identer.first().ident
     }
+
+    private fun hentNavIdentTilInnloggetBruker(): String = tokenValidationContextHolder
+        .getTokenValidationContext()
+        .firstValidToken
+        ?.jwtTokenClaims
+        ?.getStringClaim("NAVident") ?: throw IllegalStateException("Mangler NAVident")
 
     private fun auditLogg(uri: String, innloggetIdent: String, berørtBrukerIdent: String, eventClassId: EventClassId) {
         auditlogger.logg(

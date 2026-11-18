@@ -149,7 +149,7 @@ class AuthorizationTests {
         "GET /k9sak/opplaringsinstitusjoner" to tokenXMedHøyttSikkerhetsnivå,
         "GET /k9sak/opplaringsinstitusjoner/aktive" to tokenXMedHøyttSikkerhetsnivå,
         "POST /saksbehandling/psb/endringsmelding/tilgang" to azureMedNavIdent,
-        "POST /debug/soknad" to azure,
+        "POST /debug/soknad" to azureMedNavIdent,
         "POST /forvaltning/oppdaterAktoerId" to azureMedNavIdent,
     )
 
